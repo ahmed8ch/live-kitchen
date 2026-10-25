@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>مخبز السنبلة · عيش وحلويات طازة كل يوم</title>
+  
+  <!-- خط عربي حديث وأنيق -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- مكتبة Supabase الرسمية للويب -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root {
+      --primary: #c26928;
+      --primary-dark: #9e4e16;
+      --primary-light: #fef4ec;
+      --bg: #faf7f2;
+      --surface: #ffffff;
+      --text: #2c2523;
+      --text-muted: #6b635f;
+      --line: #ede4dc;
+      --success: #15803d;
+      --success-bg: #dcfce7;
+      --error: #b91c1c;
+      --error-bg: #fee2e2;
+      --radius: 16px;
+      --shadow: 0 4px 20px -2px rgba(44, 37, 35, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Readex Pro', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      padding-bottom: 60px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    /* الهيدر وقسم الترحيب */
+    header {
+      background: linear-gradient(180deg, #f7ede2 0%, var(--bg) 100%);
+      padding: 50px 0 35px;
+      text-align: center;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .badge {
+      display: inline-block;
+      background: var(--primary-light);
+      color: var(--primary-dark);
+      padding: 4px 14px;
+      border-radius: 50px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      margin-bottom: 14px;
+      border: 1px solid rgba(194, 105, 40, 0.2);
+    }
+
+    h1 {
+      font-size: 2.3rem;
+      font-weight: 700;
+      color: var(--primary-dark);
+      margin-bottom: 12px;
+      line-height: 1.25;
+    }
+
+    .tagline {
+      font-size: 1.18rem;
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: 16px;
+    }
+
+    .about-text {
+      color: var(--text-muted);
+      font-size: 0.98rem;
+      max-width: 520px;
+      margin: 0 auto;
+    }
+
+    /* الكروت والأقسام */
+    .section-card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 28px 24px;
+      margin-top: 28px;
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+    }
+
+    .section-title {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--primary-dark);
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 2px solid var(--primary-light);
+      padding-bottom: 10px;
+    }
+
+    /* جدول وقائمة الأسعار */
+    .pricing-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+
+    .pricing-table th {
+      text-align: right;
+      padding: 12px;
+      background: var(--primary-light);
+      color: var(--primary-dark);
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
+    .pricing-table th:first-child {
+      border-top-right-radius: 8px;
+      border-bottom-right-radius: 8px;
+    }
+
+    .pricing-table th:last-child {
+      border-top-left-radius: 8px;
+      border-bottom-left-radius: 8px;
+    }
+
+    .pricing-table td {
+      padding: 14px 12px;
+      border-bottom: 1px solid var(--line);
+      font-size: 0.98rem;
+    }
+
+    .pricing-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .price-tag {
+      font-weight: 700;
+      color: var(--primary-dark);
+      white-space: nowrap;
+    }
+
+    /* المواعيد والعنوان */
+    .info-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .info-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 14px;
+      background: var(--bg);
+      border-radius: 10px;
+      font-size: 0.95rem;
+    }
+
+    .info-item .label {
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .info-item .value {
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    /* تنويهات وتفاصيل التوصيل */
+    .notice-box {
+      background: #fdfaf5;
+      border-right: 4px solid var(--primary);
+      padding: 14px 16px;
+      border-radius: 8px;
+      margin-top: 16px;
+      font-size: 0.92rem;
+      color: var(--text-muted);
+    }
+
+    .notice-box ul {
+      margin-right: 20px;
+      margin-top: 6px;
+    }
+
+    /* أزرار الاتصال السريع */
+    .cta-buttons {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 22px;
+      border-radius: 12px;
+      font-size: 0.98rem;
+      font-weight: 600;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: inherit;
+    }
+
+    .btn-whatsapp {
+      background-color: #25d366;
+      color: #ffffff;
+      flex: 1;
+      min-width: 180px;
+    }
+
+    .btn-whatsapp:hover {
+      background-color: #1ebc59;
+    }
+
+    .btn-primary {
+      background-color: var(--primary);
+      color: #ffffff;
+      flex: 1;
+      min-width: 180px;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--primary-dark);
+    }
+
+    /* فورم التواصل (Supabase) */
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid var(--line);
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 0.95rem;
+      background: #fafafa;
+      transition: border-color 0.2s;
+    }
+
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      background: #ffffff;
+    }
+
+    .status-alert {
+      padding: 14px 16px;
+      border-radius: 10px;
+      margin-top: 18px;
+      display: none;
+      font-size: 0.95rem;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    .status-alert.success {
+      display: block;
+      background-color: var(--success-bg);
+      color: var(--success);
+      border: 1px solid #bbf7d0;
+    }
+
+    .status-alert.error {
+      display: block;
+      background-color: var(--error-bg);
+      color: var(--error);
+      border: 1px solid #fecaca;
+    }
+
+    .config-banner {
+      background-color: #fffbeb;
+      border: 1px dashed #d97706;
+      color: #92400e;
+      padding: 12px 16px;
+      border-radius: 10px;
+      margin-bottom: 18px;
+      font-size: 0.88rem;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 40px;
+      color: var(--text-muted);
+      font-size: 0.88rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- الهيدر والتعريف -->
+  <header>
+    <div class="container">
+      <span class="badge">🥖 مخبز عيلة صغير</span>
+      <h1>مخبز السنبلة</h1>
+      <p class="tagline">«عيش وحلويات طازة كل يوم، من فرننا لبيتك.»</p>
+      <p class="about-text">بنخبز كل يوم الصبح بدري، ومفيش حاجة عندنا بايتة أبداً.</p>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <!-- قائمة المنتجات والأسعار -->
+    <section class="section-card">
+      <h2 class="section-title">🥐 المنيو والأسعار</h2>
+      <table class="pricing-table">
+        <thead>
+          <tr>
+            <th>المنتج</th>
+            <th>الوحدة</th>
+            <th>السعر</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>عيش فينو</td>
+            <td>5 أرغفة</td>
+            <td class="price-tag">15 جنيه</td>
+          </tr>
+          <tr>
+            <td>عيش بلدي مخصوص</td>
+            <td>5 أرغفة</td>
+            <td class="price-tag">10 جنيه</td>
+          </tr>
+          <tr>
+            <td>كرواسون سادة</td>
+            <td>القطعة</td>
+            <td class="price-tag">20 جنيه</td>
+          </tr>
+          <tr>
+            <td>كرواسون شوكولاتة</td>
+            <td>القطعة</td>
+            <td class="price-tag">28 جنيه</td>
+          </tr>
+          <tr>
+            <td>بسبوسة</td>
+            <td>الكيلو</td>
+            <td class="price-tag">160 جنيه</td>
+          </tr>
+          <tr>
+            <td>تورتة عيد ميلاد</td>
+            <td>حسب الطلب</td>
+            <td class="price-tag">من 450 جنيه <small style="display:block; font-weight:normal; color:var(--text-muted);">(حجز قبلها بيومين)</small></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- المواعيد والتوصيل -->
+    <section class="section-card">
+      <h2 class="section-title">⏰ مواعيد العمل والعنوان</h2>
+      <ul class="info-list">
+        <li class="info-item">
+          <span class="label">السبت إلى الخميس:</span>
+          <span class="value">7:00 ص – 11:00 م</span>
+        </li>
+        <li class="info-item">
+          <span class="label">الجمعة:</span>
+          <span class="value">2:00 ظ – 11:00 م</span>
+        </li>
+        <li class="info-item">
+          <span class="label">العنوان:</span>
+          <span class="value">12 شارع النخيل، بجوار الصيدلية</span>
+        </li>
+        <li class="info-item">
+          <span class="label">الهاتف:</span>
+          <span class="value" dir="ltr">0100 000 0000</span>
+        </li>
+      </ul>
+
+      <div class="notice-box">
+        <strong>معلومات هامة:</strong>
+        <ul>
+          <li>🛵 خدمة التوصيل متاحة في حدود 3 كم، والحد الأدنى للطلب 100 جنيه.</li>
+          <li>💵 الدفع كاش أو إنستاباي عند الاستلام (لا يوجد دفع أونلاين).</li>
+          <li>🌾 لا يتوفر مخبوزات خالية من الجلوتين.</li>
+        </ul>
+      </div>
+
+      <div class="cta-buttons">
+        <a href="https://wa.me/201000000000?text=%D8%A3%D9%87%D9%84%D8%A7%D9%8B%20%D9%85%D8%AE%D8%A8%D8%B2%20%D8%A7%D9%84%D8%B3%D9%86%D8%A8%D9%84%D8%A9%D8%8C%20%D8%B9%D8%A7%D9%88%D8%B2%20%D8%A3%D8%B7%D9%84%D8%A8%20%D8%A3%D9%88%D8%B1%D8%AF%D8%B1" target="_blank" class="btn btn-whatsapp">
+          💬 تواصل عبر واتساب
+        </a>
+      </div>
+    </section>
+
+    <!-- فورم التواصل وحفظ الرسائل في Supabase -->
+    <section class="section-card" id="contact">
+      <h2 class="section-title">📩 تواصل معنا أو اطلب أوردر</h2>
+      
+      <!-- تنبيه إعداد Supabase -->
+      <div id="configNotice" class="config-banner" style="display: none;">
+        ⚙️ <strong>تنبيه الإعداد:</strong> يرجى إضافة رابط مشروع Supabase والمفتاح الـ publishable في ملف <code dir="ltr">supabase-config.js</code> ليتم حفظ الرسائل مباشرة في قاعدة البيانات.
+      </div>
+
+      <form id="contactForm">
+        <div class="form-group">
+          <label for="name">الاسم <span style="color:var(--error)">*</span></label>
+          <input type="text" id="name" name="name" placeholder="اكتب اسمك بالكامل" required>
+        </div>
+
+        <div class="form-group">
+          <label for="phone">رقم الموبايل <span style="color:var(--error)">*</span></label>
+          <input type="tel" id="phone" name="phone" placeholder="مثال: 01012345678" required>
+        </div>
+
+        <div class="form-group">
+          <label for="message">رسالتك أو تفاصيل الطلب <span style="color:var(--error)">*</span></label>
+          <textarea id="message" name="message" rows="4" placeholder="اكتب استفسارك أو طلبك هنا..." required></textarea>
+        </div>
+
+        <button type="submit" id="submitBtn" class="btn btn-primary" style="width: 100%;">إرسال الرسالة</button>
+      </form>
+
+      <div id="statusAlert" class="status-alert"></div>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>© مخبز السنبلة · ورقة الشغل لليوم الأول · دفعة بورسعيد</p>
+  </footer>
+
+  <!-- ملف مفاتيح Supabase منفصل لسهولة التعديل والأمان -->
+  <script src="supabase-config.js"></script>
+
+  <script>
+    const form = document.getElementById('contactForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const statusAlert = document.getElementById('statusAlert');
+    const configNotice = document.getElementById('configNotice');
+
+    // التحقق من وجود مفاتيح Supabase
+    let supabaseClient = null;
+    const hasConfig = window.SUPABASE_CONFIG && 
+                      window.SUPABASE_CONFIG.url && 
+                      !window.SUPABASE_CONFIG.url.includes('YOUR_PROJECT') &&
+                      window.SUPABASE_CONFIG.publishableKey && 
+                      !window.SUPABASE_CONFIG.publishableKey.includes('YOUR_KEY');
+
+    if (hasConfig && window.supabase) {
+      supabaseClient = window.supabase.createClient(
+        window.SUPABASE_CONFIG.url,
+        window.SUPABASE_CONFIG.publishableKey
+      );
+    } else {
+      configNotice.style.display = 'block';
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const name = document.getElementById('name').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      const message = document.getElementById('message').value.trim();
+
+      if (!name || !phone || !message) {
+        showAlert('برجاء ملء جميع الخانات المطلوبة.', 'error');
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.innerText = 'جاري الإرسال...';
+      statusAlert.className = 'status-alert';
+      statusAlert.style.display = 'none';
+
+      try {
+        if (!supabaseClient) {
+          throw new Error('لم يتم ضبط مفاتيح Supabase بعد في ملف supabase-config.js');
+        }
+
+        // إدراج السجل في جدول messages
+        const { data, error } = await supabaseClient
+          .from('messages')
+          .insert([
+            { name: name, phone: phone, message: message }
+          ]);
+
+        if (error) {
+          throw error;
+        }
+
+        // النص المطلوب نصاً في ورقة العمل:
+        showAlert('وصلتنا رسالتك، هنكلّمك في نفس اليوم.', 'success');
+        form.reset();
+
+      } catch (err) {
+        console.error('Error submitting form:', err);
+        showAlert(err.message || 'حدث خطأ أثناء الإرسال، يرجى المحاولة مرة أخرى.', 'error');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerText = 'إرسال الرسالة';
+      }
+    });
+
+    function showAlert(text, type) {
+      statusAlert.textContent = text;
+      statusAlert.className = `status-alert ${type}`;
+    }
+  </script>
+</body>
+</html>
