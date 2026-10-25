@@ -12,11 +12,16 @@ create table if not exists public.messages (
   message text not null
 );
 
--- 2. تفعيل نظام حماية مستوى الصفوف (Row Level Security)
+-- 2. إعطاء الصلاحيات لدور anon (مطلوبة لـ Data API)
+grant insert on public.messages to anon;
+grant usage, select on all sequences in schema public to anon;
+
+-- 3. تفعيل نظام حماية مستوى الصفوف (Row Level Security)
 alter table public.messages enable row level security;
 
--- 3. إنشاء سياسة تسمح لأي زائر بإضافة رسالة جديدة فقط (Insert only)
+-- 4. إنشاء سياسة تسمح لأي زائر بإضافة رسالة جديدة فقط (Insert only)
 -- تمنع القراءة (Select) والتعديل (Update) والحذف (Delete) لحماية خصوصية بيانات العملاء
+drop policy if exists "Allow anonymous inserts" on public.messages;
 create policy "Allow anonymous inserts"
   on public.messages
   for insert

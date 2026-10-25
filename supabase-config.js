@@ -3,5 +3,5 @@
 // ملحوظة أمنية هامة: لا تضع المفتاح السري (secret key) هنا أبداً!
 window.SUPABASE_CONFIG = {
   url: "https://vatdmlmthjdtgpvjzlep.supabase.co",
-  publishableKey: "YOUR_PUBLISHABLE_KEY" // الصق هنا المفتاح الـ publishable (anon)
+  publishableKey: "sb_publishable_BK5eQmfVdgz00gN9TpiY5w_ZylSieJk"
 };
