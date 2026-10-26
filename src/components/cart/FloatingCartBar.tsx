@@ -23,11 +23,11 @@ export const FloatingCartBar: React.FC = () => {
     >
       <button
         onClick={() => openCartDrawer()}
-        className="w-full flex items-center justify-between p-3.5 sm:p-4 rounded-full bg-[#0f172a] text-white shadow-xl hover:bg-black border border-white/10 transition-all active:scale-[0.98] cursor-pointer group"
+        className="w-full flex items-center justify-between p-3.5 sm:p-4 rounded-full bg-[#262626] text-white shadow-xl hover:bg-black border border-white/10 transition-all active:scale-[0.98] cursor-pointer group"
       >
         {/* Left: Item Count Badge & Label */}
         <div className="flex items-center gap-3">
-          <div className="w-7 h-7 rounded-full bg-[#ea580c] text-white flex items-center justify-center font-mono-num font-bold text-[13px] shadow-xs">
+          <div className="w-7 h-7 rounded-full bg-[#ff4d00] text-white flex items-center justify-center font-mono-num font-bold text-[13px] shadow-xs">
             {totalItems}
           </div>
           <span className="text-[14px] font-semibold tracking-wide">
@@ -37,7 +37,7 @@ export const FloatingCartBar: React.FC = () => {
 
         {/* Right: Subtotal & Arrow */}
         <div className="flex items-center gap-2">
-          <span className="font-mono-num font-bold text-[15px] text-[#ea580c]">
+          <span className="font-mono-num font-bold text-[15px] text-[#ff4d00]">
             {subtotal.toFixed(2)} EGP
           </span>
           <svg

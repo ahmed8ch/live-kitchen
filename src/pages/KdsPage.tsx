@@ -38,11 +38,11 @@ export const KdsPage: React.FC = () => {
   const getStatusActionText = (status: OrderStatus) => {
     switch (status) {
       case 'received':
-        return 'START COOKING &rarr;';
+        return 'START COOKING ->';
       case 'cooking':
-        return 'MARK PLATED & READY &rarr;';
+        return 'MARK PLATED & READY ->';
       case 'ready':
-        return 'MARK DELIVERED &rarr;';
+        return 'MARK DELIVERED ->';
       case 'served':
         return 'COMPLETED';
     }
@@ -53,30 +53,30 @@ export const KdsPage: React.FC = () => {
     switch (status) {
       case 'received':
         return {
-          bannerBg: 'bg-[#ea580c]',
+          bannerBg: 'bg-[#ff4d00]',
           textColor: 'text-white',
-          label: 'NEW TICKET &bull; RECEIVED',
+          label: 'NEW TICKET / RECEIVED',
           timerBadge: 'bg-black/30 text-white',
         };
       case 'cooking':
         return {
           bannerBg: 'bg-[#d97706]',
           textColor: 'text-white',
-          label: 'FLAME COOKING &bull; IN LINE',
+          label: 'FLAME COOKING / IN LINE',
           timerBadge: 'bg-black/30 text-white',
         };
       case 'ready':
         return {
           bannerBg: 'bg-[#059669]',
           textColor: 'text-white',
-          label: 'PLATED &bull; READY TO SERVE',
+          label: 'PLATED / READY TO SERVE',
           timerBadge: 'bg-black/30 text-white',
         };
       case 'served':
         return {
           bannerBg: 'bg-[#475569]',
           textColor: 'text-white',
-          label: 'DELIVERED &bull; CLOSED',
+          label: 'DELIVERED / CLOSED',
           timerBadge: 'bg-black/30 text-white',
         };
     }
@@ -85,9 +85,9 @@ export const KdsPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#090d16] text-white flex flex-col font-sans select-none overflow-x-hidden">
       {/* High-Contrast Kitchen Top Bar */}
-      <header className="h-18 px-6 sm:px-8 bg-[#0f172a] border-b border-slate-800 flex items-center justify-between z-20 shrink-0">
+      <header className="h-18 px-6 sm:px-8 bg-[#161c28] border-b border-slate-800 flex items-center justify-between z-20 shrink-0">
         <div className="flex items-center gap-4">
-          <div className="w-10 h-10 rounded-xl bg-[#ea580c] flex items-center justify-center text-white font-extrabold text-[15px] shadow-sm">
+          <div className="w-10 h-10 rounded-xl bg-[#ff4d00] flex items-center justify-center text-white font-extrabold text-[15px] shadow-sm">
             KDS
           </div>
           <div>
@@ -95,13 +95,12 @@ export const KdsPage: React.FC = () => {
               <h1 className="text-lg font-black tracking-wider uppercase text-white">
                 Live Kitchen Pass
               </h1>
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-[12px] text-emerald-400 font-mono-num font-semibold">
+              <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-mono-num font-bold text-[11px]">
                 SYNCED
               </span>
             </div>
             <div className="text-[12px] text-slate-400">
-              Big Screen Kitchen Order System &bull; Single-Tap Bump Station
+              Big Screen Kitchen Order System / Single-Tap Bump Station
             </div>
           </div>
         </div>
@@ -122,7 +121,7 @@ export const KdsPage: React.FC = () => {
 
           <button
             onClick={addSampleOrder}
-            className="px-4 py-2 rounded-xl bg-[#ea580c] hover:bg-[#c2410c] text-white text-[13px] font-bold transition-all shadow-md active:scale-95 cursor-pointer"
+            className="px-4 py-2 rounded-xl bg-[#ff4d00] hover:opacity-95 text-white text-[13px] font-bold transition-all shadow-md active:scale-95 cursor-pointer btn-ember-glow"
           >
             + Fire Sample Ticket
           </button>
@@ -131,13 +130,13 @@ export const KdsPage: React.FC = () => {
             to="/"
             className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-[13px] font-semibold border border-slate-700 transition-colors"
           >
-            Exit &rarr;
+            Exit -&gt;
           </Link>
         </div>
       </header>
 
       {/* Status Bar / Filter Tabs (Clean, unsectioned single row) */}
-      <div className="bg-[#0b1120] border-b border-slate-800 px-6 sm:px-8 py-3 flex items-center justify-between gap-4 shrink-0">
+      <div className="bg-[#0e1422] border-b border-slate-800 px-6 sm:px-8 py-3 flex items-center justify-between gap-4 shrink-0">
         <div className="flex items-center gap-2">
           {(
             [
@@ -153,7 +152,7 @@ export const KdsPage: React.FC = () => {
               onClick={() => setStatusFilter(tab.id)}
               className={`px-4 py-2 rounded-xl text-[13px] font-bold transition-all cursor-pointer ${
                 statusFilter === tab.id
-                  ? 'bg-white text-[#0f172a] shadow-md'
+                  ? 'bg-white text-[#262626] shadow-md'
                   : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
               }`}
             >
@@ -185,7 +184,7 @@ export const KdsPage: React.FC = () => {
             <div className="mt-5">
               <button
                 onClick={addSampleOrder}
-                className="px-6 py-3 rounded-full bg-[#ea580c] hover:bg-[#c2410c] text-white text-[14px] font-bold transition-all shadow-md active:scale-95 cursor-pointer"
+                className="px-6 py-3 rounded-full bg-[#ff4d00] hover:opacity-95 text-white text-[14px] font-bold transition-all shadow-md active:scale-95 cursor-pointer btn-ember-glow"
               >
                 + Fire Sample Demo Ticket
               </button>
@@ -203,11 +202,10 @@ export const KdsPage: React.FC = () => {
                   onClick={() => setSelectedTicketId(isSelected ? null : ticket.id)}
                   className={`relative flex flex-col bg-[#ffffff] text-[#111827] rounded-2xl shadow-2xl overflow-hidden transition-all duration-150 cursor-pointer ${
                     isSelected
-                      ? 'ring-4 ring-[#ea580c] scale-[1.01]'
+                      ? 'ring-4 ring-[#ff4d00] scale-[1.01]'
                       : 'hover:shadow-3xl hover:-translate-y-0.5'
                   }`}
                   style={{
-                    // Simulated thermal receipt chit paper texture and tear-off line
                     backgroundColor: '#ffffff',
                     backgroundImage: 'linear-gradient(to bottom, #ffffff 0%, #fdfcf9 100%)',
                   }}
@@ -219,7 +217,6 @@ export const KdsPage: React.FC = () => {
                     </div>
                     {/* Live Stopwatch Clock */}
                     <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-black/30 font-mono-num text-[12px]">
-                      <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
                       <span>{formatElapsed(ticket.createdAt)}</span>
                     </div>
                   </div>
@@ -229,7 +226,7 @@ export const KdsPage: React.FC = () => {
                     <div className="flex items-start justify-between">
                       <div>
                         {/* Table Number in Huge Print for Big Screen Visibility */}
-                        <div className="text-2xl sm:text-3xl font-black font-mono-num text-[#0f172a] tracking-tight">
+                        <div className="text-2xl sm:text-3xl font-black font-mono-num text-[#262626] tracking-tight">
                           {ticket.tableNumber ? `TABLE ${ticket.tableNumber}` : 'COUNTER PICKUP'}
                         </div>
                         <div className="text-[13px] font-mono-num font-bold text-[#64748b] mt-0.5">
@@ -241,7 +238,7 @@ export const KdsPage: React.FC = () => {
                         <div className="text-[12px] font-mono-num text-[#64748b]">
                           {new Date(ticket.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </div>
-                        <div className="text-[11px] font-mono-num font-bold text-[#ea580c] uppercase mt-0.5">
+                        <div className="text-[11px] font-mono-num font-bold text-[#ff4d00] uppercase mt-0.5">
                           {ticket.items.reduce((s, i) => s + i.quantity, 0)} items total
                         </div>
                       </div>
@@ -253,8 +250,8 @@ export const KdsPage: React.FC = () => {
                     {ticket.items.map((item) => (
                       <div key={item.cartItemId} className="pt-3 first:pt-0">
                         {/* Item Title in Bold Large Type */}
-                        <div className="flex items-start gap-2 text-[16px] sm:text-[17px] font-black text-[#0f172a] leading-tight">
-                          <span className="font-mono-num text-[#ea580c] shrink-0">
+                        <div className="flex items-start gap-2 text-[16px] sm:text-[17px] font-black text-[#262626] leading-tight">
+                          <span className="font-mono-num text-[#ff4d00] shrink-0">
                             [{item.quantity}x]
                           </span>
                           <span>{item.menuItem.name.toUpperCase()}</span>
@@ -268,7 +265,7 @@ export const KdsPage: React.FC = () => {
                                 key={mod.id}
                                 className="text-[13px] font-bold text-[#334155] flex items-center gap-1.5"
                               >
-                                <span className="text-[#ea580c] font-mono-num">&rarr;</span>
+                                <span className="text-[#ff4d00] font-mono-num">-&gt;</span>
                                 <span>+ {mod.name.toUpperCase()}</span>
                               </div>
                             ))}
@@ -302,17 +299,13 @@ export const KdsPage: React.FC = () => {
                         }}
                         className={`w-full py-4 px-4 rounded-xl font-black text-[15px] sm:text-[16px] tracking-wide uppercase transition-all shadow-md active:scale-95 cursor-pointer text-center text-white ${
                           ticket.status === 'received'
-                            ? 'bg-[#ea580c] hover:bg-[#c2410c]'
+                            ? 'bg-[#ff4d00] hover:opacity-95'
                             : ticket.status === 'cooking'
                             ? 'bg-[#059669] hover:bg-[#047857]'
-                            : 'bg-[#0f172a] hover:bg-black'
+                            : 'bg-[#262626] hover:bg-black'
                         }`}
                       >
-                        <div
-                          dangerouslySetInnerHTML={{
-                            __html: getStatusActionText(ticket.status),
-                          }}
-                        />
+                        {getStatusActionText(ticket.status)}
                       </button>
                     </div>
                   )}
