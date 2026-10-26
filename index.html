@@ -105,40 +105,10 @@
     }
 
     /* ==================================================================== */
-    /* 1. TOP ANNOUNCEMENT BANNER                                           */
-    /* ==================================================================== */
-    .announcement-banner {
-      background: var(--color-ember-orange);
-      color: #ffffff;
-      font-family: var(--font-suisse);
-      font-size: 12.5px;
-      font-weight: 500;
-      padding: 7px 16px;
-      text-align: center;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      z-index: 100;
-      flex-shrink: 0;
-    }
-
-    .announcement-banner a {
-      color: #ffffff;
-      text-decoration: underline;
-      cursor: pointer;
-      font-weight: 600;
-    }
-
-    .announcement-banner a:hover {
-      opacity: 0.9;
-    }
-
-    /* ==================================================================== */
-    /* 2. TOP HEADER (RESPONSIVE & CLEAN)                                   */
+    /* 1. TOP HEADER (RESPONSIVE & CLEAN APPLICATION BAR)                   */
     /* ==================================================================== */
     .saas-header {
-      height: 56px;
+      height: 52px;
       background: #ffffff;
       border-bottom: 1px solid var(--color-gridline);
       display: flex;
@@ -1618,12 +1588,8 @@
     /* CRITICAL MOBILE RESPONSIVE MEDIA QUERIES (<= 768px PHONE PERFECTION) */
     /* ==================================================================== */
     @media (max-width: 768px) {
-      .announcement-banner {
-        display: none !important;
-      }
-
       .saas-header {
-        height: 52px;
+        height: 50px;
         padding: 0 12px;
       }
 
@@ -1755,20 +1721,12 @@
 <body class="bg-grid-texture">
 
   <!-- ==================================================================== -->
-  <!-- 1. TOP ANNOUNCEMENT BANNER                                           -->
-  <!-- ==================================================================== -->
-  <aside class="announcement-banner">
-    <span>Introducing MatbakhLink 2.0: Synchronized Table Self-Ordering &amp; Live Kitchen Pass.</span>
-    <a onclick="switchMainScreen('hero')">Read release architecture -&gt;</a>
-  </aside>
-
-  <!-- ==================================================================== -->
-  <!-- 2. TOP HEADER (CLEAN & NON-REPETITIVE)                                -->
+  <!-- TOP APPLICATION BAR (CLEAN, FOCUSED, ZERO REDUNDANCY)                -->
   <!-- ==================================================================== -->
   <header class="saas-header">
     <div class="saas-header-left">
       <!-- EXACT BRAND LOGO: Flame + Matbakh on top, Link directly under it, L locked under t -->
-      <div class="brand-logo-container" onclick="switchMainScreen('hero')" title="MatbakhLink" aria-label="MatbakhLink">
+      <div class="brand-logo-container" onclick="switchMainScreen('hero')" title="MatbakhLink Platform" aria-label="MatbakhLink">
         <div class="brand-logo-lockup">
           <svg class="brand-flame-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M12 2C12 2 8 6 8 10C8 12.21 9.79 14 12 14C14.21 14 16 12.21 16 10C16 6 12 2 12 2Z" fill="#ff4d00"/>
@@ -1782,15 +1740,12 @@
       </div>
     </div>
 
-    <!-- Center: Clean SaaS Navigation Links -->
-    <nav class="saas-header-nav" aria-label="Main Navigation">
-      <button class="saas-nav-link active" id="navLink-hero" onclick="switchMainScreen('hero')">Platform Overview</button>
-      <button class="saas-nav-link" id="navLink-menu" onclick="switchMainScreen('menu')">Self-Ordering Menu</button>
-      <button class="saas-nav-link" id="navLink-pay" onclick="switchMainScreen('pay')">Table-Side Pay &amp; Cashier</button>
-      <button class="saas-nav-link" id="navLink-kds" onclick="switchMainScreen('kds')">Kitchen KDS Pass</button>
-      <button class="saas-nav-link" id="navLink-stand" onclick="switchMainScreen('stand')">Table Stands</button>
-    </nav>
+    <!-- Center: Contextual View Indicator (Single source of truth, no duplicate nav links) -->
+    <div class="saas-header-center">
+      <div class="active-view-breadcrumb" id="headerBreadcrumbTag">Platform Overview</div>
+    </div>
 
+    <!-- Right: Table Cart Access & Mobile Menu Toggle -->
     <div class="saas-header-right">
       <button class="cart-header-btn" onclick="openCartDrawer()" aria-label="Open Table Cart">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -1799,10 +1754,6 @@
           <path d="M16 10a4 4 0 0 1-8 0"></path>
         </svg>
         <span>Cart (<span id="headerCartCount">0</span>)</span>
-      </button>
-
-      <button class="btn-pill-primary" style="padding: 7px 18px; font-size: 13px;" onclick="switchMainScreen('menu')">
-        <span>Launch Live Demo -&gt;</span>
       </button>
 
       <!-- Mobile Menu Hamburger Button -->
@@ -2220,8 +2171,16 @@
                 </div>
               </div>
 
-              <div style="display: flex; gap: 10px;">
+              <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                 <button class="btn-pill-ghost" onclick="switchMainScreen('menu')">Open Diner Menu on Screen -&gt;</button>
+                <a href="table-stand.html" target="_blank" class="btn-pill-ghost" style="text-decoration: none; display: inline-flex; align-items: center;">
+                  <span>Standalone Print View</span>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left: 6px;">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                    <polyline points="15 3 21 3 21 9"></polyline>
+                    <line x1="10" y1="14" x2="21" y2="3"></line>
+                  </svg>
+                </a>
               </div>
             </div>
 
@@ -2620,6 +2579,7 @@
   <script>
     // Rich Food Menu Data (Flavorfit Photography, Macro Calories, Portions & Extras)
     const RICH_MENU = [
+      // CATEGORY: Flame Burgers
       {
         id: 'angus-burger',
         category: 'burgers',
@@ -2665,6 +2625,50 @@
         ]
       },
       {
+        id: 'smoky-bbq-burger',
+        category: 'burgers',
+        name: 'Smoky BBQ Bacon Flame Burger',
+        price: 210.00,
+        prepTime: '12 min',
+        calories: '580 kcal',
+        rating: '4.9 (98 reviews)',
+        image: 'https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=800&q=80',
+        badge: 'Smokestack',
+        dietary: ['High-Protein'],
+        description: 'Flame-charred beef patty, applewood smoked bacon rashers, smoky bourbon barbecue reduction, crispy onion straws.',
+        portions: [
+          { label: 'Standard', add: 0 },
+          { label: 'Double Beef & Bacon (+55 EGP)', add: 55 }
+        ],
+        extras: [
+          { label: 'Smoked Cheddar', price: 15 },
+          { label: 'Jalapeno Relish', price: 10 }
+        ]
+      },
+      {
+        id: 'truffle-mushroom-burger',
+        category: 'burgers',
+        name: 'Swiss Truffle Mushroom Burger',
+        price: 225.00,
+        prepTime: '14 min',
+        calories: '530 kcal',
+        rating: '5.0 (142 reviews)',
+        image: 'https://images.unsplash.com/photo-1586190848861-99aa4a171e90?auto=format&fit=crop&w=800&q=80',
+        badge: 'Gourmet',
+        dietary: ['Rich Flavor'],
+        description: 'Charbroiled Angus patty, sautéed wild crimini mushrooms, melted Swiss Gruyère, white truffle emulsion on brioche.',
+        portions: [
+          { label: 'Single Cut', add: 0 },
+          { label: 'Double Patty (+45 EGP)', add: 45 }
+        ],
+        extras: [
+          { label: 'Truffle Glaze', price: 20 },
+          { label: 'Extra Swiss Cheese', price: 18 }
+        ]
+      },
+
+      // CATEGORY: Prime Steaks
+      {
         id: 'tenderloin-steak',
         category: 'steaks',
         name: 'Flame-Grilled Tenderloin Steak',
@@ -2685,6 +2689,50 @@
           { label: 'Herb Compound Butter', price: 15 }
         ]
       },
+      {
+        id: 'ribeye-steak',
+        category: 'steaks',
+        name: 'Prime Flame-Seared Ribeye Steak',
+        price: 360.00,
+        prepTime: '15 min',
+        calories: '680 kcal',
+        rating: '4.9 (114 reviews)',
+        image: 'https://images.unsplash.com/photo-1600891964092-4316c288032e?auto=format&fit=crop&w=800&q=80',
+        badge: 'Well-Marbled',
+        dietary: ['Keto'],
+        description: 'Heavily marbled Black Angus ribeye grilled over open flame with sea salt, charred rosemary, roasted garlic bulb.',
+        portions: [
+          { label: '350g Prime Cut', add: 0 },
+          { label: '500g Tomahawk Share (+140 EGP)', add: 140 }
+        ],
+        extras: [
+          { label: 'Chimichurri Herb Sauce', price: 15 },
+          { label: 'Cracked Peppercorn Sauce', price: 15 }
+        ]
+      },
+      {
+        id: 'lamb-chops',
+        category: 'steaks',
+        name: 'Herb-Crusted Flame Lamb Chops',
+        price: 290.00,
+        prepTime: '14 min',
+        calories: '540 kcal',
+        rating: '4.8 (88 reviews)',
+        image: 'https://images.unsplash.com/photo-1603048588665-791ca8aea617?auto=format&fit=crop&w=800&q=80',
+        badge: 'Specialty',
+        dietary: ['High-Protein'],
+        description: 'Triple rack of tender lamb chops charred on flame with fresh thyme, mint pomegranate reduction, charred baby potatoes.',
+        portions: [
+          { label: '3 Chops Cut', add: 0 },
+          { label: '5 Chops Table Share (+80 EGP)', add: 80 }
+        ],
+        extras: [
+          { label: 'Pomegranate Glaze', price: 12 },
+          { label: 'Mint Chimichurri', price: 10 }
+        ]
+      },
+
+      // CATEGORY: Artisan Pizzas
       {
         id: 'neapolitan-pizza',
         category: 'pizzas',
@@ -2707,9 +2755,53 @@
         ]
       },
       {
+        id: 'truffle-white-pizza',
+        category: 'pizzas',
+        name: 'Wild Truffle & Mushroom White Pizza',
+        price: 185.00,
+        prepTime: '11 min',
+        calories: '460 kcal',
+        rating: '4.9 (132 reviews)',
+        image: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=800&q=80',
+        badge: 'White Sauce',
+        dietary: ['Vegetarian'],
+        description: 'Ricotta cream base, mozzarella, roasted wild shiitake and button mushrooms, thyme leaves, fragrant black truffle oil.',
+        portions: [
+          { label: '10-inch Personal', add: 0 },
+          { label: '14-inch Table Share (+55 EGP)', add: 55 }
+        ],
+        extras: [
+          { label: 'Extra Truffle Oil', price: 15 },
+          { label: 'Shaved Parmigiano', price: 15 }
+        ]
+      },
+      {
+        id: 'spicy-pepperoni-pizza',
+        category: 'pizzas',
+        name: 'Flame-Baked Spicy Beef Pepperoni Pizza',
+        price: 175.00,
+        prepTime: '10 min',
+        calories: '510 kcal',
+        rating: '4.9 (176 reviews)',
+        image: 'https://images.unsplash.com/photo-1628840042765-356cda07504e?auto=format&fit=crop&w=800&q=80',
+        badge: 'Popular',
+        dietary: ['Halal Beef'],
+        description: 'Crisp wood-fired crust, spiced beef pepperoni slices, San Marzano marinara, stringy mozzarella, oregano dusting.',
+        portions: [
+          { label: '10-inch Personal', add: 0 },
+          { label: '14-inch Table Share (+55 EGP)', add: 55 }
+        ],
+        extras: [
+          { label: 'Hot Honey Drizzle', price: 10 },
+          { label: 'Extra Pepperoni', price: 20 }
+        ]
+      },
+
+      // CATEGORY: Pastas & Sides
+      {
         id: 'fettuccine-alfredo',
         category: 'pasta',
-        name: 'Fettuccine Alfredo Pasta',
+        name: 'Fettuccine Alfredo with Flame Chicken',
         price: 150.00,
         prepTime: '12 min',
         calories: '520 kcal',
@@ -2720,10 +2812,31 @@
         description: 'Fresh artisan ribbon pasta, rich garlic cream emulsion, flame-seared chicken breast, 24-month Parmigiano.',
         portions: [
           { label: 'Standard Bowl', add: 0 },
-          { label: 'Upgrade to Sauteed Shrimp (+40 EGP)', add: 40 }
+          { label: 'Upgrade to Sautéed Shrimp (+40 EGP)', add: 40 }
         ],
         extras: [
           { label: 'Extra Shaved Parmigiano', price: 15 }
+        ]
+      },
+      {
+        id: 'penne-arrabbiata',
+        category: 'pasta',
+        name: 'Spicy Penne all\'Arrabbiata & Burrata',
+        price: 135.00,
+        prepTime: '10 min',
+        calories: '390 kcal',
+        rating: '4.8 (64 reviews)',
+        image: 'https://images.unsplash.com/photo-1621996346565-e3d5d6281e04?auto=format&fit=crop&w=800&q=80',
+        badge: 'Spicy',
+        dietary: ['Vegetarian'],
+        description: 'Penne rigate tossed in fiery garlic San Marzano chili sauce, fresh torn basil leaves, topped with creamy mozzarella burrata.',
+        portions: [
+          { label: 'Standard Bowl', add: 0 },
+          { label: 'Add Grilled Chicken (+30 EGP)', add: 30 }
+        ],
+        extras: [
+          { label: 'Extra Burrata', price: 30 },
+          { label: 'Kalamata Olives', price: 10 }
         ]
       },
       {
@@ -2749,7 +2862,7 @@
       {
         id: 'seasoned-fries',
         category: 'pasta',
-        name: 'Golden Seasoned Fries',
+        name: 'Golden Seasoned Truffle Fries',
         price: 50.00,
         prepTime: '6 min',
         calories: '310 kcal',
@@ -2757,7 +2870,7 @@
         image: 'https://images.unsplash.com/photo-1576107232684-1279f3908594?auto=format&fit=crop&w=800&q=80',
         badge: 'Snack',
         dietary: ['Vegetarian'],
-        description: 'Hand-cut russet potatoes tossed in house smoked paprika sea salt with warm melted cheddar dip.',
+        description: 'Hand-cut russet potatoes tossed in house smoked paprika sea salt, white truffle oil, warm melted cheddar dip.',
         portions: [
           { label: 'Regular Basket', add: 0 },
           { label: 'Loaded Table Basket (+25 EGP)', add: 25 }
@@ -2766,6 +2879,8 @@
           { label: 'Extra Warm Cheddar Dip', price: 15 }
         ]
       },
+
+      // CATEGORY: Drinks & Desserts
       {
         id: 'chocolate-cake',
         category: 'drinks',
@@ -2781,12 +2896,33 @@
         portions: [
           { label: 'Single Slice', add: 0 }
         ],
-        extras: []
+        extras: [
+          { label: 'Scoop Vanilla Bean Gelato', price: 15 }
+        ]
+      },
+      {
+        id: 'lotus-cheesecake',
+        category: 'drinks',
+        name: 'Salted Caramel Basque Cheesecake',
+        price: 85.00,
+        prepTime: '5 min',
+        calories: '410 kcal',
+        rating: '4.9 (115 reviews)',
+        image: 'https://images.unsplash.com/photo-1533134242443-d4fd215305ad?auto=format&fit=crop&w=800&q=80',
+        badge: 'Specialty',
+        dietary: ['Vegetarian'],
+        description: 'Burnt-top Spanish Basque cheesecake with gooey cream cheese center, drizzled with sea salt butter caramel.',
+        portions: [
+          { label: 'Single Slice', add: 0 }
+        ],
+        extras: [
+          { label: 'Crushed Lotus Biscoff', price: 10 }
+        ]
       },
       {
         id: 'fresh-juice',
         category: 'drinks',
-        name: 'Fresh Cold-Pressed Juice',
+        name: 'Fresh Cold-Pressed Juice Refresher',
         price: 35.00,
         prepTime: '4 min',
         calories: '110 kcal',
@@ -2801,6 +2937,27 @@
           { label: 'Iced Lemon Crush', add: 0 }
         ],
         extras: []
+      },
+      {
+        id: 'iced-specialty-coffee',
+        category: 'drinks',
+        name: 'Flame Specialty Iced Vanilla Latte',
+        price: 45.00,
+        prepTime: '4 min',
+        calories: '140 kcal',
+        rating: '4.9 (82 reviews)',
+        image: 'https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?auto=format&fit=crop&w=800&q=80',
+        badge: 'Specialty',
+        dietary: ['Vegetarian'],
+        description: 'Double shot of Ethiopian single-origin espresso, chilled whole milk, Madagascar vanilla bean syrup over artisanal ice.',
+        portions: [
+          { label: 'Regular Cup', add: 0 },
+          { label: 'Large Tumbler (+10 EGP)', add: 10 }
+        ],
+        extras: [
+          { label: 'Oat Milk Substitute', price: 10 },
+          { label: 'Extra Espresso Shot', price: 12 }
+        ]
       }
     ];
 
@@ -2823,7 +2980,7 @@
     // View Switching
     function switchMainScreen(screenId) {
       currentScreen = screenId;
-      const screens = ['hero', 'menu', 'stand', 'tracker', 'kds', 'floor', 'pay'];
+      const screens = ['hero', 'menu', 'stand', 'tracker', 'kds', 'pay'];
       screens.forEach(s => {
         const el = document.getElementById(`screen-${s}`);
         const sideBtn = document.getElementById(`sideBtn-${s}`);
@@ -2831,28 +2988,13 @@
         if (sideBtn) sideBtn.classList.toggle('active', s === screenId);
       });
 
-      // Sync Top SaaS Header Navigation
-      const navLinkMap = {
-        hero: 'navLink-hero',
-        menu: 'navLink-menu',
-        pay: 'navLink-pay',
-        kds: 'navLink-kds',
-        stand: 'navLink-stand'
-      };
-      document.querySelectorAll('.saas-nav-link').forEach(el => el.classList.remove('active'));
-      if (navLinkMap[screenId]) {
-        const activeHeaderLink = document.getElementById(navLinkMap[screenId]);
-        if (activeHeaderLink) activeHeaderLink.classList.add('active');
-      }
-
       const breadcrumbNames = {
         hero: 'Platform Overview',
         menu: `Dine-In Menu · Table ${currentTable}`,
-        stand: 'Acrylic Stand Generator',
+        stand: 'Deploy Table QR Stands',
         tracker: 'Order Live Tracker',
         kds: 'Kitchen Display (KDS)',
-        pay: 'Table Payment & Fiscal Invoicing',
-        floor: 'Floor Seating Plan'
+        pay: 'Table Payment & Fiscal Invoicing'
       };
       const headerBreadcrumbEl = document.getElementById('headerBreadcrumbTag');
       if (headerBreadcrumbEl) headerBreadcrumbEl.innerText = breadcrumbNames[screenId] || screenId;
@@ -2966,11 +3108,11 @@
     function handleSidebarSearch(e) {
       if (e.key === 'Enter') {
         const val = e.target.value.toLowerCase();
-        if (val.includes('menu') || val.includes('dish') || val.includes('burger')) switchMainScreen('menu');
+        if (val.includes('menu') || val.includes('dish') || val.includes('burger') || val.includes('food')) switchMainScreen('menu');
+        else if (val.includes('cashier') || val.includes('pay') || val.includes('bill') || val.includes('settle')) switchMainScreen('pay');
+        else if (val.includes('stand') || val.includes('qr') || val.includes('print')) switchMainScreen('stand');
+        else if (val.includes('track') || val.includes('order')) switchMainScreen('tracker');
         else if (val.includes('kds') || val.includes('kitchen') || val.includes('chef')) switchMainScreen('kds');
-        else if (val.includes('stand') || val.includes('qr')) switchMainScreen('stand');
-        else if (val.includes('track')) switchMainScreen('tracker');
-        else if (val.includes('cashier') || val.includes('floor')) switchMainScreen('floor');
         else switchMainScreen('hero');
       }
     }
@@ -2982,7 +3124,7 @@
       grid.innerHTML = items.map(dish => `
         <div class="rich-dish-card" onclick="openDishModal('${dish.id}')">
           <div class="dish-photo-frame">
-            <img class="dish-photo-img" src="${dish.image}" alt="${dish.name}" loading="lazy">
+            <img class="dish-photo-img" src="${dish.image}" alt="${dish.name}" loading="lazy" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80'">
             <div class="photo-floating-chips">
               <span class="photo-badge-pill">${dish.badge}</span>
               <span class="photo-badge-pill calories">${dish.calories}</span>
@@ -3344,22 +3486,42 @@
       }
     }
 
-    // QR Acrylic Stand Generator
+    // QR Acrylic Stand Generator (Ultra-reliable with instant fallback)
     function renderAcrylicStandQr() {
       const container = document.getElementById('acrylicStandQrHolder');
       if (!container) return;
-      container.innerHTML = '';
-      const url = `${window.location.origin}${window.location.pathname}?table=${currentTable}`;
-      new QRCode(container, {
-        text: url,
-        width: 152,
-        height: 152,
-        colorDark: "#262626",
-        colorLight: "#ffffff",
-        correctLevel: QRCode.CorrectLevel.H
-      });
+
+      const safeTable = (currentTable || 'T-04').replace(/^T-/, '');
       const standCodeEl = document.getElementById('standCardTableCode');
-      if (standCodeEl) standCodeEl.innerText = `TABLE ${currentTable.replace('T-', '')}`;
+      if (standCodeEl) standCodeEl.innerText = `TABLE ${safeTable}`;
+
+      const origin = (window.location && window.location.origin && window.location.origin !== 'null') ? window.location.origin : 'https://live-kitchen.pages.dev';
+      const path = (window.location && window.location.pathname) ? window.location.pathname : '/';
+      const targetUrl = `${origin}${path}?table=T-${safeTable}`;
+
+      // Instant verified QR rendering (API fallback guaranteed so frame is never empty)
+      const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=152x152&data=${encodeURIComponent(targetUrl)}&color=26-26-26&bgcolor=ffffff`;
+      container.innerHTML = `<img src="${qrApiUrl}" width="152" height="152" alt="QR Code for Table ${safeTable}" style="display:block; width:152px; height:152px; border-radius:6px; object-fit:contain;" loading="eager">`;
+
+      if (typeof QRCode !== 'undefined') {
+        try {
+          const testDiv = document.createElement('div');
+          new QRCode(testDiv, {
+            text: targetUrl,
+            width: 152,
+            height: 152,
+            colorDark: "#262626",
+            colorLight: "#ffffff",
+            correctLevel: (QRCode.CorrectLevel && QRCode.CorrectLevel.H) ? QRCode.CorrectLevel.H : 2
+          });
+          if (testDiv.children.length > 0) {
+            container.innerHTML = '';
+            container.appendChild(testDiv.firstChild);
+          }
+        } catch(e) {
+          console.warn('QRCode JS engine notice, keeping API fallback:', e);
+        }
+      }
     }
 
     function changeStandTable(val) {
@@ -3606,6 +3768,7 @@
       } else {
         switchMainScreen('hero');
       }
+      renderAcrylicStandQr();
       initLiveRealtime();
     });
   </script>

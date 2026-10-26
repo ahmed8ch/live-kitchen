@@ -88,12 +88,17 @@
       screenId = 'hero';
     }
 
-    // Synchronize Top SaaS Navigation Links
-    document.querySelectorAll('.saas-nav-link').forEach(link => {
-      link.classList.remove('active');
-    });
-    const activeTopLink = document.getElementById('navLink-' + screenId);
-    if (activeTopLink) activeTopLink.classList.add('active');
+    // Synchronize Top View Breadcrumb
+    const breadcrumbNames = {
+      hero: 'Platform Overview',
+      menu: 'Dine-In Self-Ordering Menu',
+      stand: 'Acrylic Stand Generator',
+      tracker: 'Order Live Tracker',
+      kds: 'Kitchen Display (KDS)',
+      pay: 'Table Payment & Fiscal Invoicing'
+    };
+    const headerBreadcrumbEl = document.getElementById('headerBreadcrumbTag');
+    if (headerBreadcrumbEl) headerBreadcrumbEl.innerText = breadcrumbNames[screenId] || screenId;
 
     // Synchronize Sidebar Buttons
     document.querySelectorAll('.cf-nav-item').forEach(btn => {
