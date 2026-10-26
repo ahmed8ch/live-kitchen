@@ -1,7 +1,7 @@
-# MatbakhLink (Digital Dine-In & Kitchen Synchronization Platform)
+# FlameLink (Digital Dine-In & Kitchen Synchronization Platform)
 ## Core Product Blueprint & AI Guidelines
 
-MatbakhLink digitizes the restaurant dine-in experience and seamlessly synchronizes table self-ordering with real-time kitchen operations.
+FlameLink digitizes the restaurant dine-in experience and seamlessly synchronizes table self-ordering with real-time kitchen operations.
 
 ---
 
@@ -24,7 +24,7 @@ All agents working on this project MUST follow `.agents/skills/first-principles-
 
 ---
 
-### 2. Design System Compliance (MatbakhLink Design Tokens)
+### 2. Design System Compliance (FlameLink Design Tokens)
 - **Palette (100% Light Workspace — Never Dark Fills or Gradients)**:
   - Canvas: `#ffffff` | Surfaces/Cards: `#f9f9f9` (Vellum) | Hairline borders: `#e5e7eb` (1px Gridline).
   - Single Chromatic Signal: Ember Orange (`#ff4d00`) with warm ambient halo (`0 0 0 6px #fcddcc`).

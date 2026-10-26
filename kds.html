@@ -720,21 +720,21 @@
     }
 
     async function loadKdsTickets() {
-      const kds = window.FlameKds || window.MatbakhKds;
+      const kds = window.FlameKds;
       if (kds && kds.reload) {
         return kds.reload();
       }
     }
 
     async function updateTicketStatus(id, newStatus) {
-      const kds = window.FlameKds || window.MatbakhKds;
+      const kds = window.FlameKds;
       if (kds && kds.advanceStatus) {
         return kds.advanceStatus(id, newStatus);
       }
     }
 
     window.addEventListener('DOMContentLoaded', () => {
-      const kds = window.FlameKds || window.MatbakhKds;
+      const kds = window.FlameKds;
       if (kds) {
         kds.init({ containerId: 'kdsTicketsGrid' });
       }

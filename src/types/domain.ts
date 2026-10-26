@@ -45,5 +45,6 @@ export interface OrderTicket {
   isPaid: boolean;
   paymentMethod?: PaymentMethod;
   splitCount?: number;
+  tipAmount?: number;
   createdAt: number;
 }

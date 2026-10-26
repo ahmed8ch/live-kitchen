@@ -2,15 +2,37 @@
 
 @layer base {
   :root {
-    --color-flame-orange: #EA580C;
-    --color-flame-glow: #fcddcc;
+    --color-ember-orange: #ff4d00;
+    --color-ember-glow-light: #fcddcc;
+    --color-ember-wash-deep: #febec2;
+    --color-vellum: #f9f9f9;
+    --color-paper: #ffffff;
     --color-gridline: #e5e7eb;
     --color-ink: #262626;
-    --color-vellum: #f9f9f9;
-    --color-slate: #727272;
     --color-graphite: #616161;
-    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    --color-slate: #727272;
+    --color-ash: #949494;
+    --color-stone: #c7c7c7;
+    --color-mist: #b5b5b5;
+
+    /* KDS Dark Canvas Tokens */
+    --color-kds-canvas: #0d0f12;
+    --color-kds-gridline: #1f242d;
+    --color-chit-paper: #fcfbf7;
+    --color-kds-new: #ff4d00;
+    --color-kds-cooking: #d97706;
+    --color-kds-ready: #15803d;
+    --color-kds-delayed: #dc2626;
+
+    /* Typography */
+    --font-mono: 'Geist Mono', 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+
+    /* Concentric Shadows & Halos */
+    --shadow-ember-pill: 0px 0px 0px 6px #fcddcc;
+    --shadow-vellum-ring: 0px 0px 0px 6px #f9f9f9;
+    --shadow-card-quiet: 0px 1px 2px rgba(0, 0, 0, 0.03), 0px 12px 24px -8px rgba(0, 0, 0, 0.02);
+    --shadow-float-elevated: 0px 24px 32px -12px rgba(0, 0, 0, 0.06), 0px 0px 0px 1px #e5e7eb;
   }
 
   body {
@@ -44,35 +66,108 @@
   }
 }
 
-/* Warm flame glow halo */
-.btn-flame-glow,
+/* 24px Architectural Dot Matrix */
+.blueprint-dots {
+  background-image: radial-gradient(#d4d4d8 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.blueprint-dots-dark {
+  background-image: radial-gradient(#1f242d 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Ember Glow Rings */
 .btn-ember-glow {
   box-shadow: 0 0 0 6px #fcddcc;
 }
 
-/* Thermal receipt paper chit styling */
-.chit-paper {
-  background-color: #FCFBF7;
-  color: #111827;
-  box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(0, 0, 0, 0.1);
+.btn-ember-glow-sm {
+  box-shadow: 0 0 0 4px #fcddcc;
 }
 
-.chit-divider {
-  border-top: 1px dashed #CBD5E1;
+/* Hover Border Ring Illumination */
+.card-glow-hover {
+  transition: border-color 150ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 150ms cubic-bezier(0.16, 1, 0.3, 1), transform 150ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Subtle serrated paper tear line */
-.chit-serrated-bottom {
+.card-glow-hover:hover {
+  border-color: #ff4d00;
+  box-shadow: 0 0 0 4px #fcddcc;
+}
+
+/* Physical Perforated Thermal Ticket Shape (DESIGN.md §4.3) */
+.thermal-ticket-light {
   position: relative;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
 }
 
-.chit-serrated-bottom::after {
+.thermal-ticket-light::before,
+.thermal-ticket-light::after {
   content: "";
   position: absolute;
-  bottom: -6px;
-  left: 0;
-  right: 0;
-  height: 6px;
-  background: radial-gradient(circle, transparent, transparent 50%, #FCFBF7 50%, #FCFBF7 100%);
-  background-size: 12px 12px;
+  top: 64px;
+  width: 16px;
+  height: 16px;
+  background: #f9f9f9;
+  border: 1px solid #e5e7eb;
+  border-radius: 999px;
+  z-index: 10;
+}
+
+.thermal-ticket-light::before {
+  left: -9px;
+}
+
+.thermal-ticket-light::after {
+  right: -9px;
+}
+
+/* KDS Perforated Thermal Chit Paper (DESIGN.md §4.3 & §5.5) */
+.thermal-chit-kds {
+  position: relative;
+  background: #fcfbf7;
+  color: #111827;
+  border-radius: 6px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(0, 0, 0, 0.15);
+  overflow: visible;
+}
+
+.thermal-chit-kds::before,
+.thermal-chit-kds::after {
+  content: "";
+  position: absolute;
+  top: 56px;
+  width: 14px;
+  height: 14px;
+  background: #0d0f12;
+  border: 1px solid #1f242d;
+  border-radius: 999px;
+  z-index: 10;
+}
+
+.thermal-chit-kds::before {
+  left: -8px;
+}
+
+.thermal-chit-kds::after {
+  right: -8px;
+}
+
+.thermal-tear-line {
+  border-top: 1px dashed #cbd5e1;
+}
+
+/* 3D Acrylic Tent Stand (DESIGN.md §4.3) */
+.acrylic-stand-3d {
+  transform: perspective(1000px) rotateY(-10deg) rotateX(4deg);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 12px 24px 40px -12px rgba(0, 0, 0, 0.12), 0 0 0 1px #e5e7eb;
+}
+
+.acrylic-stand-3d:hover {
+  transform: perspective(1000px) rotateY(0deg) rotateX(0deg) translateY(-4px);
+  box-shadow: 0 28px 48px -12px rgba(0, 0, 0, 0.16), 0 0 0 1px #ff4d00;
 }
