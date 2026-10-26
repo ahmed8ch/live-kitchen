@@ -98,6 +98,30 @@
           </button>
         </div>
       `
+    },
+    payment: {
+      title: 'Stage 5: Table-Side Pay & Cashier Exit Pass',
+      desc: 'Diners settle directly with Apple Pay or Split Bill, generating Egyptian Tax Authority 14% VAT invoices, or exit with a barcode pass.',
+      badge: 'Zero Queue Bottleneck',
+      buttonText: 'Launch Table Settlement ->',
+      screen: 'pay',
+      renderHtml: () => `
+        <div style="display: flex; gap: 20px; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+          <div style="flex: 1; min-width: 260px;">
+            <div style="font-family: var(--font-mono); font-size: 11px; color: var(--color-flame); text-transform: uppercase; font-weight: 600;">Autonomous Table Settlement</div>
+            <h4 style="font-size: 16px; font-weight: 700; margin-top: 2px;">Apple Pay &middot; Split Bill &middot; Barcode Exit Pass</h4>
+            <p style="font-size: 13px; color: var(--color-slate); margin-top: 4px;">Eliminate the cashier waiting line: diners pay at their seat or present a digital pass at the counter.</p>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn-pill-primary" style="padding: 7px 16px; font-size: 12px;" onclick="if(window.TablePayment) window.TablePayment.openTableSettlement()">
+              Open Table Pay
+            </button>
+            <button class="btn-pill-ghost" style="padding: 7px 16px; font-size: 12px;" onclick="if(window.TablePayment) window.TablePayment.openCashierTerminal()">
+              Cashier Desk
+            </button>
+          </div>
+        </div>
+      `
     }
   };
 

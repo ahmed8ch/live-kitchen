@@ -315,8 +315,10 @@
         correctLevel: QRCode.CorrectLevel.H
       });
 
-      document.getElementById('cardTableNumber').innerText = `TABLE ${code.replace('T-', '')}`;
-      document.getElementById('testLink').href = `index.html?table=${code}`;
+      const cardTableEl = document.getElementById('cardTableNumber');
+      if (cardTableEl) cardTableEl.innerText = `TABLE ${code.replace('T-', '')}`;
+      const testLinkEl = document.getElementById('testLink');
+      if (testLinkEl) testLinkEl.href = `index.html?table=${code}`;
     }
 
     function updateStandTable(val) {

@@ -20,7 +20,9 @@
   <!-- Modular Domain Tokens & Toast System -->
   <link rel="stylesheet" href="src/domain-tokens/tokens.css">
   <link rel="stylesheet" href="src/domain-ui/toast.css">
+  <link rel="stylesheet" href="src/domain-ui/cart.css">
   <link rel="stylesheet" href="src/domain-features/interactive-tour.css">
+  <link rel="stylesheet" href="src/domain-features/table-payment.css">
 
   <style>
     /* ==================================================================== */
@@ -1413,14 +1415,17 @@
       top: 0;
       right: -420px;
       width: 100%;
-      max-width: 380px;
+      max-width: 400px;
       height: 100vh;
+      height: 100dvh;
+      max-height: 100dvh;
       background: #ffffff;
       border-left: 1px solid var(--color-gridline);
       box-shadow: -10px 0 30px rgba(0, 0, 0, 0.08);
       z-index: 220;
       display: flex;
       flex-direction: column;
+      overflow: hidden;
       transition: right 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
@@ -1434,18 +1439,139 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+      flex-shrink: 0;
+      background: #ffffff;
     }
 
     .cart-drawer-body {
-      flex: 1;
+      flex: 1 1 0%;
+      min-height: 0;
       padding: 16px 20px;
       overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
     }
 
     .cart-drawer-footer {
       padding: 16px 20px;
+      padding-bottom: max(16px, env(safe-area-inset-bottom));
       border-top: 1px solid var(--color-gridline);
       background: var(--color-vellum);
+      flex-shrink: 0;
+    }
+
+    .cart-item-card {
+      background: #ffffff;
+      border: 1px solid var(--color-gridline);
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin-bottom: 12px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+    }
+
+    .cart-item-thumb {
+      width: 56px;
+      height: 56px;
+      border-radius: 8px;
+      object-fit: cover;
+      border: 1px solid var(--color-gridline);
+      flex-shrink: 0;
+      background: var(--color-vellum);
+    }
+
+    .cart-item-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .cart-item-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 3px;
+    }
+
+    .cart-item-title {
+      font-size: 13.5px;
+      font-weight: 600;
+      color: var(--color-ink);
+      line-height: 1.3;
+    }
+
+    .cart-item-portion {
+      font-size: 11.5px;
+      color: var(--color-slate);
+      margin-bottom: 2px;
+    }
+
+    .cart-item-extras {
+      font-size: 11px;
+      color: var(--color-ember-orange);
+      margin-bottom: 2px;
+    }
+
+    .cart-item-note {
+      font-size: 11px;
+      color: var(--color-slate);
+      font-style: italic;
+      margin-bottom: 4px;
+    }
+
+    .cart-item-pricing-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 8px;
+      padding-top: 6px;
+      border-top: 1px dashed var(--color-gridline);
+    }
+
+    .cart-qty-pill {
+      display: inline-flex;
+      align-items: center;
+      background: var(--color-vellum);
+      border: 1px solid var(--color-gridline);
+      border-radius: 999px;
+      padding: 2px 6px;
+      gap: 8px;
+    }
+
+    .cart-qty-btn {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--color-slate);
+      width: 18px;
+      height: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+    }
+
+    .cart-qty-btn:hover {
+      color: var(--color-ink);
+      background: #ffffff;
+    }
+
+    .cart-qty-val {
+      font-family: var(--font-geist-mono);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--color-ink);
+    }
+
+    .cart-item-total {
+      font-family: var(--font-geist-mono);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--color-ink);
     }
 
     .cf-mobile-drawer-header {
@@ -1612,7 +1738,16 @@
       }
 
       .cart-drawer {
-        max-width: 100%;
+        width: 100vw;
+        max-width: 100vw;
+        height: 100vh;
+        height: 100dvh;
+        max-height: 100dvh;
+        right: -100vw;
+      }
+
+      .cart-drawer.open {
+        right: 0;
       }
     }
   </style>
@@ -1649,13 +1784,23 @@
 
     <!-- Center: Clean SaaS Navigation Links -->
     <nav class="saas-header-nav" aria-label="Main Navigation">
-      <button class="saas-nav-link active" id="navLink-hero" onclick="switchMainScreen('hero')">Product</button>
-      <button class="saas-nav-link" id="navLink-menu" onclick="switchMainScreen('menu')">Live Dine-In Menu</button>
-      <button class="saas-nav-link" id="navLink-kds" onclick="switchMainScreen('kds')">KDS Pass</button>
+      <button class="saas-nav-link active" id="navLink-hero" onclick="switchMainScreen('hero')">Platform Overview</button>
+      <button class="saas-nav-link" id="navLink-menu" onclick="switchMainScreen('menu')">Self-Ordering Menu</button>
+      <button class="saas-nav-link" id="navLink-pay" onclick="switchMainScreen('pay')">Table-Side Pay &amp; Cashier</button>
+      <button class="saas-nav-link" id="navLink-kds" onclick="switchMainScreen('kds')">Kitchen KDS Pass</button>
       <button class="saas-nav-link" id="navLink-stand" onclick="switchMainScreen('stand')">Table Stands</button>
     </nav>
 
     <div class="saas-header-right">
+      <button class="cart-header-btn" onclick="openCartDrawer()" aria-label="Open Table Cart">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <path d="M16 10a4 4 0 0 1-8 0"></path>
+        </svg>
+        <span>Cart (<span id="headerCartCount">0</span>)</span>
+      </button>
+
       <button class="btn-pill-primary" style="padding: 7px 18px; font-size: 13px;" onclick="switchMainScreen('menu')">
         <span>Launch Live Demo -&gt;</span>
       </button>
@@ -1741,6 +1886,17 @@
                 <span class="cf-nav-item-text">Live Order Tracker</span>
               </div>
               <span class="cf-item-badge live">Live</span>
+            </button>
+
+            <button class="cf-nav-item" id="sideBtn-pay" onclick="switchMainScreen('pay')">
+              <div class="cf-nav-item-left">
+                <svg class="cf-nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                  <line x1="1" y1="10" x2="23" y2="10"></line>
+                </svg>
+                <span class="cf-nav-item-text">Table Pay &amp; Split Bill</span>
+              </div>
+              <span class="cf-item-badge">ETA 14%</span>
             </button>
 
             <button class="cf-nav-item" id="sideBtn-stand" onclick="switchMainScreen('stand')">
@@ -1833,6 +1989,7 @@
                   <button class="tour-tab-pill" data-tab="kds" onclick="setTourTab('kds')">2. Kitchen KDS</button>
                   <button class="tour-tab-pill" data-tab="tracker" onclick="setTourTab('tracker')">3. Order Tracker</button>
                   <button class="tour-tab-pill" data-tab="stand" onclick="setTourTab('stand')">4. Table Stand</button>
+                  <button class="tour-tab-pill" data-tab="payment" onclick="setTourTab('payment')">5. Table Settlement</button>
                 </div>
               </div>
               <div class="tour-stage-box" id="tourStageBox"></div>
@@ -1885,32 +2042,96 @@
               </div>
             </div>
 
-            <!-- Embedded Code Window -->
-            <div class="code-window-firecrawl">
-              <div class="code-window-header">
-                <div class="traffic-dots">
-                  <div class="traffic-dot"></div>
-                  <div class="traffic-dot"></div>
-                  <div class="traffic-dot"></div>
+            <!-- B2B SaaS Outcome Card: Live Kitchen Routing & Autonomous Settlement -->
+            <div class="saas-outcome-card">
+              <div class="outcome-card-header">
+                <div class="outcome-header-left">
+                  <span class="pulse-indicator-dot"></span>
+                  <span class="outcome-header-title">LIVE DINE-IN PIPELINE &middot; TABLE T-04</span>
                 </div>
-                <div class="code-window-filename">websocket-kitchen-event.json</div>
-                <button class="code-copy-btn" onclick="copyCodeSnippet(this)">Copy JSON</button>
+                <div class="outcome-header-right">
+                  <span class="telemetry-badge">SYNC LATENCY: 142ms</span>
+                  <span class="telemetry-badge security">E2E TLS 1.3 ENCRYPTED</span>
+                </div>
               </div>
-              <pre class="code-window-body"><code>{
-  <span class="code-kw">"event"</span>: <span class="code-str">"order.dispatched"</span>,
-  <span class="code-kw">"table_number"</span>: <span class="code-str">"T-04"</span>,
-  <span class="code-kw">"sync_latency_ms"</span>: <span class="code-num">142</span>,
-  <span class="code-kw">"items"</span>: [
-    {
-      <span class="code-kw">"dish"</span>: <span class="code-str">"Angus Flame-Grilled Burger"</span>,
-      <span class="code-kw">"portion"</span>: <span class="code-str">"Double Patty (+45 EGP)"</span>,
-      <span class="code-kw">"extras"</span>: [<span class="code-str">"Aged Cheddar"</span>, <span class="code-str">"Smoked Bacon"</span>],
-      <span class="code-kw">"calories"</span>: <span class="code-num">680</span>
-    }
-  ],
-  <span class="code-kw">"kitchen_urgency"</span>: <span class="code-str">"normal"</span>,
-  <span class="code-kw">"status"</span>: <span class="code-str">"flame_grill_queue"</span>
-}</code></pre>
+
+              <div class="outcome-card-grid">
+                <!-- Stream 1: Sub-Second Kitchen Dispatch -->
+                <div class="outcome-stream-panel">
+                  <div class="outcome-stream-meta">
+                    <span class="stream-pill kitchen">KITCHEN LINE ROUTING</span>
+                    <span class="stream-time">STATION 01 &middot; FLAME GRILL</span>
+                  </div>
+                  <div class="outcome-ticket-preview">
+                    <div class="ticket-header-row">
+                      <div class="ticket-order-tag">Ticket #ORD-104</div>
+                      <div class="ticket-status-tag">Sent in 142ms</div>
+                    </div>
+                    <div class="ticket-item-row">
+                      <span class="ticket-item-name"><strong>1x</strong> Flame-Grilled Angus Burger</span>
+                      <span class="ticket-item-addons">Double Patty &middot; Aged Cheddar &middot; Brioche</span>
+                    </div>
+                    <div class="ticket-item-row">
+                      <span class="ticket-item-name"><strong>1x</strong> Truffle Parmesan Fries</span>
+                      <span class="ticket-item-addons">Rosemary Sea Salt &middot; Garlic Aioli</span>
+                    </div>
+                    <div class="ticket-footer-row">
+                      <div class="ticket-alert">Zero waiter transcription delay &middot; Line cooks start immediately</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Stream 2: Autonomous Table Settlement & Fiscal Invoicing -->
+                <div class="outcome-stream-panel">
+                  <div class="outcome-stream-meta">
+                    <span class="stream-pill settlement">AUTONOMOUS CHECKOUT</span>
+                    <span class="stream-time">FISCAL INVOICE READY</span>
+                  </div>
+                  <div class="outcome-ticket-preview">
+                    <div class="ticket-header-row">
+                      <div class="ticket-order-tag">Total Due: 308.70 EGP</div>
+                      <div class="ticket-status-tag settled">Zero Waiter Needed</div>
+                    </div>
+                    <div class="fiscal-breakdown-row">
+                      <span>Food &amp; Beverage Net</span>
+                      <span class="mono-amount">245.00 EGP</span>
+                    </div>
+                    <div class="fiscal-breakdown-row">
+                      <span>Service Charge (12%) + VAT (14%)</span>
+                      <span class="mono-amount">63.70 EGP</span>
+                    </div>
+                    <div class="payment-action-preview">
+                      <div class="pay-method-badge">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                        <span>Apple Pay &middot; 1-Tap</span>
+                      </div>
+                      <div class="pay-method-badge">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>
+                        <span>Contactless Card / Meeza</span>
+                      </div>
+                    </div>
+                    <div class="ticket-footer-row">
+                      <div class="ticket-alert fiscal">QR Fiscal Invoice Generated &middot; Registered Tax ID: 642-891-204</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Proof Points Footnote Strip -->
+              <div class="outcome-card-footer">
+                <div class="outcome-footnote-item">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ff4d00" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                  <span>14 min saved per table turn</span>
+                </div>
+                <div class="outcome-footnote-item">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ff4d00" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                  <span>0% manual kitchen keying errors</span>
+                </div>
+                <div class="outcome-footnote-item">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ff4d00" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                  <span>Zero tabletop hardware CapEx ($0/table)</span>
+                </div>
+              </div>
             </div>
 
             <!-- Architecture Proof Points Strip -->
@@ -2095,6 +2316,162 @@
 
             <div style="margin-top: 28px; padding-top: 18px; border-top: 1px solid var(--color-gridline); display: flex; gap: 10px; flex-wrap: wrap;">
               <button class="btn-pill-primary" onclick="switchMainScreen('menu')">+ Add More Items to Table</button>
+              <button class="btn-pill-primary" style="background: #262626; border-color: #262626;" onclick="switchMainScreen('pay')">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px;"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+                <span>Settle Table Bill (Digital / Cashier Exit Pass)</span>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================================================== -->
+        <!-- VIEW 5: TABLE PAYMENT & AUTONOMOUS FISCAL INVOICING            -->
+        <!-- ============================================================== -->
+        <section id="screen-pay" style="display: none;">
+          <div class="pay-workspace-header">
+            <div>
+              <div class="pay-eyebrow">FISCAL SETTLEMENT ENGINE</div>
+              <h2 style="font-size: 22px; font-weight: 700; color: var(--color-ink);">Table Payment &amp; Autonomous Invoicing</h2>
+              <p style="font-size: 13px; color: var(--color-slate); margin-top: 4px;">
+                Seated diners settle and split checks instantly on their smartphones without waiting for staff.
+              </p>
+            </div>
+            <div class="pay-table-badge-group">
+              <span class="pay-table-badge">Table T-04 Active Bill</span>
+              <span class="pay-status-pill open" id="payScreenStatusPill">Unsettled</span>
+            </div>
+          </div>
+
+          <div class="pay-workspace-grid">
+            <!-- Left Column: Itemized Digital Receipt -->
+            <div class="digital-receipt-card">
+              <div class="receipt-inner">
+                <div class="receipt-header">
+                  <div class="receipt-brand">MATBAKHLINK DINE-IN</div>
+                  <div class="receipt-branch">Branch #01 &middot; Downtown Flame &amp; Grill</div>
+                  <div class="receipt-meta">Ticket #ORD-104 &middot; Table T-04 &middot; Terminal: Table-Side Autonomous</div>
+                </div>
+
+                <div class="receipt-divider"></div>
+
+                <div class="receipt-items-list" id="payItemsContainer">
+                  <div class="receipt-row">
+                    <div class="receipt-row-desc">
+                      <span class="receipt-item-qty">1x</span>
+                      <span>Flame-Grilled Tenderloin Steak (350g King Cut)</span>
+                    </div>
+                    <span class="mono-num">410.00 EGP</span>
+                  </div>
+                  <div class="receipt-row">
+                    <div class="receipt-row-desc">
+                      <span class="receipt-item-qty">1x</span>
+                      <span>Neapolitan Artisan Margherita</span>
+                    </div>
+                    <span class="mono-num">145.00 EGP</span>
+                  </div>
+                </div>
+
+                <div class="receipt-divider"></div>
+
+                <div class="receipt-totals-block">
+                  <div class="receipt-calc-row">
+                    <span>Subtotal</span>
+                    <span class="mono-num" id="paySubtotalDisplay">555.00 EGP</span>
+                  </div>
+                  <div class="receipt-calc-row">
+                    <span>VAT (14% ETA General Tax Authority)</span>
+                    <span class="mono-num" id="payVatDisplay">77.70 EGP</span>
+                  </div>
+                  <div class="receipt-calc-row total-highlight">
+                    <span>Grand Total Due</span>
+                    <span class="mono-num total-amount" id="payTotalDisplay">632.70 EGP</span>
+                  </div>
+                </div>
+
+                <div class="receipt-fiscal-footer">
+                  <div class="receipt-qr-box">
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#262626" stroke-width="1.5">
+                      <rect x="3" y="3" width="7" height="7"></rect>
+                      <rect x="14" y="3" width="7" height="7"></rect>
+                      <rect x="3" y="14" width="7" height="7"></rect>
+                      <rect x="14" y="14" width="3" height="3"></rect>
+                      <rect x="18" y="18" width="3" height="3"></rect>
+                      <rect x="14" y="18" width="3" height="3"></rect>
+                      <rect x="18" y="14" width="3" height="3"></rect>
+                    </svg>
+                  </div>
+                  <div class="receipt-fiscal-info">
+                    <strong>Electronic Tax Authority Invoice</strong>
+                    <div>Tax ID: TR-892-411-902 &middot; CR: 44109</div>
+                    <div class="fiscal-hash">HASH: 9a7f...d821 (Tamper-Proof ETA Verified)</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Column: Interactive Settlement & Split Controls -->
+            <div class="settlement-controls-card">
+              <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 6px;">Select Settlement Method</h3>
+              <p style="font-size: 13px; color: var(--color-slate); margin-bottom: 20px;">
+                Choose how guests at Table T-04 divide and settle their balance.
+              </p>
+
+              <!-- Bill Division Selector -->
+              <div class="split-selector-label">Bill Division Mode</div>
+              <div class="split-button-group">
+                <button class="split-pill-btn active" onclick="setSplitMode(1, this)">Pay Full Bill</button>
+                <button class="split-pill-btn" onclick="setSplitMode(2, this)">Split 2-Ways</button>
+                <button class="split-pill-btn" onclick="setSplitMode(3, this)">Split 3-Ways</button>
+                <button class="split-pill-btn" onclick="setSplitMode(4, this)">Split 4-Ways</button>
+              </div>
+
+              <div class="split-calculation-banner" id="splitNoticeBanner">
+                <div>Single Payer Total:</div>
+                <strong class="mono-num" style="font-size: 16px; color: var(--color-ink);" id="splitShareAmount">632.70 EGP</strong>
+              </div>
+
+              <!-- Payment Gateways -->
+              <div class="split-selector-label" style="margin-top: 20px;">Guest Payment Method</div>
+              <div class="gateway-options-list">
+                <label class="gateway-option-item selected" onclick="selectGateway('apple-pay', this)">
+                  <input type="radio" name="payMethod" value="apple-pay" checked style="accent-color: var(--color-ember-orange);">
+                  <div class="gateway-info">
+                    <span class="gateway-name">Apple Pay / Google Pay</span>
+                    <span class="gateway-desc">Instant 1-tap authorization with Touch ID / Face ID</span>
+                  </div>
+                  <span class="gateway-badge fast">Instant</span>
+                </label>
+
+                <label class="gateway-option-item" onclick="selectGateway('card', this)">
+                  <input type="radio" name="payMethod" value="card" style="accent-color: var(--color-ember-orange);">
+                  <div class="gateway-info">
+                    <span class="gateway-name">Contactless Credit / Debit Card</span>
+                    <span class="gateway-desc">Visa, Mastercard, and Egyptian National Meeza Cards</span>
+                  </div>
+                  <span class="gateway-badge secure">3D Secure 2.0</span>
+                </label>
+
+                <label class="gateway-option-item" onclick="selectGateway('cashier', this)">
+                  <input type="radio" name="payMethod" value="cashier" style="accent-color: var(--color-ember-orange);">
+                  <div class="gateway-info">
+                    <span class="gateway-name">Pay at Cashier Counter on Exit</span>
+                    <span class="gateway-desc">Generates scannable Barcode Pass to present at front desk</span>
+                  </div>
+                  <span class="gateway-badge cashier">Exit Pass</span>
+                </label>
+              </div>
+
+              <!-- Primary Settle Button -->
+              <div style="margin-top: 24px;">
+                <button class="btn-pill-primary" id="btnAuthorizeSettlement" style="width: 100%; justify-content: center; padding: 13px 20px; font-size: 14px;" onclick="simulateTableSettlement()">
+                  <span id="btnAuthorizeText">Authorize &amp; Settle 632.70 EGP -&gt;</span>
+                </button>
+              </div>
+
+              <div class="settlement-guarantee-strip">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                <span>Automated settlement notifies kitchen pass &middot; Frees Table T-04 in POS</span>
+              </div>
             </div>
           </div>
         </section>
@@ -2229,6 +2606,10 @@
       </div>
       <button class="btn-pill-primary" style="width: 100%; justify-content: center; font-size: 13px;" onclick="dispatchOrderFromCart()">
         <span>Send Order to Flame Kitchen -&gt;</span>
+      </button>
+      <button class="btn-pill-ghost" style="width: 100%; justify-content: center; font-size: 12px; margin-top: 8px;" onclick="closeCartDrawer(); switchMainScreen('pay');">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px;"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+        <span>Table Settle (Apple Pay &middot; Split &middot; Cashier Pass)</span>
       </button>
     </div>
   </aside>
@@ -2442,7 +2823,7 @@
     // View Switching
     function switchMainScreen(screenId) {
       currentScreen = screenId;
-      const screens = ['hero', 'menu', 'stand', 'tracker', 'kds', 'floor'];
+      const screens = ['hero', 'menu', 'stand', 'tracker', 'kds', 'floor', 'pay'];
       screens.forEach(s => {
         const el = document.getElementById(`screen-${s}`);
         const sideBtn = document.getElementById(`sideBtn-${s}`);
@@ -2454,6 +2835,7 @@
       const navLinkMap = {
         hero: 'navLink-hero',
         menu: 'navLink-menu',
+        pay: 'navLink-pay',
         kds: 'navLink-kds',
         stand: 'navLink-stand'
       };
@@ -2468,7 +2850,9 @@
         menu: `Dine-In Menu · Table ${currentTable}`,
         stand: 'Acrylic Stand Generator',
         tracker: 'Order Live Tracker',
-        kds: 'Kitchen Display (KDS)'
+        kds: 'Kitchen Display (KDS)',
+        pay: 'Table Payment & Fiscal Invoicing',
+        floor: 'Floor Seating Plan'
       };
       const headerBreadcrumbEl = document.getElementById('headerBreadcrumbTag');
       if (headerBreadcrumbEl) headerBreadcrumbEl.innerText = breadcrumbNames[screenId] || screenId;
@@ -2492,7 +2876,13 @@
       if (screenId === 'stand') renderAcrylicStandQr();
       if (screenId === 'kds') loadKdsFeed();
       if (screenId === 'tracker') {
-        document.getElementById('trackerTableDestination').innerText = `TABLE ${currentTable}`;
+        const destEl = document.getElementById('trackerTableDestination');
+        if (destEl) destEl.innerText = `TABLE ${currentTable}`;
+      }
+      if (screenId === 'pay') {
+        if (window.TablePayment) {
+          window.TablePayment.openTableSettlement();
+        }
       }
 
       // Automatically close drawer on mobile upon selection
@@ -2500,7 +2890,8 @@
         closeMobileSidebar();
       }
 
-      document.getElementById('mainWorkspace').scrollTop = 0;
+      const ws = document.getElementById('mainWorkspace');
+      if (ws) ws.scrollTop = 0;
     }
 
     function changeActiveTable(tableVal) {
@@ -2526,39 +2917,49 @@
     function toggleMobileSidebar() {
       const sb = document.getElementById('cfSidebar');
       const bd = document.getElementById('sidebarBackdrop');
-      sb.classList.toggle('mobile-open');
-      bd.classList.toggle('active', sb.classList.contains('mobile-open'));
+      if (sb) sb.classList.toggle('mobile-open');
+      if (bd && sb) bd.classList.toggle('active', sb.classList.contains('mobile-open'));
     }
 
     function closeMobileSidebar() {
       const sb = document.getElementById('cfSidebar');
       const bd = document.getElementById('sidebarBackdrop');
-      sb.classList.remove('mobile-open');
-      bd.classList.remove('active');
+      if (sb) sb.classList.remove('mobile-open');
+      if (bd) bd.classList.remove('active');
     }
 
     // Desktop Sidebar Collapse
     function toggleSidebarCollapse() {
       const sb = document.getElementById('cfSidebar');
       const txt = document.getElementById('collapseBtnText');
-      sb.classList.toggle('collapsed');
-      txt.innerText = sb.classList.contains('collapsed') ? '' : 'Collapse';
+      if (sb) {
+        sb.classList.toggle('collapsed');
+        if (txt) txt.innerText = sb.classList.contains('collapsed') ? '' : 'Collapse';
+      }
     }
 
     // Viewport Toggle (Desktop Simulator)
     function setCanvasViewport(mode) {
       const ws = document.getElementById('mainWorkspace');
       document.querySelectorAll('.viewport-btn').forEach(b => b.classList.remove('active'));
-      ws.classList.remove('device-mobile', 'device-tablet');
+      if (ws) {
+        ws.classList.remove('device-mobile', 'device-tablet');
+        if (mode === 'mobile') {
+          ws.classList.add('device-mobile');
+        } else if (mode === 'tablet') {
+          ws.classList.add('device-tablet');
+        }
+      }
 
-      if (mode === 'mobile') {
-        ws.classList.add('device-mobile');
-        document.getElementById('vpBtnMobile').classList.add('active');
-      } else if (mode === 'tablet') {
-        ws.classList.add('device-tablet');
-        document.getElementById('vpBtnTablet').classList.add('active');
-      } else {
-        document.getElementById('vpBtnFull').classList.add('active');
+      const vpBtnMobile = document.getElementById('vpBtnMobile');
+      const vpBtnTablet = document.getElementById('vpBtnTablet');
+      const vpBtnFull = document.getElementById('vpBtnFull');
+      if (mode === 'mobile' && vpBtnMobile) {
+        vpBtnMobile.classList.add('active');
+      } else if (mode === 'tablet' && vpBtnTablet) {
+        vpBtnTablet.classList.add('active');
+      } else if (vpBtnFull) {
+        vpBtnFull.classList.add('active');
       }
     }
 
@@ -2629,42 +3030,51 @@
       modalPortion = modalDish.portions[0];
       modalExtras = [];
 
-      document.getElementById('customDishName').innerText = modalDish.name;
-      document.getElementById('customDishBasePrice').innerText = `Base: ${modalDish.price.toFixed(2)} EGP · ${modalDish.calories}`;
-      document.getElementById('modalSpecialNotes').value = '';
+      const nameEl = document.getElementById('customDishName');
+      if (nameEl) nameEl.innerText = modalDish.name;
+      const basePriceEl = document.getElementById('customDishBasePrice');
+      if (basePriceEl) basePriceEl.innerText = `Base: ${modalDish.price.toFixed(2)} EGP · ${modalDish.calories}`;
+      const notesEl = document.getElementById('modalSpecialNotes');
+      if (notesEl) notesEl.value = '';
 
       const portionBox = document.getElementById('modalPortionChoices');
-      portionBox.innerHTML = modalDish.portions.map((p, idx) => `
-        <label style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border: 1px solid var(--color-gridline); border-radius: 8px; cursor: pointer; background: ${idx === 0 ? '#fff7ed' : '#ffffff'}; font-size: 13px;">
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <input type="radio" name="modalPortion" value="${idx}" ${idx === 0 ? 'checked' : ''} onchange="selectModalPortion(${idx})">
-            <span>${p.label}</span>
-          </div>
-          <span style="font-family: var(--font-geist-mono); font-weight: 600;">${p.add > 0 ? `+${p.add.toFixed(2)} EGP` : 'Included'}</span>
-        </label>
-      `).join('');
-
-      const extraBox = document.getElementById('modalExtraChoices');
-      if (modalDish.extras.length === 0) {
-        extraBox.innerHTML = '<div style="font-size: 13px; color: var(--color-slate);">No additional toppings for this dish.</div>';
-      } else {
-        extraBox.innerHTML = modalDish.extras.map((ex, idx) => `
-          <label style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border: 1px solid var(--color-gridline); border-radius: 8px; cursor: pointer; background: #ffffff; font-size: 13px;">
+      if (portionBox) {
+        portionBox.innerHTML = modalDish.portions.map((p, idx) => `
+          <label style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border: 1px solid var(--color-gridline); border-radius: 8px; cursor: pointer; background: ${idx === 0 ? '#fff7ed' : '#ffffff'}; font-size: 13px;">
             <div style="display: flex; align-items: center; gap: 8px;">
-              <input type="checkbox" onchange="toggleModalExtra(${idx}, this.checked)">
-              <span>${ex.label}</span>
+              <input type="radio" name="modalPortion" value="${idx}" ${idx === 0 ? 'checked' : ''} onchange="selectModalPortion(${idx})">
+              <span>${p.label}</span>
             </div>
-            <span style="font-family: var(--font-geist-mono); color: var(--color-ember-orange); font-weight: 600;">+${ex.price.toFixed(2)} EGP</span>
+            <span style="font-family: var(--font-geist-mono); font-weight: 600;">${p.add > 0 ? `+${p.add.toFixed(2)} EGP` : 'Included'}</span>
           </label>
         `).join('');
       }
 
+      const extraBox = document.getElementById('modalExtraChoices');
+      if (extraBox) {
+        if (modalDish.extras.length === 0) {
+          extraBox.innerHTML = '<div style="font-size: 13px; color: var(--color-slate);">No additional toppings for this dish.</div>';
+        } else {
+          extraBox.innerHTML = modalDish.extras.map((ex, idx) => `
+            <label style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border: 1px solid var(--color-gridline); border-radius: 8px; cursor: pointer; background: #ffffff; font-size: 13px;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <input type="checkbox" onchange="toggleModalExtra(${idx}, this.checked)">
+                <span>${ex.label}</span>
+              </div>
+              <span style="font-family: var(--font-geist-mono); color: var(--color-ember-orange); font-weight: 600;">+${ex.price.toFixed(2)} EGP</span>
+            </label>
+          `).join('');
+        }
+      }
+
       updateModalTotal();
-      document.getElementById('dishModalBackdrop').style.display = 'flex';
+      const modalBackdrop = document.getElementById('dishModalBackdrop');
+      if (modalBackdrop) modalBackdrop.style.display = 'flex';
     }
 
     function closeDishModal() {
-      document.getElementById('dishModalBackdrop').style.display = 'none';
+      const modalBackdrop = document.getElementById('dishModalBackdrop');
+      if (modalBackdrop) modalBackdrop.style.display = 'none';
     }
 
     function selectModalPortion(idx) {
@@ -2688,17 +3098,20 @@
     function updateModalTotal() {
       let total = modalDish.price + (modalPortion ? modalPortion.add : 0);
       modalExtras.forEach(e => total += e.price);
-      document.getElementById('modalTotalPrice').innerText = `${total.toFixed(2)} EGP`;
+      const totalEl = document.getElementById('modalTotalPrice');
+      if (totalEl) totalEl.innerText = `${total.toFixed(2)} EGP`;
     }
 
     function addCustomizedDishToCart() {
-      const notes = (document.getElementById('modalSpecialNotes').value || '').trim();
+      const notesEl = document.getElementById('modalSpecialNotes');
+      const notes = (notesEl && notesEl.value ? notesEl.value : '').trim();
       let total = modalDish.price + (modalPortion ? modalPortion.add : 0);
       modalExtras.forEach(e => total += e.price);
 
       cart.push({
         id: modalDish.id,
         name: modalDish.name,
+        image: modalDish.image,
         portion: modalPortion ? modalPortion.label : '',
         extras: [...modalExtras],
         notes: notes,
@@ -2708,75 +3121,109 @@
 
       refreshCartUI();
       closeDishModal();
-      openCartDrawer();
+
+      if (window.showToast) {
+        window.showToast({
+          title: 'Dish Added to Cart',
+          message: `${modalDish.name} (${modalPortion ? modalPortion.label : 'Standard'}) added to Table ${currentTable}.`,
+          type: 'success',
+          duration: 2500
+        });
+      }
     }
 
     // Cart Management
     function openCartDrawer() {
-      document.getElementById('cartDrawer').classList.add('open');
+      const drawer = document.getElementById('cartDrawer');
+      if (drawer) drawer.classList.add('open');
       const backdrop = document.getElementById('cartBackdrop');
       if (backdrop) backdrop.classList.add('active');
     }
 
     function closeCartDrawer() {
-      document.getElementById('cartDrawer').classList.remove('open');
+      const drawer = document.getElementById('cartDrawer');
+      if (drawer) drawer.classList.remove('open');
       const backdrop = document.getElementById('cartBackdrop');
       if (backdrop) backdrop.classList.remove('active');
     }
 
     function refreshCartUI() {
+      if (window.MatbakhCartUI && typeof window.MatbakhCartUI.renderCart === 'function') {
+        window.MatbakhCartUI.renderCart(cart, currentTable);
+        return;
+      }
+
       const list = document.getElementById('cartItemsList');
       const badge = document.getElementById('cartItemCountBadge');
       const headerBadge = document.getElementById('headerCartCount');
 
       const totalItems = cart.reduce((acc, i) => acc + i.qty, 0);
-      badge.innerText = `${totalItems} Items`;
-      headerBadge.innerText = totalItems;
+      if (badge) badge.innerText = `${totalItems} Items`;
+      if (headerBadge) headerBadge.innerText = totalItems;
 
       if (cart.length === 0) {
-        list.innerHTML = `
-          <div style="text-align: center; color: var(--color-slate); padding-top: 40px; font-size: 13px;">
-            Your table cart is empty.<br>Touch any dish on the menu to customize and add!
-          </div>
-        `;
-        document.getElementById('cartSubtotal').innerText = '0.00 EGP';
-        document.getElementById('cartVat').innerText = '0.00 EGP';
-        document.getElementById('cartTotal').innerText = '0.00 EGP';
+        if (list) {
+          list.innerHTML = `
+            <div style="text-align: center; color: var(--color-slate); padding-top: 40px; font-size: 13px;">
+              Your table cart is empty.<br>Touch any dish on the menu to customize and add!
+            </div>
+          `;
+        }
+        const subEl = document.getElementById('cartSubtotal');
+        if (subEl) subEl.innerText = '0.00 EGP';
+        const vatEl = document.getElementById('cartVat');
+        if (vatEl) vatEl.innerText = '0.00 EGP';
+        const totalEl = document.getElementById('cartTotal');
+        if (totalEl) totalEl.innerText = '0.00 EGP';
         return;
       }
 
-      list.innerHTML = cart.map((item, idx) => `
-        <div style="background: var(--color-vellum); border: 1px solid var(--color-gridline); border-radius: 10px; padding: 12px 14px; margin-bottom: 10px;">
-          <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px;">
-            <strong style="font-size: 14px;">${item.name}</strong>
-            <button style="background: transparent; border: none; cursor: pointer; color: var(--color-slate); padding: 2px; display: flex; align-items: center;" onclick="removeCartItem(${idx})" aria-label="Remove item">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
-              </svg>
-            </button>
+      if (list) {
+        list.innerHTML = cart.map((item, idx) => `
+          <div style="background: var(--color-vellum); border: 1px solid var(--color-gridline); border-radius: 10px; padding: 12px 14px; margin-bottom: 10px;">
+            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px;">
+              <strong style="font-size: 14px;">${item.name}</strong>
+              <button style="background: transparent; border: none; cursor: pointer; color: var(--color-slate); padding: 2px; display: flex; align-items: center;" onclick="removeCartItem(${idx})" aria-label="Remove item">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+            <div style="font-size: 12px; color: var(--color-slate); margin-bottom: 4px;">${item.portion}</div>
+            ${item.extras.length > 0 ? `<div style="font-size: 11px; color: var(--color-ember-orange);">Extras: ${item.extras.map(e => e.label).join(', ')}</div>` : ''}
+            ${item.notes ? `<div style="font-size: 11px; color: var(--color-slate); font-style: italic;">Note: "${item.notes}"</div>` : ''}
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; border-top: 1px dashed var(--color-gridline); padding-top: 6px;">
+              <span style="font-size: 12px; color: var(--color-slate);">Qty: ${item.qty}</span>
+              <span style="font-family: var(--font-geist-mono); font-weight: 600;">${(item.price * item.qty).toFixed(2)} EGP</span>
+            </div>
           </div>
-          <div style="font-size: 12px; color: var(--color-slate); margin-bottom: 4px;">${item.portion}</div>
-          ${item.extras.length > 0 ? `<div style="font-size: 11px; color: var(--color-ember-orange);">Extras: ${item.extras.map(e => e.label).join(', ')}</div>` : ''}
-          ${item.notes ? `<div style="font-size: 11px; color: var(--color-slate); font-style: italic;">Note: "${item.notes}"</div>` : ''}
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; border-top: 1px dashed var(--color-gridline); padding-top: 6px;">
-            <span style="font-size: 12px; color: var(--color-slate);">Qty: ${item.qty}</span>
-            <span style="font-family: var(--font-geist-mono); font-weight: 600;">${(item.price * item.qty).toFixed(2)} EGP</span>
-          </div>
-        </div>
-      `).join('');
+        `).join('');
+      }
 
       const sub = cart.reduce((acc, i) => acc + (i.price * i.qty), 0);
       const vat = sub * 0.14;
       const total = sub + vat;
 
-      document.getElementById('cartSubtotal').innerText = `${sub.toFixed(2)} EGP`;
-      document.getElementById('cartVat').innerText = `${vat.toFixed(2)} EGP`;
-      document.getElementById('cartTotal').innerText = `${total.toFixed(2)} EGP`;
+      const subEl = document.getElementById('cartSubtotal');
+      if (subEl) subEl.innerText = `${sub.toFixed(2)} EGP`;
+      const vatEl = document.getElementById('cartVat');
+      if (vatEl) vatEl.innerText = `${vat.toFixed(2)} EGP`;
+      const totalEl = document.getElementById('cartTotal');
+      if (totalEl) totalEl.innerText = `${total.toFixed(2)} EGP`;
     }
 
     function removeCartItem(idx) {
       cart.splice(idx, 1);
+      refreshCartUI();
+    }
+
+    function changeCartQty(idx, delta) {
+      if (!cart[idx]) return;
+      cart[idx].qty = (cart[idx].qty || 1) + delta;
+      if (cart[idx].qty <= 0) {
+        cart.splice(idx, 1);
+      }
       refreshCartUI();
     }
 
@@ -2833,8 +3280,10 @@
       }
 
       // Populate Tracker with ordered items
-      document.getElementById('trackerOrderNumber').innerText = `#ORD-${ordId}`;
-      document.getElementById('trackerTableDestination').innerText = `TABLE ${currentTable}`;
+      const trackerOrdNum = document.getElementById('trackerOrderNumber');
+      if (trackerOrdNum) trackerOrdNum.innerText = `#ORD-${ordId}`;
+      const trackerDest = document.getElementById('trackerTableDestination');
+      if (trackerDest) trackerDest.innerText = `TABLE ${currentTable}`;
       const trackerList = document.getElementById('trackerItemsList');
       if (trackerList) {
         trackerList.innerHTML = cart.map(i => `
@@ -2909,7 +3358,8 @@
         colorLight: "#ffffff",
         correctLevel: QRCode.CorrectLevel.H
       });
-      document.getElementById('standCardTableCode').innerText = `TABLE ${currentTable.replace('T-', '')}`;
+      const standCodeEl = document.getElementById('standCardTableCode');
+      if (standCodeEl) standCodeEl.innerText = `TABLE ${currentTable.replace('T-', '')}`;
     }
 
     function changeStandTable(val) {
@@ -2965,9 +3415,12 @@
         ];
       }
 
-      document.getElementById('kdsActiveTotal').innerText = orders.length;
-      document.getElementById('sidebarKdsCount').innerText = orders.length;
-      document.getElementById('kdsInGrill').innerText = orders.filter(o => o.status === 'cooking').length;
+      const kdsActive = document.getElementById('kdsActiveTotal');
+      if (kdsActive) kdsActive.innerText = orders.length;
+      const kdsSide = document.getElementById('sidebarKdsCount');
+      if (kdsSide) kdsSide.innerText = orders.length;
+      const kdsGrill = document.getElementById('kdsInGrill');
+      if (kdsGrill) kdsGrill.innerText = orders.filter(o => o.status === 'cooking').length;
 
       grid.innerHTML = orders.map(ord => {
         let color = 'var(--kds-blue)';
@@ -3036,6 +3489,76 @@
       loadKdsFeed();
     }
 
+    // Table Payment & Fiscal Settlement Engine
+    let currentSplitWays = 1;
+    let currentGateway = 'apple-pay';
+
+    function setSplitMode(ways, btnEl) {
+      currentSplitWays = ways;
+      document.querySelectorAll('.split-pill-btn').forEach(b => b.classList.remove('active'));
+      if (btnEl) btnEl.classList.add('active');
+
+      const baseSubtotal = 555.00;
+      const baseVat = 77.70;
+      const total = baseSubtotal + baseVat;
+      const perPerson = total / ways;
+
+      const splitNotice = document.getElementById('splitNoticeBanner');
+      const splitShare = document.getElementById('splitShareAmount');
+      const btnAuthText = document.getElementById('btnAuthorizeText');
+
+      if (splitNotice && splitNotice.children[0]) {
+        splitNotice.children[0].innerText = (ways === 1) ? 'Single Payer Total:' : `Each Diner Pays (${ways} Diners):`;
+      }
+      if (splitShare) {
+        splitShare.innerText = `${perPerson.toFixed(2)} EGP`;
+      }
+      if (btnAuthText) {
+        if (currentGateway === 'cashier') {
+          btnAuthText.innerText = `Generate Cashier Exit Pass (${perPerson.toFixed(2)} EGP) ->`;
+        } else {
+          btnAuthText.innerText = `Authorize & Settle ${perPerson.toFixed(2)} EGP ->`;
+        }
+      }
+    }
+
+    function selectGateway(gw, labelEl) {
+      currentGateway = gw;
+      document.querySelectorAll('.gateway-option-item').forEach(el => el.classList.remove('selected'));
+      if (labelEl) labelEl.classList.add('selected');
+
+      const btnAuthText = document.getElementById('btnAuthorizeText');
+      const baseSubtotal = 555.00;
+      const baseVat = 77.70;
+      const total = (baseSubtotal + baseVat) / currentSplitWays;
+
+      if (gw === 'cashier') {
+        if (btnAuthText) btnAuthText.innerText = `Generate Cashier Exit Pass (${total.toFixed(2)} EGP) ->`;
+      } else {
+        if (btnAuthText) btnAuthText.innerText = `Authorize & Settle ${total.toFixed(2)} EGP ->`;
+      }
+    }
+
+    function simulateTableSettlement() {
+      if (window.TablePayment) {
+        window.TablePayment.openTableSettlement();
+        if (currentGateway === 'cashier') {
+          window.TablePayment.setPaymentMode('exit_cashier');
+        } else {
+          window.TablePayment.setPaymentMode('table_pay');
+        }
+        window.TablePayment.setSplitCount(currentSplitWays);
+      } else {
+        if (window.showToast) {
+          window.showToast({
+            title: currentGateway === 'cashier' ? 'Cashier Pass Generated' : 'Table Bill Settled',
+            message: 'Official Tax Invoice ETA-INV-2026 registered with 14% VAT.',
+            type: 'success'
+          });
+        }
+      }
+    }
+
     function copyCodeSnippet(btn) {
       const code = `{
   "event": "order.dispatched",
@@ -3089,11 +3612,14 @@
 
   <!-- Modular Domain Architecture Scripts -->
   <script src="src/domain-ui/toast.js"></script>
+  <script src="src/domain-ui/cart.js"></script>
   <script src="src/domain-layout/shell.js"></script>
   <script src="src/domain-utils/helpers.js"></script>
   <script src="src/domain-state/store.js"></script>
   <script src="src/domain-services/supabase.js"></script>
   <script src="src/domain-features/interactive-tour.js"></script>
+  <script src="src/domain-features/table-payment.js"></script>
+  <script src="src/domain-features/kds-pass.js"></script>
   <script src="src/domain-qa/audit.js"></script>
 </body>
 </html>

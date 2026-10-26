@@ -1,0 +1,912 @@
+/**
+ * MatbakhLink Table Payment & Fiscal Settlement System
+ * Domain Feature: Table-Side Autonomous Payment & Exit Cashier Pass
+ * Strict 100% Light Theme Firecrawl Standard
+ * Zero emojis — ETA Egyptian Tax Authority Compliance
+ */
+
+/* Modal Backdrop */
+.tp-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.2s;
+}
+
+.tp-backdrop.tp-open {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Base Modal Container */
+.tp-modal {
+  background: var(--color-canvas, #ffffff);
+  border: 1px solid var(--color-gridline, #e5e7eb);
+  border-radius: var(--radius-cards, 16px);
+  width: 100%;
+  max-width: 520px;
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.04);
+  transform: translateY(12px) scale(0.98);
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.tp-backdrop.tp-open .tp-modal {
+  transform: translateY(0) scale(1);
+}
+
+/* Modal Header */
+.tp-modal-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--color-gridline, #e5e7eb);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--color-canvas, #ffffff);
+}
+
+.tp-modal-title-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tp-table-badge {
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--color-flame-soft, #fff5f0);
+  color: var(--color-flame, #ff4d00);
+  border: 1px solid var(--color-flame-ambient, #fcddcc);
+  padding: 3px 10px;
+  border-radius: var(--radius-pills, 999px);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.tp-modal-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-ink, #262626);
+  line-height: 1.2;
+}
+
+.tp-modal-subtitle {
+  font-size: 12px;
+  color: var(--color-slate, #727272);
+  margin-top: 2px;
+}
+
+.tp-close-btn {
+  background: transparent;
+  border: 1px solid var(--color-gridline, #e5e7eb);
+  border-radius: var(--radius-pills, 999px);
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-slate, #727272);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tp-close-btn:hover {
+  background: var(--color-surface-hover, #f3f4f6);
+  color: var(--color-ink, #262626);
+}
+
+/* Modal Body */
+.tp-modal-body {
+  padding: 18px 20px;
+  overflow-y: auto;
+  flex: 1;
+  background: var(--color-canvas, #ffffff);
+}
+
+/* Mode Switcher Tabs (Table Pay vs Exit Cashier) */
+.tp-tabs-bar {
+  display: flex;
+  background: var(--color-vellum, #f9f9f9);
+  border: 1px solid var(--color-gridline, #e5e7eb);
+  border-radius: var(--radius-pills, 999px);
+  padding: 3px;
+  margin-bottom: 18px;
+  gap: 3px;
+}
+
+.tp-tab-btn {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 8px 12px;
+  border-radius: var(--radius-pills, 999px);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-slate, #727272);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.15s ease;
+  min-height: 36px;
+}
+
+.tp-tab-btn.active {
+  background: #ffffff;
+  color: var(--color-ink, #262626);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.tp-tab-btn:hover:not(.active) {
+  color: var(--color-ink, #262626);
+}
+
+/* Itemized Order Summary Box */
+.tp-summary-box {
+  background: var(--color-vellum, #f9f9f9);
+  border: 1px solid var(--color-gridline, #e5e7eb);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 18px;
+}
+
+.tp-summary-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  font-size: 11px;
+  font-family: var(--font-mono, monospace);
+  color: var(--color-slate, #727272);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.tp-items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 140px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.tp-item-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.tp-item-name {
+  color: var(--color-ink, #262626);
+  font-weight: 500;
+  flex: 1;
+  padding-right: 12px;
+}
+
+.tp-item-portion {
+  font-size: 11px;
+  color: var(--color-slate, #727272);
+  display: block;
+}
+
+.tp-item-price {
+  font-family: var(--font-mono, monospace);
+  font-weight: 600;
+  color: var(--color-ink, #262626);
+  white-space: nowrap;
+}
+
+.tp-divider-dashed {
+  border-top: 1px dashed var(--color-gridline, #e5e7eb);
+  margin: 12px 0 10px;
+}
+
+.tp-calc-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: var(--color-slate, #727272);
+  margin-bottom: 4px;
+}
+
+.tp-calc-row.tp-total {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-ink, #262626);
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--color-gridline, #e5e7eb);
+}
+
+.tp-total-val {
+  font-family: var(--font-mono, monospace);
+  color: var(--color-flame, #ff4d00);
+}
+
+/* Split Bill Controls */
+.tp-section-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-ink, #262626);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-family: var(--font-mono, monospace);
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.tp-split-selector {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr) auto;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.tp-split-btn {
+  background: #ffffff;
+  border: 1px solid var(--color-gridline, #e5e7eb);
+  border-radius: var(--radius-pills, 999px);
+  padding: 8px 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-slate, #727272);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+  min-height: 44px;
+}
+
+.tp-split-btn.active {
+  background: var(--color-flame-soft, #fff5f0);
+  border-color: var(--color-flame, #ff4d00);
+  color: var(--color-flame, #ff4d00);
+  box-shadow: 0 0 0 2px rgba(255, 77, 0, 0.15);
+}
+
+.tp-split-btn:hover:not(.active) {
+  border-color: #d1d5db;
+  color: var(--color-ink, #262626);
+}
+
+.tp-custom-split-ctrl {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: #ffffff;
+  border: 1px solid var(--color-gridline, #e5e7eb);
+  border-radius: var(--radius-pills, 999px);
+  padding: 2px 6px;
+  min-height: 44px;
+}
+
+.tp-counter-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--color-gridline, #e5e7eb);
+  background: #ffffff;
+  color: var(--color-ink, #262626);
+  font-weight: 700;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tp-counter-btn:hover {
+  background: var(--color-surface-hover, #f3f4f6);
+}
+
+.tp-counter-val {
+  font-family: var(--font-mono, monospace);
+  font-size: 13px;
+  font-weight: 700;
+  padding: 0 6px;
+  color: var(--color-ink, #262626);
+}
+
+/* Split Banner Card */
+.tp-split-banner {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 10px;
+  padding: 10px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.tp-split-info-label {
+  font-size: 12px;
+  color: #166534;
+  font-weight: 500;
+}
+
+.tp-split-amount {
+  font-family: var(--font-mono, monospace);
+  font-size: 16px;
+  font-weight: 700;
+  color: #15803d;
+}
+
+/* Payment Method Cards */
+.tp-method-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.tp-method-card {
+  border: 1px solid var(--color-gridline, #e5e7eb);
+  border-radius: 12px;
+  padding: 12px 14px;
+  background: #ffffff;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  position: relative;
+}
+
+.tp-method-card.active {
+  border-color: var(--color-flame, #ff4d00);
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(255, 77, 0, 0.1);
+}
+
+.tp-method-card:hover:not(.active) {
+  border-color: #d1d5db;
+}
+
+.tp-method-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tp-method-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-ink, #262626);
+}
+
+.tp-method-icon-wrap {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--color-vellum, #f9f9f9);
+  border: 1px solid var(--color-gridline, #e5e7eb);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-ink, #262626);
+}
+
+.tp-radio-circle {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid var(--color-gridline, #e5e7eb);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tp-method-card.active .tp-radio-circle {
+  border-color: var(--color-flame, #ff4d00);
+}
+
+.tp-radio-inner {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: transparent;
+}
+
+.tp-method-card.active .tp-radio-inner {
+  background: var(--color-flame, #ff4d00);
+}
+
+/* Method Sub-Forms */
+.tp-method-expand {
+  display: none;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-gridline, #e5e7eb);
+}
+
+.tp-method-card.active .tp-method-expand {
+  display: block;
+}
+
+.tp-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.tp-input-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--color-slate, #727272);
+  font-family: var(--font-mono, monospace);
+}
+
+.tp-input {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--color-gridline, #e5e7eb);
+  border-radius: var(--radius-inputs, 8px);
+  font-family: var(--font-mono, monospace);
+  font-size: 13px;
+  outline: none;
+  background: #ffffff;
+  color: var(--color-ink, #262626);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  box-sizing: border-box;
+}
+
+.tp-input:focus {
+  border-color: var(--color-flame, #ff4d00);
+  box-shadow: 0 0 0 3px rgba(255, 77, 0, 0.12);
+}
+
+.tp-input-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+/* Apple Pay Button */
+.tp-apple-pay-btn {
+  width: 100%;
+  height: 48px;
+  background: #000000;
+  color: #ffffff;
+  border: 1px solid #000000;
+  border-radius: var(--radius-pills, 999px);
+  font-size: 15px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: opacity 0.15s ease, transform 0.1s ease;
+  user-select: none;
+}
+
+.tp-apple-pay-btn:hover {
+  opacity: 0.92;
+}
+
+.tp-apple-pay-btn:active {
+  transform: scale(0.99);
+}
+
+/* Primary Action Button */
+.tp-pay-action-btn {
+  width: 100%;
+  height: 48px;
+  background: var(--color-flame, #ff4d00);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--radius-pills, 999px);
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(255, 77, 0, 0.25);
+  transition: background-color 0.15s ease, transform 0.1s ease;
+}
+
+.tp-pay-action-btn:hover {
+  background: var(--color-flame-hover, #e04400);
+}
+
+.tp-pay-action-btn:active {
+  transform: scale(0.99);
+}
+
+/* Modal Footer */
+.tp-modal-footer {
+  padding: 14px 20px;
+  border-top: 1px solid var(--color-gridline, #e5e7eb);
+  background: var(--color-vellum, #f9f9f9);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tp-secure-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--color-slate, #727272);
+  font-family: var(--font-mono, monospace);
+}
+
+/* ==================================================================== */
+/* FLOW 2: DIGITAL TABLE EXIT INVOICE PASS                               */
+/* ==================================================================== */
+.tp-exit-pass-card {
+  background: #ffffff;
+  border: 1px solid var(--color-gridline, #e5e7eb);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  position: relative;
+}
+
+.tp-exit-pass-header {
+  background: var(--color-vellum, #f9f9f9);
+  border-bottom: 1px dashed var(--color-gridline, #e5e7eb);
+  padding: 16px 18px;
+  text-align: center;
+}
+
+.tp-exit-pass-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-flame, #ff4d00);
+  font-family: var(--font-mono, monospace);
+  margin-bottom: 4px;
+}
+
+.tp-exit-pass-id {
+  font-family: var(--font-mono, monospace);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-ink, #262626);
+  letter-spacing: 0.04em;
+}
+
+.tp-exit-barcode-wrap {
+  padding: 20px 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+}
+
+.tp-barcode-svg {
+  width: 100%;
+  max-width: 280px;
+  height: 64px;
+}
+
+.tp-barcode-num {
+  font-family: var(--font-mono, monospace);
+  font-size: 12px;
+  color: var(--color-slate, #727272);
+  letter-spacing: 0.25em;
+  margin-top: 6px;
+}
+
+.tp-exit-qr-box {
+  display: flex;
+  justify-content: center;
+  margin: 10px 0;
+}
+
+.tp-exit-qr-holder {
+  width: 140px;
+  height: 140px;
+  padding: 8px;
+  background: #ffffff;
+  border: 1px solid var(--color-gridline, #e5e7eb);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tp-exit-instructions {
+  background: var(--color-vellum, #f9f9f9);
+  border-top: 1px dashed var(--color-gridline, #e5e7eb);
+  padding: 14px 18px;
+  font-size: 12px;
+  color: var(--color-slate, #727272);
+  line-height: 1.5;
+  text-align: center;
+}
+
+.tp-exit-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: var(--radius-pills, 999px);
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--font-mono, monospace);
+  background: var(--color-warning-soft, #fffbeb);
+  color: var(--color-warning, #d97706);
+  border: 1px solid var(--color-warning-border, #fde68a);
+  margin-bottom: 8px;
+}
+
+.tp-exit-status-pulse {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-warning, #d97706);
+  animation: tp-pulse 1.6s infinite ease-in-out;
+}
+
+@keyframes tp-pulse {
+  0% { transform: scale(0.9); opacity: 0.8; }
+  50% { transform: scale(1.3); opacity: 1; }
+  100% { transform: scale(0.9); opacity: 0.8; }
+}
+
+/* ==================================================================== */
+/* OFFICIAL EGYPTIAN FISCAL TAX INVOICE (ETA COMPLIANCE)                 */
+/* ==================================================================== */
+.tp-invoice-paper {
+  background: #ffffff;
+  border: 1px solid var(--color-gridline, #e5e7eb);
+  border-radius: 12px;
+  padding: 22px 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+  font-family: var(--font-sans, sans-serif);
+}
+
+.tp-invoice-header {
+  text-align: center;
+  border-bottom: 2px solid var(--color-ink, #262626);
+  padding-bottom: 14px;
+  margin-bottom: 14px;
+}
+
+.tp-invoice-gov-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-slate, #727272);
+  margin-bottom: 2px;
+}
+
+.tp-invoice-company {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-ink, #262626);
+  line-height: 1.2;
+}
+
+.tp-invoice-reg-details {
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  color: var(--color-slate, #727272);
+  margin-top: 4px;
+  line-height: 1.5;
+}
+
+.tp-invoice-meta-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--color-gridline, #e5e7eb);
+  font-size: 11px;
+  font-family: var(--font-mono, monospace);
+  color: var(--color-slate, #727272);
+}
+
+.tp-invoice-meta-grid span {
+  display: block;
+}
+
+.tp-invoice-meta-grid strong {
+  color: var(--color-ink, #262626);
+}
+
+.tp-invoice-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 14px 0;
+  font-size: 12px;
+}
+
+.tp-invoice-table th {
+  text-align: left;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--color-gridline, #e5e7eb);
+  font-size: 10px;
+  text-transform: uppercase;
+  color: var(--color-slate, #727272);
+  font-family: var(--font-mono, monospace);
+}
+
+.tp-invoice-table th:last-child {
+  text-align: right;
+}
+
+.tp-invoice-table td {
+  padding: 8px 0;
+  border-bottom: 1px dashed var(--color-gridline-subtle, #f0f1f3);
+}
+
+.tp-invoice-table td:last-child {
+  text-align: right;
+  font-family: var(--font-mono, monospace);
+  font-weight: 600;
+}
+
+.tp-invoice-totals {
+  margin-top: 10px;
+  border-top: 1px solid var(--color-gridline, #e5e7eb);
+  padding-top: 10px;
+}
+
+.tp-invoice-total-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--color-slate, #727272);
+  margin-bottom: 4px;
+}
+
+.tp-invoice-total-row.grand {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-ink, #262626);
+  border-top: 1px solid var(--color-ink, #262626);
+  padding-top: 8px;
+  margin-top: 8px;
+}
+
+.tp-invoice-qr-section {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--color-gridline, #e5e7eb);
+}
+
+.tp-invoice-qr-badge {
+  width: 84px;
+  height: 84px;
+  padding: 4px;
+  background: #ffffff;
+  border: 1px solid var(--color-gridline, #e5e7eb);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.tp-invoice-compliance-text {
+  font-size: 11px;
+  color: var(--color-slate, #727272);
+  line-height: 1.4;
+}
+
+.tp-invoice-compliance-text strong {
+  color: var(--color-ink, #262626);
+  display: block;
+  margin-bottom: 2px;
+}
+
+/* ==================================================================== */
+/* CASHIER TERMINAL OPERATOR INTERFACE                                  */
+/* ==================================================================== */
+.tp-cashier-dock {
+  background: var(--color-vellum, #f9f9f9);
+  border: 1px solid var(--color-gridline, #e5e7eb);
+  border-radius: 14px;
+  padding: 16px;
+  margin-top: 16px;
+}
+
+.tp-cashier-scanner-input-wrap {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.tp-quick-tenders {
+  display: flex;
+  gap: 6px;
+  margin: 10px 0;
+  flex-wrap: wrap;
+}
+
+.tp-tender-chip {
+  background: #ffffff;
+  border: 1px solid var(--color-gridline, #e5e7eb);
+  border-radius: var(--radius-pills, 999px);
+  padding: 6px 12px;
+  font-family: var(--font-mono, monospace);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-ink, #262626);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tp-tender-chip:hover {
+  background: var(--color-surface-hover, #f3f4f6);
+  border-color: #d1d5db;
+}
+
+.tp-change-due-box {
+  background: var(--color-success-soft, #f0fdf4);
+  border: 1px solid var(--color-success-border, #bbf7d0);
+  border-radius: 10px;
+  padding: 10px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.tp-change-due-val {
+  font-family: var(--font-mono, monospace);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-success, #16a34a);
+}
+
+/* Print Optimization for Receipts */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .tp-invoice-paper, .tp-invoice-paper * {
+    visibility: visible;
+  }
+  .tp-invoice-paper {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    max-width: 380px;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+  }
+  .tp-modal-header, .tp-modal-footer, .tp-tabs-bar {
+    display: none !important;
+  }
+}

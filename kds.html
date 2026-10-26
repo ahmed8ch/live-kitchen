@@ -14,9 +14,14 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js"></script>
 
+  <!-- QRCode.js -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+
   <!-- Modular Domain Tokens & Toast System -->
   <link rel="stylesheet" href="src/domain-tokens/tokens.css">
   <link rel="stylesheet" href="src/domain-ui/toast.css">
+  <link rel="stylesheet" href="src/domain-features/table-payment.css">
+  <link rel="stylesheet" href="src/domain-features/kds-pass.css">
 
   <style>
     /* Firecrawl System Tokens (DESIGN (3).md) */
@@ -528,6 +533,7 @@
     <div class="ops-nav-pills">
       <button class="ops-nav-btn active" id="tabKdsBtn" onclick="switchOpsTab('kds')">Kitchen Live Feed</button>
       <button class="ops-nav-btn" id="tabFloorBtn" onclick="switchOpsTab('floor')">Floor Seating Plan</button>
+      <button class="ops-nav-btn" id="tabCashierBtn" onclick="TablePayment.openCashierTerminal()">Cashier Counter Desk</button>
     </div>
 
     <div class="ops-header-right">
@@ -629,10 +635,15 @@
 
     function switchOpsTab(tab) {
       const isKds = (tab === 'kds');
-      document.getElementById('sectionKdsLive').style.display = isKds ? 'block' : 'none';
-      document.getElementById('sectionFloorPlan').style.display = isKds ? 'none' : 'block';
-      document.getElementById('tabKdsBtn').classList.toggle('active', isKds);
-      document.getElementById('tabFloorBtn').classList.toggle('active', !isKds);
+      const secKds = document.getElementById('sectionKdsLive');
+      const secFloor = document.getElementById('sectionFloorPlan');
+      const tabKds = document.getElementById('tabKdsBtn');
+      const tabFloor = document.getElementById('tabFloorBtn');
+
+      if (secKds) secKds.style.display = isKds ? 'block' : 'none';
+      if (secFloor) secFloor.style.display = isKds ? 'none' : 'block';
+      if (tabKds) tabKds.classList.toggle('active', isKds);
+      if (tabFloor) tabFloor.classList.toggle('active', !isKds);
 
       if (!isKds) renderFloorMatrix(currentFloor);
     }
@@ -710,138 +721,25 @@
     }
 
     async function loadKdsTickets() {
-      const grid = document.getElementById('kdsTicketsGrid');
-      let orders = [];
-
-      if (supabaseClient) {
-        const { data, error } = await supabaseClient
-          .from('orders')
-          .select('*')
-          .neq('status', 'served')
-          .order('id', { ascending: false })
-          .limit(16);
-
-        if (!error && data) orders = data;
+      if (window.MatbakhKds && window.MatbakhKds.reload) {
+        return window.MatbakhKds.reload();
       }
-
-      if (orders.length === 0) {
-        orders = [
-          {
-            id: 104,
-            table_number: 'T-04',
-            customer_name: 'Table Guest',
-            status: 'cooking',
-            created_at: new Date(Date.now() - 4 * 60000).toISOString(),
-            total_amount: 285.00,
-            order_payload: [
-              { name: 'Angus Flame-Grilled Burger', portionLabel: 'Double Patty', extras: [{ label: 'Aged Cheddar' }], notes: 'sauce on side' },
-              { name: 'Golden Seasoned Fries', portionLabel: 'Loaded Basket', extras: [], notes: '' }
-            ]
-          },
-          {
-            id: 102,
-            table_number: 'T-02',
-            customer_name: 'Dr. Tarek',
-            status: 'new',
-            created_at: new Date(Date.now() - 1 * 60000).toISOString(),
-            total_amount: 364.80,
-            order_payload: [
-              { name: 'Flame-Grilled Tenderloin Steak', portionLabel: '250g Prime Cut', extras: [{ label: 'Truffle Mushroom' }], notes: 'Medium Rare' }
-            ]
-          }
-        ];
-      }
-
-      document.getElementById('kpiActiveTotal').innerText = orders.length;
-      document.getElementById('kpiInGrill').innerText = orders.filter(o => o.status === 'cooking' || o.status === 'preparing').length;
-
-      grid.innerHTML = orders.map(ord => {
-        let bandColor = 'band-blue';
-        let actionBtnText = 'Start Cooking -&gt;';
-        let actionClass = '';
-        let nextStatus = 'cooking';
-
-        if (ord.status === 'cooking' || ord.status === 'preparing') {
-          bandColor = 'band-orange';
-          actionBtnText = 'Mark Ready for Table -&gt;';
-          actionClass = 'ready-step';
-          nextStatus = 'ready';
-        } else if (ord.status === 'ready') {
-          bandColor = 'band-green';
-          actionBtnText = 'Mark Delivered / Served -&gt;';
-          actionClass = 'ready-step';
-          nextStatus = 'served';
-        } else if (ord.status === 'served') {
-          bandColor = 'band-gray';
-          actionBtnText = 'Delivered to Table';
-          actionClass = '';
-          nextStatus = null;
-        }
-
-        const elapsedMins = Math.floor((Date.now() - new Date(ord.created_at).getTime()) / 60000);
-
-        return `
-          <div class="ticket-card">
-            <div class="ticket-header-band ${bandColor}">
-              <span>#ORD-${ord.id} · TABLE ${ord.table_number}</span>
-              <span>${elapsedMins}m AGO</span>
-            </div>
-            <div class="ticket-content">
-              <div class="ticket-meta">
-                <span>Guest: ${ord.customer_name}</span>
-                <span style="font-family:var(--font-geist-mono); font-weight:600;">${Number(ord.total_amount).toFixed(2)} EGP</span>
-              </div>
-              <div class="ticket-items-box">
-                ${Array.isArray(ord.order_payload) ? ord.order_payload.map(item => `
-                  <div>
-                    <div class="ticket-dish-row">
-                      <span>${item.quantity || 1}x ${item.name}</span>
-                      <span style="font-family:var(--font-geist-mono); font-size:12px; font-weight:normal;">${item.portionLabel || ''}</span>
-                    </div>
-                    ${item.extras && item.extras.length > 0 ? `<div class="ticket-modifier-detail">+ ${item.extras.map(e => e.label).join(', ')}</div>` : ''}
-                    ${item.notes ? `<div class="ticket-note-highlight">Note: "${item.notes}"</div>` : ''}
-                  </div>
-                `).join('') : `<div>${ord.items_summary}</div>`}
-              </div>
-            </div>
-            <div class="ticket-footer-actions">
-              ${nextStatus ? `
-                <button class="btn-action-kds ${actionClass}" onclick="updateTicketStatus(${ord.id}, '${nextStatus}')">
-                  ${actionBtnText}
-                </button>
-              ` : `
-                <button class="btn-action-kds" disabled style="opacity: 0.6; cursor: default; background: var(--color-gridline); color: var(--color-slate);">
-                  ${actionBtnText}
-                </button>
-              `}
-            </div>
-          </div>
-        `;
-      }).join('');
     }
 
     async function updateTicketStatus(id, newStatus) {
-      if (supabaseClient) {
-        await supabaseClient.from('orders').update({ status: newStatus }).eq('id', id);
+      if (window.MatbakhKds && window.MatbakhKds.advanceStatus) {
+        return window.MatbakhKds.advanceStatus(id, newStatus);
       }
-      loadKdsTickets();
-    }
-
-    function initRealtimeKds() {
-      if (!supabaseClient) return;
-      supabaseClient
-        .channel('kds-stream')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => {
-          loadKdsTickets();
-        })
-        .subscribe();
     }
 
     window.addEventListener('DOMContentLoaded', () => {
-      loadKdsTickets();
-      initRealtimeKds();
+      if (window.MatbakhKds) {
+        window.MatbakhKds.init({ containerId: 'kdsTicketsGrid' });
+      }
     });
   </script>
   <script src="src/domain-ui/toast.js"></script>
+  <script src="src/domain-features/kds-pass.js"></script>
+  <script src="src/domain-features/table-payment.js"></script>
 </body>
 </html>
