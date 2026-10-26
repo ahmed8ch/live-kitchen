@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>MatbakhLink · Digital Dine-In & Kitchen Synchronization Platform</title>
+  <title>MatbakhLink · Digital Dine-In Platform</title>
 
-  <!-- Typography: Inter (Humanist UI) + JetBrains Mono (Technical/Data) -->
+  <!-- Typography: Suisse/Inter (Humanist Grotesk) + Geist/JetBrains Mono (Technical Data & Prices) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;450;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;450;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   
   <!-- Managed Supabase Client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -19,43 +19,48 @@
 
   <style>
     /* ==================================================================== */
-    /* DESIGN SYSTEM TOKENS (Firecrawl Style: DESIGN (3).md)                */
+    /* FIRECRAWL DESIGN SYSTEM TOKENS (DESIGN (3).md — 100% LIGHT THEME)    */
     /* ==================================================================== */
     :root {
+      /* Colors */
       --color-ember-orange: #ff4d00;
-      --color-ember-glow: #fcddcc;
-      --color-ember-wash: #febec2;
+      --color-ember-glow-light: #fcddcc;
+      --color-ember-wash-deep: #febec2;
       --color-gridline: #e5e7eb;
-      --color-gridline-subtle: #f0f0f0;
       --color-ink: #262626;
       --color-vellum: #f9f9f9;
       --color-slate: #727272;
       --color-graphite: #616161;
       --color-ash: #949494;
       --color-stone: #c7c7c7;
+      --color-mist: #b5b5b5;
       --color-surface-white: #ffffff;
-      
-      /* Urgency Tokens */
+
+      /* KDS Urgency Tokens */
       --kds-blue: #2563eb;
       --kds-orange: #ff4d00;
       --kds-red: #dc2626;
       --kds-green: #16a34a;
 
+      /* Typography */
       --font-suisse: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      --font-geist-mono: 'JetBrains Mono', SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      --font-geist-mono: 'JetBrains Mono', SFMono-Regular, Menlo, Monaco, monospace;
 
+      /* Radii (Firecrawl Exact) */
       --radius-tags: 999px;
       --radius-buttons: 999px;
       --radius-cards: 16px;
       --radius-inputs: 8px;
+      --radius-code-windows: 8px;
 
+      /* Shadows (Ambient Halo, 2-3% Black Alpha) */
       --shadow-subtle: rgb(249, 249, 249) 0px 0px 0px 6px;
       --shadow-orange-glow: 0px 0px 0px 6px #fcddcc;
-      --shadow-card: rgba(0, 0, 0, 0.03) 0px 16px 24px -8px, rgba(0, 0, 0, 0.02) 0px 0px 0px 1px;
-      --shadow-floating: 0 20px 40px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04);
+      --shadow-card: rgba(0, 0, 0, 0.02) 0px 40px 48px -20px, rgba(0, 0, 0, 0.03) 0px 32px 32px -20px, rgba(0, 0, 0, 0.03) 0px 16px 24px -12px, rgba(0, 0, 0, 0.03) 0px 0px 0px 1px;
+      --shadow-ambient-ring: rgb(253, 253, 253) 0px 0px 0px 8px;
 
-      --rail-width-collapsed: 60px;
-      --rail-width-expanded: 220px;
+      --rail-width-collapsed: 58px;
+      --rail-width-expanded: 210px;
       --context-pane-width: 250px;
     }
 
@@ -78,18 +83,26 @@
       display: flex;
     }
 
+    /* Hairline Graph Paper Texture (Firecrawl Spec) */
+    .bg-grid-texture {
+      background-image: 
+        linear-gradient(to right, rgba(229, 231, 235, 0.45) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(229, 231, 235, 0.45) 1px, transparent 1px);
+      background-size: 32px 32px;
+    }
+
     /* ==================================================================== */
-    /* COLUMN 1: LEFTMOST ICON RAIL (Supabase Style, Hover Expand)          */
+    /* COLUMN 1: LEFTMOST ICON RAIL (Firecrawl Light Aesthetic)             */
     /* ==================================================================== */
     .icon-rail {
       width: var(--rail-width-collapsed);
       height: 100vh;
-      background: #111827; /* Dark Obsidian Rail */
-      border-right: 1px solid #1f2937;
+      background: var(--color-surface-white);
+      border-right: 1px solid var(--color-gridline);
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      padding: 14px 8px;
+      padding: 14px 7px;
       z-index: 60;
       transition: width 0.2s cubic-bezier(0.16, 1, 0.3, 1);
       overflow-x: hidden;
@@ -99,18 +112,18 @@
 
     .icon-rail:hover {
       width: var(--rail-width-expanded);
-      box-shadow: 4px 0 24px rgba(0, 0, 0, 0.25);
+      box-shadow: 4px 0 24px rgba(0, 0, 0, 0.05);
     }
 
     .rail-top-brand {
       display: flex;
       align-items: center;
       gap: 12px;
-      padding: 6px 8px 16px;
-      color: #ffffff;
-      font-weight: 700;
+      padding: 6px 8px 14px;
+      color: var(--color-ink);
+      font-weight: 600;
       font-size: 15px;
-      border-bottom: 1px solid #1f2937;
+      border-bottom: 1px solid var(--color-gridline);
       margin-bottom: 12px;
       text-decoration: none;
     }
@@ -135,7 +148,7 @@
     .rail-nav-list {
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 4px;
       flex: 1;
     }
 
@@ -143,11 +156,11 @@
       display: flex;
       align-items: center;
       gap: 12px;
-      padding: 10px 12px;
-      border-radius: 10px;
-      color: #9ca3af;
+      padding: 9px 12px;
+      border-radius: var(--radius-buttons);
+      color: var(--color-slate);
       background: transparent;
-      border: none;
+      border: 1px solid transparent;
       cursor: pointer;
       font-family: var(--font-suisse);
       font-size: 13px;
@@ -158,13 +171,15 @@
     }
 
     .rail-item-btn:hover {
-      color: #ffffff;
-      background: #1f2937;
+      color: var(--color-ink);
+      background: var(--color-vellum);
     }
 
     .rail-item-btn.active {
-      color: #ffffff;
-      background: var(--color-ember-orange);
+      color: var(--color-ember-orange);
+      background: #fff7ed;
+      border-color: #ffedd5;
+      font-weight: 600;
     }
 
     .rail-item-icon {
@@ -186,11 +201,11 @@
     }
 
     .rail-footer-tools {
-      border-top: 1px solid #1f2937;
-      padding-top: 12px;
+      border-top: 1px solid var(--color-gridline);
+      padding-top: 10px;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 4px;
     }
 
     /* ==================================================================== */
@@ -206,33 +221,34 @@
       padding: 18px 16px;
       overflow-y: auto;
       flex-shrink: 0;
-      transition: transform 0.2s ease;
     }
 
     .context-pane-header {
-      margin-bottom: 18px;
+      margin-bottom: 16px;
       padding-bottom: 12px;
       border-bottom: 1px solid var(--color-gridline);
     }
 
     .context-pane-title {
-      font-size: 12px;
-      font-weight: 700;
+      font-family: var(--font-geist-mono);
+      font-size: 11px;
+      font-weight: 600;
       color: var(--color-slate);
       text-transform: uppercase;
-      letter-spacing: 0.6px;
+      letter-spacing: 0.5px;
       display: flex;
       align-items: center;
       justify-content: space-between;
     }
 
     .context-group {
-      margin-bottom: 20px;
+      margin-bottom: 18px;
     }
 
     .context-group-title {
+      font-family: var(--font-geist-mono);
       font-size: 11px;
-      font-weight: 700;
+      font-weight: 600;
       color: var(--color-slate);
       text-transform: uppercase;
       letter-spacing: 0.5px;
@@ -246,9 +262,9 @@
       width: 100%;
       text-align: left;
       background: transparent;
-      border: none;
-      padding: 7px 10px;
-      border-radius: 8px;
+      border: 1px solid transparent;
+      padding: 7px 12px;
+      border-radius: var(--radius-buttons);
       font-family: var(--font-suisse);
       font-size: 13px;
       font-weight: 500;
@@ -258,19 +274,21 @@
       align-items: center;
       justify-content: space-between;
       transition: all 0.15s ease;
-      margin-bottom: 2px;
+      margin-bottom: 3px;
     }
 
     .context-link-btn:hover {
-      background: #ffffff;
+      background: var(--color-surface-white);
       color: var(--color-ink);
+      border-color: var(--color-gridline);
     }
 
     .context-link-btn.active {
-      background: #ffffff;
+      background: var(--color-surface-white);
       color: var(--color-ember-orange);
       font-weight: 600;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      border-color: var(--color-gridline);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
     }
 
     .context-count-tag {
@@ -278,8 +296,8 @@
       font-size: 11px;
       color: var(--color-slate);
       background: var(--color-gridline);
-      padding: 1px 6px;
-      border-radius: 999px;
+      padding: 1px 7px;
+      border-radius: var(--radius-tags);
     }
 
     .context-link-btn.active .context-count-tag {
@@ -288,7 +306,7 @@
     }
 
     /* ==================================================================== */
-    /* COLUMN 3: MAIN VIEWPORT CANVAS (RESPONSIVE WORKSPACE)                */
+    /* COLUMN 3: MAIN VIEWPORT CANVAS (Light Gridpaper Canvas)              */
     /* ==================================================================== */
     .main-workspace {
       flex: 1;
@@ -300,7 +318,7 @@
       position: relative;
     }
 
-    /* Top Canvas Bar (Breadcrumb & Viewport Switcher) */
+    /* Canvas Header Bar */
     .canvas-top-bar {
       height: 54px;
       border-bottom: 1px solid var(--color-gridline);
@@ -308,7 +326,7 @@
       align-items: center;
       justify-content: space-between;
       padding: 0 24px;
-      background: rgba(255, 255, 255, 0.95);
+      background: rgba(255, 255, 255, 0.94);
       backdrop-filter: blur(8px);
       position: sticky;
       top: 0;
@@ -356,7 +374,6 @@
       box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
     }
 
-    /* Canvas Screen Shell */
     .screen-container {
       flex: 1;
       padding: 28px;
@@ -366,14 +383,14 @@
       transition: max-width 0.25s ease;
     }
 
-    /* Device Simulation Frames */
+    /* Device Frames */
     .main-workspace.device-mobile .screen-container {
       max-width: 410px;
       margin: 20px auto;
       border: 1px solid var(--color-gridline);
       border-radius: 32px;
       padding: 20px 16px;
-      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.15);
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.12);
       background: #ffffff;
       min-height: 800px;
     }
@@ -384,21 +401,51 @@
       border: 1px solid var(--color-gridline);
       border-radius: 20px;
       padding: 24px;
-      box-shadow: 0 25px 50px -15px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 25px 50px -15px rgba(0, 0, 0, 0.08);
       background: #ffffff;
     }
 
+    /* Blueprint Section Markers (Firecrawl Signature) */
+    .blueprint-marker {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .marker-line {
+      width: 2px;
+      height: 18px;
+      background: var(--color-ember-orange);
+      border-radius: 1px;
+    }
+
+    .marker-dot {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--color-ember-orange);
+    }
+
+    .marker-text {
+      font-family: var(--font-geist-mono);
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--color-slate);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
     /* ==================================================================== */
-    /* SCREEN 1: PLATFORM HERO & ARCHITECTURE OVERVIEW                     */
+    /* SCREEN 1: PLATFORM HERO (Pure Firecrawl Light Card)                  */
     /* ==================================================================== */
-    .hero-banner-card {
-      background: linear-gradient(135deg, #111827 0%, #1f2937 100%);
+    .hero-light-card {
+      background: var(--color-vellum);
+      border: 1px solid var(--color-gridline);
       border-radius: var(--radius-cards);
       padding: 44px 40px;
-      color: #ffffff;
-      position: relative;
-      overflow: hidden;
       margin-bottom: 32px;
+      box-shadow: var(--shadow-card);
     }
 
     .hero-badge-tag {
@@ -406,8 +453,8 @@
       font-size: 11px;
       font-weight: 600;
       color: var(--color-ember-orange);
-      background: rgba(255, 77, 0, 0.12);
-      border: 1px solid rgba(255, 77, 0, 0.25);
+      background: #fff7ed;
+      border: 1px solid #ffedd5;
       padding: 4px 12px;
       border-radius: var(--radius-tags);
       display: inline-block;
@@ -415,23 +462,24 @@
     }
 
     .hero-headline {
-      font-size: 36px;
-      font-weight: 700;
+      font-size: 38px;
+      font-weight: 500;
       line-height: 1.15;
-      letter-spacing: -0.02em;
-      margin-bottom: 12px;
+      letter-spacing: -0.015em;
+      color: var(--color-ink);
+      margin-bottom: 14px;
     }
 
-    .hero-headline span.flame {
+    .hero-headline span.orange {
       color: var(--color-ember-orange);
     }
 
     .hero-lead-text {
       font-size: 15px;
-      color: #9ca3af;
+      color: var(--color-slate);
       max-width: 620px;
       line-height: 1.6;
-      margin-bottom: 24px;
+      margin-bottom: 26px;
     }
 
     .hero-actions-row {
@@ -440,60 +488,62 @@
       flex-wrap: wrap;
     }
 
-    /* 3 Pillars Grid */
-    .pillars-grid {
+    /* Feature Cards Grid (Firecrawl 3-Column Spec) */
+    .feature-pillars-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 20px;
       margin-bottom: 32px;
     }
 
-    .pillar-card {
+    .feature-card {
       background: var(--color-vellum);
       border: 1px solid var(--color-gridline);
       border-radius: var(--radius-cards);
-      padding: 24px;
+      padding: 32px 24px;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: all 0.15s ease;
+      display: flex;
+      flex-direction: column;
     }
 
-    .pillar-card:hover {
+    .feature-card:hover {
       transform: translateY(-2px);
-      border-color: var(--color-ember-orange);
+      border-color: #d1d5db;
       box-shadow: var(--shadow-card);
+      background: #ffffff;
     }
 
-    .pillar-icon-box {
-      width: 42px;
-      height: 42px;
-      border-radius: 10px;
+    .feature-icon-wrapper {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-buttons);
       background: #ffffff;
       border: 1px solid var(--color-gridline);
       display: flex;
       align-items: center;
       justify-content: center;
-      margin-bottom: 14px;
+      margin-bottom: 16px;
       color: var(--color-ember-orange);
-      font-size: 18px;
     }
 
-    .pillar-title {
+    .feature-title {
       font-size: 16px;
-      font-weight: 600;
+      font-weight: 500;
       color: var(--color-ink);
-      margin-bottom: 6px;
+      margin-bottom: 8px;
     }
 
-    .pillar-desc {
+    .feature-desc {
       font-size: 13px;
       color: var(--color-slate);
       line-height: 1.5;
     }
 
     /* ==================================================================== */
-    /* SCREEN 2: CUSTOMER DINE-IN MENU (FLAVORFIT-GRADE RICH CARDS)         */
+    /* SCREEN 2: CUSTOMER DINE-IN MENU (FLAVORFIT MACROS + FIRECRAWL TOKENS)*/
     /* ==================================================================== */
-    .menu-header-strip {
+    .menu-greeting-banner {
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -504,7 +554,6 @@
       border-radius: 12px;
     }
 
-    /* Rich Food Cards Grid */
     .rich-food-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
@@ -512,74 +561,77 @@
     }
 
     .rich-dish-card {
-      background: #ffffff;
+      background: var(--color-vellum);
       border: 1px solid var(--color-gridline);
       border-radius: var(--radius-cards);
       overflow: hidden;
-      box-shadow: var(--shadow-card);
       cursor: pointer;
-      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
       display: flex;
       flex-direction: column;
+      user-select: none;
     }
 
     .rich-dish-card:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 16px 32px rgba(0, 0, 0, 0.08);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-card);
       border-color: #d1d5db;
+      background: #ffffff;
     }
 
     .rich-dish-card:active {
       transform: scale(0.985);
+      border-color: var(--color-ember-orange);
     }
 
-    .dish-photo-wrapper {
+    .dish-photo-frame {
       position: relative;
-      height: 190px;
+      height: 185px;
       width: 100%;
       background: #f3f4f6;
       overflow: hidden;
     }
 
-    .dish-img {
+    .dish-photo-img {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      transition: transform 0.3s ease;
+      transition: transform 0.25s ease;
     }
 
-    .rich-dish-card:hover .dish-img {
-      transform: scale(1.04);
+    .rich-dish-card:hover .dish-photo-img {
+      transform: scale(1.03);
     }
 
-    .photo-floating-badges {
+    .photo-floating-chips {
       position: absolute;
-      top: 12px;
-      left: 12px;
-      right: 12px;
+      top: 10px;
+      left: 10px;
+      right: 10px;
       display: flex;
       justify-content: space-between;
       pointer-events: none;
     }
 
-    .photo-tag {
+    .photo-badge-pill {
       font-family: var(--font-geist-mono);
       font-size: 11px;
-      font-weight: 600;
-      padding: 4px 10px;
+      font-weight: 500;
+      padding: 3px 9px;
       border-radius: var(--radius-tags);
       background: rgba(255, 255, 255, 0.95);
       backdrop-filter: blur(4px);
       color: var(--color-ink);
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      border: 1px solid rgba(229, 231, 235, 0.7);
     }
 
-    .photo-tag.calorie {
-      background: rgba(17, 24, 39, 0.85);
+    .photo-badge-pill.calories {
+      background: rgba(38, 38, 38, 0.92);
       color: #ffffff;
+      border: none;
     }
 
-    .dish-body-content {
+    .dish-card-body {
       padding: 18px 20px;
       flex: 1;
       display: flex;
@@ -587,55 +639,51 @@
       justify-content: space-between;
     }
 
-    .dish-top-title-row {
+    .dish-title-row {
       display: flex;
       justify-content: space-between;
-      align-items: flex-start;
+      align-items: baseline;
       margin-bottom: 6px;
     }
 
-    .dish-title-text {
+    .dish-title {
       font-size: 16px;
       font-weight: 600;
       color: var(--color-ink);
-      line-height: 1.3;
     }
 
-    .dish-rating-badge {
+    .dish-rating {
       font-family: var(--font-geist-mono);
       font-size: 12px;
-      color: #d97706;
+      color: var(--color-ember-orange);
       font-weight: 600;
-      white-space: nowrap;
     }
 
-    .dish-desc-text {
+    .dish-description {
       font-size: 13px;
       color: var(--color-slate);
       line-height: 1.5;
       margin-bottom: 14px;
     }
 
-    /* Nutritional Micro Badges (Flavorfit style) */
-    .dish-macro-pills {
+    .dish-macro-row {
       display: flex;
-      align-items: center;
       gap: 6px;
       margin-bottom: 14px;
       flex-wrap: wrap;
     }
 
-    .macro-pill {
+    .macro-tag {
       font-family: var(--font-geist-mono);
       font-size: 11px;
       color: var(--color-slate);
-      background: var(--color-vellum);
+      background: #ffffff;
       border: 1px solid var(--color-gridline);
-      padding: 3px 8px;
+      padding: 2px 8px;
       border-radius: var(--radius-tags);
     }
 
-    .dish-bottom-action-row {
+    .dish-action-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -643,59 +691,59 @@
       border-top: 1px solid var(--color-gridline);
     }
 
-    .dish-price-mono {
+    .dish-price {
       font-family: var(--font-geist-mono);
-      font-size: 17px;
-      font-weight: 700;
+      font-size: 16px;
+      font-weight: 600;
       color: var(--color-ink);
     }
 
-    .btn-touch-add-cue {
+    .btn-touch-hint {
       font-family: var(--font-suisse);
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 500;
       color: var(--color-ink);
-      background: var(--color-vellum);
+      background: #ffffff;
       border: 1px solid var(--color-gridline);
-      padding: 6px 14px;
+      padding: 5px 12px;
       border-radius: var(--radius-buttons);
       display: inline-flex;
       align-items: center;
-      gap: 6px;
+      gap: 4px;
       pointer-events: none;
       transition: all 0.15s ease;
     }
 
-    .rich-dish-card:hover .btn-touch-add-cue {
+    .rich-dish-card:hover .btn-touch-hint {
       background: var(--color-ember-orange);
       border-color: var(--color-ember-orange);
       color: #ffffff;
-      box-shadow: 0 0 0 4px var(--color-ember-glow);
+      box-shadow: 0 0 0 4px var(--color-ember-glow-light);
     }
 
     /* ==================================================================== */
-    /* SCREEN 3: REALISTIC TABLE STAND SIMULATOR                            */
+    /* SCREEN 3: ACRYLIC TABLE STAND SIMULATOR (Physical Stand on Table)    */
     /* ==================================================================== */
-    .stand-simulator-wrap {
+    .stand-simulator-container {
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 20px 0;
+      padding: 24px 0;
     }
 
-    .acrylic-table-stand {
+    .acrylic-stand-tent {
       background: #ffffff;
       border: 1px solid #d1d5db;
-      border-radius: 24px;
-      width: 380px;
-      padding: 40px 32px;
+      border-radius: 20px;
+      width: 370px;
+      padding: 38px 30px;
       text-align: center;
-      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.05);
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04);
       position: relative;
     }
 
-    /* Common Buttons */
+    /* Buttons (Firecrawl Tokens) */
     .btn-pill-primary {
       font-family: var(--font-suisse);
       font-size: 14px;
@@ -713,6 +761,10 @@
       box-shadow: var(--shadow-orange-glow);
       text-decoration: none;
       transition: transform 0.1s ease;
+    }
+
+    .btn-pill-primary:hover {
+      box-shadow: 0 0 0 8px var(--color-ember-glow-light);
     }
 
     .btn-pill-primary:active {
@@ -733,6 +785,12 @@
       align-items: center;
       gap: 6px;
       text-decoration: none;
+      transition: all 0.15s ease;
+    }
+
+    .btn-pill-ghost:hover {
+      background: var(--color-vellum);
+      border-color: var(--color-stone);
     }
 
     /* Responsive */
@@ -740,16 +798,16 @@
       .context-pane {
         display: none;
       }
-      .pillars-grid {
+      .feature-pillars-grid {
         grid-template-columns: 1fr;
       }
     }
   </style>
 </head>
-<body>
+<body class="bg-grid-texture">
 
   <!-- ==================================================================== -->
-  <!-- COLUMN 1: LEFTMOST ICON RAIL (Supabase Style)                        -->
+  <!-- COLUMN 1: LEFTMOST ICON RAIL (Firecrawl Light Architecture)          -->
   <!-- ==================================================================== -->
   <aside class="icon-rail" id="iconRail">
     <div>
@@ -849,19 +907,18 @@
   </aside>
 
   <!-- ==================================================================== -->
-  <!-- COLUMN 2: CONTEXT NAVIGATION PANE (Updates per active section)      -->
+  <!-- COLUMN 2: CONTEXT / NAVIGATION DRAWER PANE                           -->
   <!-- ==================================================================== -->
   <aside class="context-pane" id="contextPane">
-    <!-- Injected dynamically based on active section -->
     <div id="contextPaneContent"></div>
   </aside>
 
   <!-- ==================================================================== -->
-  <!-- COLUMN 3: MAIN VIEWPORT CANVAS                                       -->
+  <!-- COLUMN 3: MAIN VIEWPORT CANVAS (Light Gridpaper Canvas)              -->
   <!-- ==================================================================== -->
   <main class="main-workspace" id="mainWorkspace">
 
-    <!-- Canvas Header Bar -->
+    <!-- Top Canvas Header -->
     <div class="canvas-top-bar">
       <div class="canvas-breadcrumb">
         <span>MatbakhLink</span>
@@ -869,7 +926,7 @@
         <strong id="breadcrumbCurrent">Home Overview</strong>
       </div>
 
-      <!-- Viewport Device Emulation Switcher -->
+      <!-- Viewport Device Switcher -->
       <div class="device-viewport-toggle">
         <button class="viewport-btn active" id="vpBtnFull" onclick="setCanvasViewport('full')">Full Desktop</button>
         <button class="viewport-btn" id="vpBtnTablet" onclick="setCanvasViewport('tablet')">Table Tablet</button>
@@ -877,18 +934,24 @@
       </div>
     </div>
 
-    <!-- Active Screen Viewport -->
+    <!-- Screen Container -->
     <div class="screen-container" id="screenContainer">
 
       <!-- ============================================================== -->
-      <!-- VIEW 1: PLATFORM HERO & ARCHITECTURAL SUMMARY                  -->
+      <!-- VIEW 1: PLATFORM HERO (Pure Firecrawl Light Card)              -->
       <!-- ============================================================== -->
       <section id="screen-hero">
-        <div class="hero-banner-card">
+        <div class="blueprint-marker">
+          <div class="marker-line"></div>
+          <div class="marker-dot"></div>
+          <span class="marker-text">01 / PLATFORM OVERVIEW & SYNCHRONIZATION</span>
+        </div>
+
+        <div class="hero-light-card">
           <span class="hero-badge-tag">RESTAURANT DINE-IN SYNCHRONIZATION</span>
-          <h1 class="hero-headline">Closing the Gap Between <span class="flame">Online Ordering</span> & Physical Dining.</h1>
+          <h1 class="hero-headline">Closing the Gap Between <span class="orange">Online Ordering</span> & Physical Dining.</h1>
           <p class="hero-lead-text">
-            MatbakhLink empowers seated guests to order from their phones in seconds with rich macros, deep customizations, and reviews—while synchronizing tickets instantly to flame-grill kitchen lines.
+            MatbakhLink empowers seated guests to order from their phones in seconds with rich nutritional macros, calories, deep dish customizations, and verified reviews—while synchronizing tickets instantly to flame-grill kitchen lines.
           </p>
           <div class="hero-actions-row">
             <button class="btn-pill-primary" onclick="switchMainScreen('menu')">
@@ -903,43 +966,43 @@
           </div>
         </div>
 
-        <!-- 3 Core Pillars -->
-        <div class="pillars-grid">
-          <div class="pillar-card" onclick="switchMainScreen('stand')">
-            <div class="pillar-icon-box">
+        <!-- 3 Pillars Grid -->
+        <div class="feature-pillars-grid">
+          <div class="feature-card" onclick="switchMainScreen('stand')">
+            <div class="feature-icon-wrapper">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
                 <line x1="3" y1="9" x2="21" y2="9"></line>
               </svg>
             </div>
-            <h3 class="pillar-title">1. Acrylic Table Stand</h3>
-            <p class="pillar-desc">
-              Physical QR stand sitting on the table. Point camera to instantly bind the session to Table T-04 without typing URLs.
+            <h3 class="feature-title">1. Acrylic Table Stand</h3>
+            <p class="feature-desc">
+              Physical QR stand on the table. Point camera to immediately bind the session to Table T-04 without typing URLs.
             </p>
           </div>
 
-          <div class="pillar-card" onclick="switchMainScreen('menu')">
-            <div class="pillar-icon-box">
+          <div class="feature-card" onclick="switchMainScreen('menu')">
+            <div class="feature-icon-wrapper">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
                 <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
               </svg>
             </div>
-            <h3 class="pillar-title">2. Flavorfit-Grade Menu</h3>
-            <p class="pillar-desc">
+            <h3 class="feature-title">2. Flavorfit-Grade Menu</h3>
+            <p class="feature-desc">
               High-res food photography, macro nutritional badges, calorie tracking, ratings, and instant touch-anywhere customization.
             </p>
           </div>
 
-          <div class="pillar-card" onclick="switchMainScreen('kds')">
-            <div class="pillar-icon-box">
+          <div class="feature-card" onclick="switchMainScreen('kds')">
+            <div class="feature-icon-wrapper">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
                 <line x1="8" y1="21" x2="16" y2="21"></line>
               </svg>
             </div>
-            <h3 class="pillar-title">3. Realtime Kitchen Pass</h3>
-            <p class="pillar-desc">
+            <h3 class="feature-title">3. Realtime Kitchen Pass</h3>
+            <p class="feature-desc">
               Color-coded urgency tickets (Blue, Orange, Red, Green) updating live via Supabase WebSockets as chefs cook.
             </p>
           </div>
@@ -947,10 +1010,16 @@
       </section>
 
       <!-- ============================================================== -->
-      <!-- VIEW 2: CUSTOMER DINE-IN MENU (TOUCHSCREEN-FIRST)              -->
+      <!-- VIEW 2: CUSTOMER DINE-IN MENU                                  -->
       <!-- ============================================================== -->
       <section id="screen-menu" style="display: none;">
-        <div class="menu-header-strip">
+        <div class="blueprint-marker">
+          <div class="marker-line"></div>
+          <div class="marker-dot"></div>
+          <span class="marker-text">02 / DINE-IN DIGITAL MENU (FLAVORFIT MACROS)</span>
+        </div>
+
+        <div class="menu-greeting-banner">
           <div style="display: flex; align-items: center; gap: 10px;">
             <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--color-ember-orange);"></span>
             <div>
@@ -964,29 +1033,33 @@
         </div>
 
         <!-- Rich Menu Cards Grid -->
-        <div class="rich-food-grid" id="richFoodGrid">
-          <!-- Dynamically Injected -->
-        </div>
+        <div class="rich-food-grid" id="richFoodGrid"></div>
       </section>
 
       <!-- ============================================================== -->
       <!-- VIEW 3: PHYSICAL TABLE STAND SIMULATOR                         -->
       <!-- ============================================================== -->
       <section id="screen-stand" style="display: none;">
-        <div class="stand-simulator-wrap">
-          <div class="acrylic-table-stand">
-            <div style="display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 18px; font-weight: 700; color: var(--color-ink);">
+        <div class="blueprint-marker">
+          <div class="marker-line"></div>
+          <div class="marker-dot"></div>
+          <span class="marker-text">03 / PHYSICAL TABLE STAND (PRINTABLE TENT CARD)</span>
+        </div>
+
+        <div class="stand-simulator-container">
+          <div class="acrylic-stand-tent">
+            <div style="display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 18px; font-weight: 600; color: var(--color-ink);">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="#ff4d00">
                 <path d="M12 23c6.075 0 11-4.925 11-11 0-4.57-2.78-8.5-6.75-10.2-.42-.18-.89.14-.85.6.35 4.14-1.9 6.8-4.4 7.6-1.5.48-3-.2-3.8-1.5-.2-.33-.66-.41-.95-.17C4.1 10.15 3 12.95 3 16c0 3.86 4.03 7 9 7z"/>
               </svg>
               <span>MatbakhLink</span>
             </div>
-            <div style="font-size: 11px; text-transform: uppercase; color: var(--color-slate); letter-spacing: 0.5px; margin: 4px 0 18px;">
+            <div style="font-family: var(--font-geist-mono); font-size: 11px; text-transform: uppercase; color: var(--color-slate); letter-spacing: 0.5px; margin: 4px 0 18px;">
               Digital Dine-In Tabletop Stand
             </div>
 
             <div style="background: #fff7ed; border: 1px solid #ffedd5; border-radius: 12px; padding: 6px 14px; display: inline-block; margin-bottom: 16px;">
-              <span style="font-family: var(--font-geist-mono); font-size: 22px; font-weight: 800; color: var(--color-ember-orange);" id="standCardTableCode">TABLE 04</span>
+              <span style="font-family: var(--font-geist-mono); font-size: 22px; font-weight: 700; color: var(--color-ember-orange);" id="standCardTableCode">TABLE 04</span>
             </div>
 
             <div style="padding: 14px; background: #ffffff; border: 1px solid var(--color-gridline); border-radius: 16px; display: inline-block; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.04);">
@@ -1002,7 +1075,7 @@
 
             <div style="border-top: 1px solid var(--color-gridline); padding-top: 14px; display: flex; justify-content: center; gap: 12px; font-family: var(--font-geist-mono); font-size: 11px; color: var(--color-slate);">
               <span>WiFi: <strong>LiveKitchen</strong></span>
-              <span>•</span>
+              <span>·</span>
               <span>Pass: <strong>welcome2026</strong></span>
             </div>
           </div>
@@ -1013,35 +1086,41 @@
       <!-- VIEW 4: REALTIME LIVE TRACKER                                  -->
       <!-- ============================================================== -->
       <section id="screen-tracker" style="display: none;">
-        <div style="background: var(--color-vellum); border: 1px solid var(--color-gridline); border-radius: var(--radius-cards); padding: 36px;">
+        <div class="blueprint-marker">
+          <div class="marker-line"></div>
+          <div class="marker-dot"></div>
+          <span class="marker-text">04 / REAL-TIME STATUS TRACKER</span>
+        </div>
+
+        <div style="background: var(--color-vellum); border: 1px solid var(--color-gridline); border-radius: var(--radius-cards); padding: 36px; box-shadow: var(--shadow-card);">
           <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--color-gridline); padding-bottom: 20px; margin-bottom: 24px;">
             <div>
               <div style="font-family: var(--font-geist-mono); font-size: 20px; font-weight: 700;" id="trackerOrderNumber">#ORD-104</div>
               <div style="font-size: 13px; color: var(--color-slate);">Table T-04 · Dine-In Order</div>
             </div>
             <div style="font-family: var(--font-geist-mono); font-size: 13px; color: var(--color-ember-orange); background: #fff7ed; border: 1px solid #ffedd5; padding: 4px 12px; border-radius: 999px;">
-              ● 02:45 Elapsed · Est. 12-15m
+              02:45 Elapsed · Est. 12-15m
             </div>
           </div>
 
           <!-- Stepper -->
           <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 28px;">
-            <div class="stepper-box done" id="track1" style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 16px; text-align: center;">
+            <div id="track1" style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 16px; text-align: center;">
               <div style="font-family: var(--font-geist-mono); font-size: 11px; font-weight: 700; color: #16a34a;">01</div>
               <div style="font-weight: 600; font-size: 13px;">Received</div>
               <div style="font-size: 11px; color: var(--color-slate);">In Kitchen Queue</div>
             </div>
-            <div class="stepper-box active" id="track2" style="background: #fff7ed; border: 1px solid var(--color-ember-orange); border-radius: 12px; padding: 16px; text-align: center; box-shadow: 0 0 0 4px var(--color-ember-glow);">
+            <div id="track2" style="background: #fff7ed; border: 1px solid var(--color-ember-orange); border-radius: 12px; padding: 16px; text-align: center; box-shadow: 0 0 0 4px var(--color-ember-glow-light);">
               <div style="font-family: var(--font-geist-mono); font-size: 11px; font-weight: 700; color: var(--color-ember-orange);">02</div>
               <div style="font-weight: 600; font-size: 13px;">Flame Grill</div>
               <div style="font-size: 11px; color: var(--color-slate);">Chef Cooking</div>
             </div>
-            <div class="stepper-box" id="track3" style="background: #ffffff; border: 1px solid var(--color-gridline); border-radius: 12px; padding: 16px; text-align: center;">
+            <div id="track3" style="background: #ffffff; border: 1px solid var(--color-gridline); border-radius: 12px; padding: 16px; text-align: center;">
               <div style="font-family: var(--font-geist-mono); font-size: 11px; font-weight: 700; color: var(--color-slate);">03</div>
               <div style="font-weight: 600; font-size: 13px;">Plating & QA</div>
               <div style="font-size: 11px; color: var(--color-slate);">Final Garnish</div>
             </div>
-            <div class="stepper-box" id="track4" style="background: #ffffff; border: 1px solid var(--color-gridline); border-radius: 12px; padding: 16px; text-align: center;">
+            <div id="track4" style="background: #ffffff; border: 1px solid var(--color-gridline); border-radius: 12px; padding: 16px; text-align: center;">
               <div style="font-family: var(--font-geist-mono); font-size: 11px; font-weight: 700; color: var(--color-slate);">04</div>
               <div style="font-weight: 600; font-size: 13px;">On Table</div>
               <div style="font-size: 11px; color: var(--color-slate);">Server Dispatched</div>
@@ -1059,38 +1138,48 @@
       <!-- VIEW 5: KITCHEN DISPLAY SYSTEM (KDS)                           -->
       <!-- ============================================================== -->
       <section id="screen-kds" style="display: none;">
+        <div class="blueprint-marker">
+          <div class="marker-line"></div>
+          <div class="marker-dot"></div>
+          <span class="marker-text">05 / KITCHEN DISPLAY SYSTEM (KDS KANBAN)</span>
+        </div>
+
         <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px;">
           <div style="background: var(--color-vellum); border: 1px solid var(--color-gridline); border-radius: 12px; padding: 16px;">
-            <div style="font-size: 11px; color: var(--color-slate); text-transform: uppercase;">Active Tickets</div>
+            <div style="font-family: var(--font-geist-mono); font-size: 11px; color: var(--color-slate); text-transform: uppercase;">Active Tickets</div>
             <div style="font-family: var(--font-geist-mono); font-size: 24px; font-weight: 700;" id="kdsActiveTotal">2</div>
           </div>
           <div style="background: var(--color-vellum); border: 1px solid var(--color-gridline); border-radius: 12px; padding: 16px;">
-            <div style="font-size: 11px; color: var(--color-slate); text-transform: uppercase;">On Flame Grill</div>
+            <div style="font-family: var(--font-geist-mono); font-size: 11px; color: var(--color-slate); text-transform: uppercase;">On Flame Grill</div>
             <div style="font-family: var(--font-geist-mono); font-size: 24px; font-weight: 700; color: var(--kds-orange);" id="kdsInGrill">1</div>
           </div>
           <div style="background: var(--color-vellum); border: 1px solid var(--color-gridline); border-radius: 12px; padding: 16px;">
-            <div style="font-size: 11px; color: var(--color-slate); text-transform: uppercase;">Delayed (>15m)</div>
+            <div style="font-family: var(--font-geist-mono); font-size: 11px; color: var(--color-slate); text-transform: uppercase;">Delayed (>15m)</div>
             <div style="font-family: var(--font-geist-mono); font-size: 24px; font-weight: 700; color: var(--kds-red);">0</div>
           </div>
           <div style="background: var(--color-vellum); border: 1px solid var(--color-gridline); border-radius: 12px; padding: 16px;">
-            <div style="font-size: 11px; color: var(--color-slate); text-transform: uppercase;">Avg Prep Time</div>
+            <div style="font-family: var(--font-geist-mono); font-size: 11px; color: var(--color-slate); text-transform: uppercase;">Avg Prep Time</div>
             <div style="font-family: var(--font-geist-mono); font-size: 24px; font-weight: 700;">11.8m</div>
           </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 18px;" id="kdsTicketCards">
-          <!-- Injected dynamically -->
-        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 18px;" id="kdsTicketCards"></div>
       </section>
 
       <!-- ============================================================== -->
       <!-- VIEW 6: CASHIER & HOST SEATING PLAN                            -->
       <!-- ============================================================== -->
       <section id="screen-floor" style="display: none;">
-        <div style="background: var(--color-vellum); border: 1px solid var(--color-gridline); border-radius: var(--radius-cards); padding: 28px;">
+        <div class="blueprint-marker">
+          <div class="marker-line"></div>
+          <div class="marker-dot"></div>
+          <span class="marker-text">06 / CASHIER & HOST TABLE SEATING PLAN</span>
+        </div>
+
+        <div style="background: var(--color-vellum); border: 1px solid var(--color-gridline); border-radius: var(--radius-cards); padding: 28px; box-shadow: var(--shadow-card);">
           <div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
             <div>
-              <h2 style="font-size: 18px; font-weight: 700;">Host Station: Seat Arriving Walk-In Guests</h2>
+              <h2 style="font-size: 17px; font-weight: 600;">Host Station: Seat Arriving Walk-In Guests</h2>
               <div style="font-size: 12px; color: var(--color-slate);">Filter by guest count to instantly find available tables with matching chairs:</div>
             </div>
             <div style="display: flex; gap: 6px;">
@@ -1101,9 +1190,7 @@
             </div>
           </div>
 
-          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px;" id="floorMatrixContainer">
-            <!-- Injected dynamically -->
-          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px;" id="floorMatrixContainer"></div>
         </div>
       </section>
 
@@ -1113,33 +1200,33 @@
   <!-- ==================================================================== -->
   <!-- MODAL: DISH CUSTOMIZER (Deep Flavor & Nutrition Options)             -->
   <!-- ==================================================================== -->
-  <div class="modal-backdrop" id="dishModalBackdrop" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 100; display: none; align-items: center; justify-content: center; padding: 16px;">
-    <div style="background: #ffffff; border: 1px solid var(--color-gridline); border-radius: var(--radius-cards); width: 100%; max-width: 520px; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: var(--shadow-floating);">
+  <div class="modal-backdrop" id="dishModalBackdrop" style="position: fixed; inset: 0; background: rgba(0,0,0,0.45); backdrop-filter: blur(4px); z-index: 100; display: none; align-items: center; justify-content: center; padding: 16px;">
+    <div style="background: #ffffff; border: 1px solid var(--color-gridline); border-radius: var(--radius-cards); width: 100%; max-width: 520px; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: var(--shadow-card);">
       <div style="padding: 20px 24px; border-bottom: 1px solid var(--color-gridline); display: flex; justify-content: space-between; align-items: center;">
         <div>
-          <div style="font-size: 18px; font-weight: 700;" id="customDishName">Angus Flame-Grilled Burger</div>
+          <div style="font-size: 18px; font-weight: 600;" id="customDishName">Angus Flame-Grilled Burger</div>
           <div style="font-family: var(--font-geist-mono); font-size: 13px; color: var(--color-slate);" id="customDishBasePrice">Base: 185.00 EGP · 540 kcal</div>
         </div>
-        <button style="background: transparent; border: none; font-size: 18px; cursor: pointer;" onclick="closeDishModal()">✕</button>
+        <button style="background: transparent; border: none; font-size: 18px; cursor: pointer; color: var(--color-slate);" onclick="closeDishModal()">✕</button>
       </div>
 
       <div style="padding: 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px;">
         <!-- Portion -->
         <div>
-          <label style="font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 8px;">1. Portion Size</label>
+          <label style="font-family: var(--font-geist-mono); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--color-slate); display: block; margin-bottom: 8px;">1. Portion Size</label>
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;" id="portionChoicesBox"></div>
         </div>
 
         <!-- Add-ons -->
         <div>
-          <label style="font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 8px;">2. Extras & Sauces</label>
+          <label style="font-family: var(--font-geist-mono); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--color-slate); display: block; margin-bottom: 8px;">2. Extras & Sauces</label>
           <div style="display: flex; flex-direction: column; gap: 8px;" id="extrasChoicesBox"></div>
         </div>
 
         <!-- Notes -->
         <div>
-          <label style="font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 8px;">3. Kitchen Special Notes</label>
-          <textarea id="dishKitchenNotes" style="width: 100%; border: 1px solid var(--color-gridline); border-radius: var(--radius-inputs); padding: 10px 14px; font-family: var(--font-suisse); font-size: 13px; min-height: 60px; outline: none;" placeholder="e.g. sauce on side, well done, allergy alert..."></textarea>
+          <label style="font-family: var(--font-geist-mono); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--color-slate); display: block; margin-bottom: 8px;">3. Kitchen Special Notes</label>
+          <textarea id="dishKitchenNotes" style="width: 100%; border: 1px solid var(--color-gridline); border-radius: var(--radius-inputs); padding: 10px 14px; font-family: var(--font-suisse); font-size: 13px; min-height: 60px; outline: none; background: var(--color-vellum);" placeholder="e.g. sauce on side, well done, allergy alert..."></textarea>
         </div>
       </div>
 
@@ -1160,11 +1247,11 @@
   <!-- ==================================================================== -->
   <!-- MODAL: WI-FI VS MOBILE DATA POLICY RESEARCH IN EGYPT                -->
   <!-- ==================================================================== -->
-  <div class="modal-backdrop" id="wifiPolicyModal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 100; display: none; align-items: center; justify-content: center; padding: 16px;">
-    <div style="background: #ffffff; border: 1px solid var(--color-gridline); border-radius: var(--radius-cards); width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; padding: 28px; box-shadow: var(--shadow-floating);">
+  <div class="modal-backdrop" id="wifiPolicyModal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.45); backdrop-filter: blur(4px); z-index: 100; display: none; align-items: center; justify-content: center; padding: 16px;">
+    <div style="background: #ffffff; border: 1px solid var(--color-gridline); border-radius: var(--radius-cards); width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; padding: 28px; box-shadow: var(--shadow-card);">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--color-gridline); padding-bottom: 12px;">
-        <h3 style="font-size: 17px; font-weight: 700;">Restaurant Wi-Fi vs. 4G/5G Reality in Egypt</h3>
-        <button style="background: transparent; border: none; font-size: 18px; cursor: pointer;" onclick="closeWifiPolicyModal()">✕</button>
+        <h3 style="font-size: 17px; font-weight: 600;">Restaurant Wi-Fi vs. 4G/5G Reality in Egypt</h3>
+        <button style="background: transparent; border: none; font-size: 18px; cursor: pointer; color: var(--color-slate);" onclick="closeWifiPolicyModal()">✕</button>
       </div>
       <div style="font-size: 13px; color: var(--color-ink); line-height: 1.6; display: flex; flex-direction: column; gap: 12px;">
         <p><strong>1. The Quota Abuse Problem:</strong> In Egypt, commercial and home internet packages are quota-capped (e.g. 140GB, 250GB, 300GB per month). If a restaurant gives open Wi-Fi passwords, guests often stream YouTube/TikTok or download heavy files, consuming the restaurant's entire monthly quota in days.</p>
@@ -1184,8 +1271,8 @@
   <div id="cartDrawerBackdrop" style="position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 105; display: none; justify-content: flex-end;" onclick="closeCartDrawer()">
     <div style="background: #ffffff; width: 100%; max-width: 420px; height: 100%; border-left: 1px solid var(--color-gridline); display: flex; flex-direction: column;" onclick="event.stopPropagation()">
       <div style="padding: 20px 24px; border-bottom: 1px solid var(--color-gridline); display: flex; justify-content: space-between; align-items: center;">
-        <div style="font-size: 16px; font-weight: 700;">Table Order Summary</div>
-        <button style="background: transparent; border: none; font-size: 18px; cursor: pointer;" onclick="closeCartDrawer()">✕</button>
+        <div style="font-size: 16px; font-weight: 600;">Table Order Summary</div>
+        <button style="background: transparent; border: none; font-size: 18px; cursor: pointer; color: var(--color-slate);" onclick="closeCartDrawer()">✕</button>
       </div>
       <div style="flex: 1; overflow-y: auto; padding: 20px;" id="cartDrawerList"></div>
       <div style="padding: 20px; border-top: 1px solid var(--color-gridline); background: var(--color-vellum);">
@@ -1197,7 +1284,7 @@
           <span>VAT (14% Official)</span>
           <span id="cartVatText">0.00 EGP</span>
         </div>
-        <div style="display: flex; justify-content: space-between; margin-bottom: 14px; font-size: 17px; font-weight: 700; color: var(--color-ink);">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 14px; font-size: 16px; font-weight: 700; color: var(--color-ink);">
           <span>Total</span>
           <span style="color: var(--color-ember-orange);" id="cartTotalText">0.00 EGP</span>
         </div>
@@ -1210,7 +1297,7 @@
   <!-- JAVASCRIPT ENGINE & ARCHITECTURAL LOGIC                              -->
   <!-- ==================================================================== -->
   <script>
-    // Rich Food Database with High-Res Photos, Calories, and Macros (Flavorfit style)
+    // Rich Food Database with High-Res Photos, Calories, and Macros
     const RICH_MENU = [
       {
         id: 'angus-burger',
@@ -1220,7 +1307,7 @@
         price: 185.00,
         prepTime: '12 min',
         calories: '540 kcal',
-        rating: '4.9 ★ (184)',
+        rating: '4.9 (184 reviews)',
         image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=800&q=80',
         badge: 'Chef Signature',
         dietary: ['High-Protein'],
@@ -1244,7 +1331,7 @@
         price: 155.00,
         prepTime: '10 min',
         calories: '490 kcal',
-        rating: '4.8 ★ (120)',
+        rating: '4.8 (120 reviews)',
         image: 'https://images.unsplash.com/photo-1625813506062-0aeb1d7a094b?auto=format&fit=crop&w=800&q=80',
         badge: 'Crispy',
         dietary: ['High-Protein'],
@@ -1266,7 +1353,7 @@
         price: 320.00,
         prepTime: '16 min',
         calories: '610 kcal',
-        rating: '5.0 ★ (96)',
+        rating: '5.0 (96 reviews)',
         image: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=800&q=80',
         badge: 'Prime Cut',
         dietary: ['Keto', 'Low-Carb'],
@@ -1288,7 +1375,7 @@
         price: 145.00,
         prepTime: '10 min',
         calories: '420 kcal',
-        rating: '4.8 ★ (210)',
+        rating: '4.8 (210 reviews)',
         image: 'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?auto=format&fit=crop&w=800&q=80',
         badge: 'Artisan',
         dietary: ['Vegetarian'],
@@ -1310,7 +1397,7 @@
         price: 150.00,
         prepTime: '12 min',
         calories: '520 kcal',
-        rating: '4.7 ★ (85)',
+        rating: '4.7 (85 reviews)',
         image: 'https://images.unsplash.com/photo-1645112411341-6c4fd023714a?auto=format&fit=crop&w=800&q=80',
         badge: 'Classic',
         dietary: ['Comfort'],
@@ -1331,7 +1418,7 @@
         price: 85.00,
         prepTime: '8 min',
         calories: '280 kcal',
-        rating: '4.8 ★ (110)',
+        rating: '4.8 (110 reviews)',
         image: 'https://images.unsplash.com/photo-1550304943-4f24f54ddde9?auto=format&fit=crop&w=800&q=80',
         badge: 'Fresh',
         dietary: ['Low-Carb', 'Keto'],
@@ -1352,7 +1439,7 @@
         price: 50.00,
         prepTime: '6 min',
         calories: '310 kcal',
-        rating: '4.9 ★ (340)',
+        rating: '4.9 (340 reviews)',
         image: 'https://images.unsplash.com/photo-1576107232684-1279f3908594?auto=format&fit=crop&w=800&q=80',
         badge: 'Snack',
         dietary: ['Vegetarian'],
@@ -1373,7 +1460,7 @@
         price: 75.00,
         prepTime: '6 min',
         calories: '380 kcal',
-        rating: '5.0 ★ (190)',
+        rating: '5.0 (190 reviews)',
         image: 'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?auto=format&fit=crop&w=800&q=80',
         badge: 'Dessert',
         dietary: ['Vegetarian'],
@@ -1391,7 +1478,7 @@
         price: 35.00,
         prepTime: '4 min',
         calories: '110 kcal',
-        rating: '4.8 ★ (75)',
+        rating: '4.8 (75 reviews)',
         image: 'https://images.unsplash.com/photo-1613478223719-2ab802602423?auto=format&fit=crop&w=800&q=80',
         badge: 'Beverage',
         dietary: ['Vegetarian', 'Low-Calorie'],
@@ -1421,7 +1508,6 @@
       { code: 'T-12', floor: 'Terrace', seats: 6, status: 'avail' }
     ];
 
-    // State Variables
     let currentScreen = 'hero';
     let currentTable = 'T-04';
     let cart = [];
@@ -1429,10 +1515,8 @@
     let modalPortion = null;
     let modalExtras = [];
     let modalQty = 1;
-    let activeKdsFilter = 'all';
     let activeFloorSeats = 0;
 
-    // Supabase
     let supabaseClient = null;
     if (window.SUPABASE_CONFIG && window.supabase) {
       supabaseClient = window.supabase.createClient(
@@ -1441,9 +1525,6 @@
       );
     }
 
-    // ====================================================================
-    // SCREEN SWITCHER (Global Navigation Rail)
-    // ====================================================================
     function switchMainScreen(screenId) {
       currentScreen = screenId;
       const screens = ['hero', 'stand', 'menu', 'tracker', 'kds', 'floor'];
@@ -1454,7 +1535,6 @@
         if (btn) btn.classList.toggle('active', s === screenId);
       });
 
-      // Update Breadcrumb
       const names = {
         hero: 'Platform Overview',
         stand: 'Acrylic Table Stand Simulator',
@@ -1465,10 +1545,8 @@
       };
       document.getElementById('breadcrumbCurrent').innerText = names[screenId] || screenId;
 
-      // Update Column 2 (Context Pane)
       renderContextPane(screenId);
 
-      // Trigger specific initializations
       if (screenId === 'stand') renderAcrylicStandQr();
       if (screenId === 'menu') renderRichFoodGrid(RICH_MENU);
       if (screenId === 'kds') loadKdsFeed();
@@ -1477,9 +1555,6 @@
       document.getElementById('mainWorkspace').scrollTop = 0;
     }
 
-    // ====================================================================
-    // COLUMN 2: CONTEXT / NAVIGATION DRAWER CONTENT (Supabase Style)
-    // ====================================================================
     function renderContextPane(screenId) {
       const pane = document.getElementById('contextPaneContent');
 
@@ -1581,14 +1656,8 @@
           </div>
           <div class="context-group">
             <div class="context-group-title">Ticket Status Filter</div>
-            <button class="context-link-btn active" onclick="filterKdsUrgency('all', this)">
-              <span>All Tickets</span>
-            </button>
-            <button class="context-link-btn" onclick="filterKdsUrgency('cooking', this)">
-              <span>On Flame Grill</span>
-            </button>
-            <button class="context-link-btn" onclick="filterKdsUrgency('new', this)">
-              <span>New / Queued</span>
+            <button class="context-link-btn active" onclick="loadKdsFeed()">
+              <span>All Active Tickets</span>
             </button>
           </div>
           <div class="context-group">
@@ -1622,7 +1691,6 @@
           </div>
         `;
       } else {
-        // Hero / Overview
         pane.innerHTML = `
           <div class="context-pane-header">
             <div class="context-pane-title">
@@ -1641,9 +1709,6 @@
       }
     }
 
-    // ====================================================================
-    // VIEWPORT EMULATOR (Mobile / Tablet / Desktop)
-    // ====================================================================
     function setCanvasViewport(mode) {
       const ws = document.getElementById('mainWorkspace');
       document.querySelectorAll('.viewport-btn').forEach(b => b.classList.remove('active'));
@@ -1661,37 +1726,34 @@
       }
     }
 
-    // ====================================================================
-    // MENU RENDERING (Flavorfit Food Cards with Macro Nutrients)
-    // ====================================================================
     function renderRichFoodGrid(items) {
       const grid = document.getElementById('richFoodGrid');
       if (!grid) return;
 
       grid.innerHTML = items.map(dish => `
         <div class="rich-dish-card" onclick="openDishModal('${dish.id}')">
-          <div class="dish-photo-wrapper">
-            <img class="dish-img" src="${dish.image}" alt="${dish.name}" loading="lazy">
-            <div class="photo-floating-badges">
-              <span class="photo-tag">${dish.badge}</span>
-              <span class="photo-tag calorie">${dish.calories}</span>
+          <div class="dish-photo-frame">
+            <img class="dish-photo-img" src="${dish.image}" alt="${dish.name}" loading="lazy">
+            <div class="photo-floating-chips">
+              <span class="photo-badge-pill">${dish.badge}</span>
+              <span class="photo-badge-pill calories">${dish.calories}</span>
             </div>
           </div>
-          <div class="dish-body-content">
+          <div class="dish-card-body">
             <div>
-              <div class="dish-top-title-row">
-                <h3 class="dish-title-text">${dish.name}</h3>
-                <span class="dish-rating-badge">${dish.rating}</span>
+              <div class="dish-title-row">
+                <h3 class="dish-title">${dish.name}</h3>
+                <span class="dish-rating">${dish.rating}</span>
               </div>
-              <p class="dish-desc-text">${dish.description}</p>
-              <div class="dish-macro-pills">
-                <span class="macro-pill">⏱ ${dish.prepTime}</span>
-                ${dish.dietary.map(d => `<span class="macro-pill">${d}</span>`).join('')}
+              <p class="dish-description">${dish.description}</p>
+              <div class="dish-macro-row">
+                <span class="macro-tag">Prep: ${dish.prepTime}</span>
+                ${dish.dietary.map(d => `<span class="macro-tag">${d}</span>`).join('')}
               </div>
             </div>
-            <div class="dish-bottom-action-row">
-              <div class="dish-price-mono">${dish.price.toFixed(2)} EGP</div>
-              <div class="btn-touch-add-cue">+ Customize & Add</div>
+            <div class="dish-action-row">
+              <div class="dish-price">${dish.price.toFixed(2)} EGP</div>
+              <div class="btn-touch-hint">+ Customize & Add</div>
             </div>
           </div>
         </div>
@@ -1722,9 +1784,6 @@
       renderAcrylicStandQr();
     }
 
-    // ====================================================================
-    // DISH MODIFIER MODAL
-    // ====================================================================
     function openDishModal(dishId) {
       const dish = RICH_MENU.find(d => d.id === dishId);
       if (!dish) return;
@@ -1739,15 +1798,13 @@
       document.getElementById('modalQtyNum').innerText = '1';
       document.getElementById('dishKitchenNotes').value = '';
 
-      // Portions
       const pBox = document.getElementById('portionChoicesBox');
       pBox.innerHTML = dish.portions.map((p, idx) => `
         <div style="border: 1px solid ${idx === 0 ? 'var(--color-ember-orange)' : 'var(--color-gridline)'}; background: ${idx === 0 ? '#fff7ed' : 'var(--color-vellum)'}; border-radius: 8px; padding: 10px 14px; cursor: pointer;" onclick="selectModalPortion(${idx}, this)">
-          <div style="font-weight: 600; font-size: 13px;">${p.label}</div>
+          <div style="font-weight: 500; font-size: 13px;">${p.label}</div>
         </div>
       `).join('');
 
-      // Extras
       const exBox = document.getElementById('extrasChoicesBox');
       if (dish.extras.length > 0) {
         exBox.innerHTML = dish.extras.map(ex => `
@@ -1850,13 +1907,13 @@
       }
       list.innerHTML = cart.map((i, idx) => `
         <div style="background: var(--color-vellum); border: 1px solid var(--color-gridline); border-radius: 12px; padding: 14px; margin-bottom: 12px;">
-          <div style="display: flex; justify-content: space-between; font-weight: 600;">
+          <div style="display: flex; justify-content: space-between; font-weight: 500;">
             <span>${i.qty}x ${i.name}</span>
             <button style="background: transparent; border: none; cursor: pointer; color: var(--color-slate);" onclick="removeCartItem(${idx})">✕</button>
           </div>
           <div style="font-size: 12px; color: var(--color-slate); margin: 4px 0;">${i.portion} ${i.extras.map(e => '+ ' + e.label).join(' ')}</div>
           ${i.notes ? `<div style="font-size: 11px; color: #9a3412;">"${i.notes}"</div>` : ''}
-          <div style="font-family: var(--font-geist-mono); font-weight: 700; text-align: right; margin-top: 6px;">${i.total.toFixed(2)} EGP</div>
+          <div style="font-family: var(--font-geist-mono); font-weight: 600; text-align: right; margin-top: 6px;">${i.total.toFixed(2)} EGP</div>
         </div>
       `).join('');
     }
@@ -1911,9 +1968,6 @@
       switchMainScreen('tracker');
     }
 
-    // ====================================================================
-    // ACRYLIC TABLE STAND SIMULATOR
-    // ====================================================================
     function renderAcrylicStandQr() {
       const container = document.getElementById('acrylicStandQrHolder');
       if (!container) return;
@@ -1935,9 +1989,6 @@
       renderAcrylicStandQr();
     }
 
-    // ====================================================================
-    // KITCHEN DISPLAY SYSTEM (KDS) FEED
-    // ====================================================================
     async function loadKdsFeed() {
       const grid = document.getElementById('kdsTicketCards');
       if (!grid) return;
@@ -2019,9 +2070,6 @@
       loadKdsFeed();
     }
 
-    // ====================================================================
-    // FLOOR SEATING MATRIX
-    // ====================================================================
     function renderFloorMatrix() {
       const grid = document.getElementById('floorMatrixContainer');
       let data = FLOOR_DATA;
@@ -2069,7 +2117,6 @@
       renderFloorMatrix();
     }
 
-    // Modal Wifi Info
     function openWifiPolicyModal() {
       document.getElementById('wifiPolicyModal').style.display = 'flex';
     }
@@ -2077,7 +2124,6 @@
       document.getElementById('wifiPolicyModal').style.display = 'none';
     }
 
-    // Realtime Listener
     function initLiveRealtime() {
       if (!supabaseClient) return;
       supabaseClient.channel('global-feed').on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => {

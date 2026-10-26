@@ -25,10 +25,10 @@ All agents working on this project MUST follow `.agents/skills/first-principles-
 ---
 
 ### 2. Design System Compliance (`DESIGN (3).md` — Firecrawl Reference)
-- **Palette**:
+- **Palette (100% Light Workspace — Never Dark Fills or Gradients)**:
   - Canvas: `#ffffff` | Surfaces/Cards: `#f9f9f9` (Vellum) | Hairline borders: `#e5e7eb` (1px Gridline).
   - Single Chromatic Signal: Ember Orange (`#ff4d00`) with warm ambient halo (`0 0 0 6px #fcddcc`).
-  - Text: Ink (`#262626`) for headings, Slate (`#727272`) for descriptions.
+  - Text: Ink (`#262626`) for headings, Slate (`#727272`) for descriptions, Graphite (`#616161`).
 - **Radii**:
   - `999px` for all pills, buttons, and status tags.
   - `16px` for all cards and modals.
@@ -37,7 +37,7 @@ All agents working on this project MUST follow `.agents/skills/first-principles-
   - Primary UI: `Inter` / `Suisse` (humanist grotesk).
   - Technical Data & Pricing: `JetBrains Mono` / `Geist Mono` for prices (e.g. `185.00 EGP`), order IDs, and timers.
 - **Strict Prohibitions**:
-  - **NO EMOJIS**: Zero cheesy emojis (🍔, 🍕, 🍟). Use clean SVG icons, typographic glyphs, and badges.
+  - **NO EMOJIS**: Zero cheesy emojis (such as food icons, cartoon graphics, or emoji symbols). Use clean SVG icons, typographic glyphs, and badges. This applies to UI, code, comments, AND AI chat responses.
   - **NO ACADEMIC/WORKSHOP LABELS**: Never show "DEBI", "Port Said", "workshop", or "assignment" in the user interface.
 
 ---
@@ -46,3 +46,11 @@ All agents working on this project MUST follow `.agents/skills/first-principles-
 - **100% Managed Stack**: Frontend communicates directly with Supabase via `@supabase/supabase-js`.
 - **Zero Secrets in Code**: Never commit or expose `sb_secret_` or any service credentials. Use only the `sb_publishable_` key on the client side with PostgreSQL Row Level Security (RLS).
 - Ensure `.gitignore` ignores all `.env*`, `*.secret*`, and credentials.
+
+---
+
+### 4. Mandatory Pre-Flight Self-Audit Protocol (Every Turn Verification)
+Before finalizing any turn or outputting a response, the agent MUST run a self-audit:
+1. Scan for emojis in code, UI, and response text. Must be 0 emojis.
+2. Verify Light Theme tokens: `#ffffff`, `#f9f9f9`, `#e5e7eb`, `#262626`, `#ff4d00`. No dark backgrounds or saturated non-brand colors.
+3. Verify first-principles physical reality: no redundant QR screens on phone, no party-size questions for seated diners.
