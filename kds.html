@@ -14,6 +14,10 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js"></script>
 
+  <!-- Modular Domain Tokens & Toast System -->
+  <link rel="stylesheet" href="src/domain-tokens/tokens.css">
+  <link rel="stylesheet" href="src/domain-ui/toast.css">
+
   <style>
     /* Firecrawl System Tokens (DESIGN (3).md) */
     :root {
@@ -686,7 +690,13 @@
           table.guest = guest.trim();
           table.time = 'Just seated';
           renderFloorMatrix(currentFloor);
-          alert(`Table ${code} is now marked OCCUPIED for ${guest.trim()}.`);
+          if (window.showToast) {
+            window.showToast({
+              title: 'Table Seated',
+              message: `Table ${code} is now marked OCCUPIED for ${guest.trim()}.`,
+              type: 'info'
+            });
+          }
         }
       } else {
         const action = confirm(`Table ${code} is currently ${table.status.toUpperCase()} (${table.guest || 'Seated'}). Mark as CLEAN & AVAILABLE?`);
@@ -832,5 +842,6 @@
       initRealtimeKds();
     });
   </script>
+  <script src="src/domain-ui/toast.js"></script>
 </body>
 </html>

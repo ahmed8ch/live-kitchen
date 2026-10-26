@@ -17,6 +17,11 @@
   <!-- QRCode.js -->
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 
+  <!-- Modular Domain Tokens & Toast System -->
+  <link rel="stylesheet" href="src/domain-tokens/tokens.css">
+  <link rel="stylesheet" href="src/domain-ui/toast.css">
+  <link rel="stylesheet" href="src/domain-features/interactive-tour.css">
+
   <style>
     /* ==================================================================== */
     /* FIRECRAWL DESIGN SYSTEM TOKENS (DESIGN (3).md — 100% LIGHT THEME)    */
@@ -1651,16 +1656,8 @@
     </nav>
 
     <div class="saas-header-right">
-      <!-- Device Viewport Switcher (Desktop Simulator) -->
-      <div class="device-viewport-toggle">
-        <button class="viewport-btn active" id="vpBtnFull" onclick="setCanvasViewport('full')">Desktop</button>
-        <button class="viewport-btn" id="vpBtnTablet" onclick="setCanvasViewport('tablet')">Tablet</button>
-        <button class="viewport-btn" id="vpBtnMobile" onclick="setCanvasViewport('mobile')">Phone 390px</button>
-      </div>
-
-      <button class="cart-header-btn" onclick="openCartDrawer()">
-        <span>Cart</span>
-        <span style="background: rgba(255,255,255,0.25); padding: 1px 6px; border-radius: 999px;" id="headerCartCount">0</span>
+      <button class="btn-pill-primary" style="padding: 7px 18px; font-size: 13px;" onclick="switchMainScreen('menu')">
+        <span>Launch Live Demo -&gt;</span>
       </button>
 
       <!-- Mobile Menu Hamburger Button -->
@@ -1682,8 +1679,8 @@
     <!-- Mobile Drawer Backdrop -->
     <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeMobileSidebar()"></div>
 
-    <!-- CLOUDFLARE-STYLE SIDEBAR (Reaches 100% of Viewport Bottom) -->
-    <aside class="cf-sidebar" id="cfSidebar">
+    <!-- CLOUDFLARE-STYLE SIDEBAR (Reaches 100% of Viewport Bottom - COMPACT BY DEFAULT) -->
+    <aside class="cf-sidebar collapsed" id="cfSidebar">
       <!-- Mobile Drawer Top Bar with Close Button -->
       <div class="cf-mobile-drawer-header">
         <div class="brand-logo-lockup" style="transform: scale(0.9); transform-origin: left center;">
@@ -1774,22 +1771,6 @@
             </button>
           </div>
         </div>
-
-        <div>
-          <div class="cf-nav-group-title">Audited &amp; Deprecated</div>
-          <div class="cf-nav-items-list">
-            <button class="cf-nav-item" id="sideBtn-floor" onclick="switchMainScreen('floor')" style="opacity: 0.85;">
-              <div class="cf-nav-item-left">
-                <svg class="cf-nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="9" cy="7" r="4"></circle>
-                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                </svg>
-                <span class="cf-nav-item-text">Cashier Queue Station</span>
-              </div>
-              <span class="cf-item-badge deprecated">DEPRECATED</span>
-            </button>
-          </div>
-        </div>
       </div>
 
       <div class="cf-sidebar-footer">
@@ -1798,11 +1779,7 @@
             <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
             <line x1="9" y1="3" x2="9" y2="21"></line>
           </svg>
-          <span id="collapseBtnText">Collapse</span>
-        </button>
-
-        <button class="cf-wifi-link-btn" style="background: transparent; border: none; cursor: pointer; color: var(--color-slate); font-size: 11px; text-decoration: underline;" onclick="openWifiPolicyModal()" title="Network Architecture Specs">
-          Network Specs: 4G vs Wi-Fi
+          <span id="collapseBtnText"></span>
         </button>
       </div>
     </aside>
@@ -1842,6 +1819,28 @@
               <button class="btn-pill-ghost" onclick="switchMainScreen('kds')">
                 <span>Kitchen Display Pass</span>
               </button>
+            </div>
+
+            <!-- Interactive Live Tour Studio (Tabbed Product Sandbox) -->
+            <div class="interactive-tour-container" id="interactive-demo">
+              <div class="tour-header-row">
+                <div class="tour-title-wrap">
+                  <h3>Interactive System Tour</h3>
+                  <p>Experience the dining workflow from guest self-order to kitchen pass fulfillment.</p>
+                </div>
+                <div class="tour-tabs-segmented" role="tablist">
+                  <button class="tour-tab-pill active" data-tab="menu" onclick="setTourTab('menu')">1. Diner Menu</button>
+                  <button class="tour-tab-pill" data-tab="kds" onclick="setTourTab('kds')">2. Kitchen KDS</button>
+                  <button class="tour-tab-pill" data-tab="tracker" onclick="setTourTab('tracker')">3. Order Tracker</button>
+                  <button class="tour-tab-pill" data-tab="stand" onclick="setTourTab('stand')">4. Table Stand</button>
+                </div>
+              </div>
+              <div class="tour-stage-box" id="tourStageBox"></div>
+              <div style="margin-top: 14px; display: flex; justify-content: flex-end;">
+                <button class="btn-pill-primary" id="tourActionBtn" style="font-size: 13px; padding: 7px 18px;" onclick="switchMainScreen('menu')">
+                  Launch Full Diner Menu -&gt;
+                </button>
+              </div>
             </div>
 
             <!-- 3-Column Feature Cards Grid -->
@@ -1956,7 +1955,6 @@
                 <option value="T-05">Switch: Table T-05</option>
                 <option value="T-08">Switch: Table T-08</option>
               </select>
-              <button class="btn-pill-ghost" style="padding: 5px 12px; font-size: 12px;" onclick="alert('Waiter paged to Table ' + currentTable)">Call Waiter</button>
             </div>
           </div>
 
@@ -2097,7 +2095,6 @@
 
             <div style="margin-top: 28px; padding-top: 18px; border-top: 1px solid var(--color-gridline); display: flex; gap: 10px; flex-wrap: wrap;">
               <button class="btn-pill-primary" onclick="switchMainScreen('menu')">+ Add More Items to Table</button>
-              <button class="btn-pill-ghost" onclick="alert('Waiter Called to Table ' + currentTable)">Call Waiter</button>
             </div>
           </div>
         </section>
@@ -2143,55 +2140,6 @@
           <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 16px;" id="kdsTicketCards"></div>
         </section>
 
-        <!-- ============================================================== -->
-        <!-- VIEW 6: CASHIER SCREEN (JAPANESE INKAN STAMP OVERLAY)          -->
-        <!-- ============================================================== -->
-        <section id="screen-floor" style="display: none;">
-          <div class="cashier-screen-wrapper">
-            <!-- JAPANESE INKAN EDITORIAL RUBBER STAMP -->
-            <div class="japanese-stamp-overlay">
-              <div class="stamp-kanji">&#x5EC3; &#x6B62;</div>
-              <div class="stamp-main-label">DEPRECATED &middot; OUT OF MVP SCOPE</div>
-              <div class="stamp-sub-label">
-                ABANDONED IN FAVOR OF DIRECT TABLE SELF-ORDERING.<br>
-                First-principles analysis proves seated diners never queue at a cashier counter.
-              </div>
-              <div class="stamp-audit-pill">
-                FIRST-PRINCIPLES AUDIT: NO CASHIER BOTTLENECKS IN SEATED DINE-IN
-              </div>
-            </div>
-
-            <!-- GREYED-OUT ABANDONED CASHIER CONTENT -->
-            <div class="cashier-disabled-content">
-              <div style="background: var(--color-vellum); border: 1px solid var(--color-gridline); border-radius: var(--radius-cards); padding: 24px;">
-                <div style="margin-bottom: 18px;">
-                  <h3 style="font-size: 16px; font-weight: 600;">Legacy Walk-In Cashier Station</h3>
-                  <div style="font-size: 12px; color: var(--color-slate);">Table Allocation Matrix (Decommissioned):</div>
-                </div>
-
-                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;">
-                  <div style="background: #ffffff; border: 1px solid var(--color-gridline); border-radius: 10px; padding: 14px; text-align: center;">
-                    <div style="font-family: var(--font-geist-mono); font-size: 16px; font-weight: 700;">T-01</div>
-                    <div style="font-size: 11px; color: var(--color-slate);">2 Seats</div>
-                  </div>
-                  <div style="background: #ffffff; border: 1px solid var(--color-gridline); border-radius: 10px; padding: 14px; text-align: center;">
-                    <div style="font-family: var(--font-geist-mono); font-size: 16px; font-weight: 700;">T-02</div>
-                    <div style="font-size: 11px; color: var(--color-slate);">4 Seats</div>
-                  </div>
-                  <div style="background: #ffffff; border: 1px solid var(--color-gridline); border-radius: 10px; padding: 14px; text-align: center;">
-                    <div style="font-family: var(--font-geist-mono); font-size: 16px; font-weight: 700;">T-04</div>
-                    <div style="font-size: 11px; color: var(--color-slate);">2 Seats</div>
-                  </div>
-                  <div style="background: #ffffff; border: 1px solid var(--color-gridline); border-radius: 10px; padding: 14px; text-align: center;">
-                    <div style="font-family: var(--font-geist-mono); font-size: 16px; font-weight: 700;">T-05</div>
-                    <div style="font-size: 11px; color: var(--color-slate);">6 Seats</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
       </div>
     </main>
   </div>
@@ -2206,7 +2154,12 @@
           <div style="font-size: 17px; font-weight: 600;" id="customDishName">Angus Flame-Grilled Burger</div>
           <div style="font-family: var(--font-geist-mono); font-size: 12px; color: var(--color-slate);" id="customDishBasePrice">Base: 185.00 EGP &middot; 540 kcal</div>
         </div>
-        <button style="background: transparent; border: none; font-size: 16px; cursor: pointer; color: var(--color-slate); font-weight: 700;" onclick="closeDishModal()">x</button>
+        <button style="background: transparent; border: none; cursor: pointer; color: var(--color-slate); padding: 4px; display: flex; align-items: center; justify-content: center;" onclick="closeDishModal()" aria-label="Close customizer">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
       </div>
 
       <div style="padding: 20px 22px; overflow-y: auto; flex: 1;">
@@ -2237,35 +2190,6 @@
   </div>
 
   <!-- ==================================================================== -->
-  <!-- MODAL: WI-FI VS 4G RESEARCH (Egypt Context)                          -->
-  <!-- ==================================================================== -->
-  <div class="modal-backdrop" id="wifiPolicyModal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.45); backdrop-filter: blur(4px); z-index: 250; display: none; align-items: center; justify-content: center; padding: 16px;">
-    <div style="background: #ffffff; border: 1px solid var(--color-gridline); border-radius: var(--radius-cards); width: 100%; max-width: 600px; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: var(--shadow-card);">
-      <div style="padding: 18px 22px; border-bottom: 1px solid var(--color-gridline); display: flex; justify-content: space-between; align-items: center;">
-        <h3 style="font-size: 16px; font-weight: 600;">Restaurant Wi-Fi vs. Mobile Data Architecture</h3>
-        <button style="background: transparent; border: none; font-size: 16px; cursor: pointer; color: var(--color-slate); font-weight: 700;" onclick="closeWifiPolicyModal()">x</button>
-      </div>
-
-      <div style="padding: 22px; overflow-y: auto; font-size: 13px; line-height: 1.55; color: var(--color-graphite);">
-        <p style="margin-bottom: 12px;"><strong>What do commercial restaurants actually do regarding Wi-Fi vs. Mobile Data?</strong></p>
-        <div style="background: var(--color-vellum); border: 1px solid var(--color-gridline); border-radius: 8px; padding: 12px; margin-bottom: 12px;">
-          <strong>1. Zero-Install Mobile Data First:</strong> Modern dining web apps load in &lt;1.2 seconds on 4G/5G (&lt;450KB payload). In Egypt, &gt;95% of diners have active mobile data.
-        </div>
-        <div style="background: var(--color-vellum); border: 1px solid var(--color-gridline); border-radius: 8px; padding: 12px; margin-bottom: 12px;">
-          <strong>2. The Quota Abuse Problem in Egypt:</strong> Egyptian home/business DSL packages have strict monthly caps (140GB - 300GB). Completely open Wi-Fi gets exhausted in days by video streams and downloads.
-        </div>
-        <div style="background: var(--color-vellum); border: 1px solid var(--color-gridline); border-radius: 8px; padding: 12px;">
-          <strong>3. The Recommended Industry Solution:</strong> A captive Wi-Fi SSID with DNS whitelisting allowing only the ordering portal domain and payment gateways, blocking high-bandwidth video domains.
-        </div>
-      </div>
-
-      <div style="padding: 12px 22px; border-top: 1px solid var(--color-gridline); background: var(--color-vellum); text-align: right;">
-        <button class="btn-pill-ghost" onclick="closeWifiPolicyModal()">Close Reference</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ==================================================================== -->
   <!-- CART SLIDE-OVER DRAWER & BACKDROP                                    -->
   <!-- ==================================================================== -->
   <div class="cart-backdrop" id="cartBackdrop" onclick="closeCartDrawer()"></div>
@@ -2276,7 +2200,12 @@
         <span style="font-size: 15px; font-weight: 600;">Table Order Cart</span>
         <span style="font-family: var(--font-geist-mono); font-size: 11px; background: #fff7ed; color: var(--color-ember-orange); padding: 2px 8px; border-radius: 999px;" id="cartItemCountBadge">0 Items</span>
       </div>
-      <button style="background: transparent; border: none; font-size: 16px; cursor: pointer; color: var(--color-slate); font-weight: 700;" onclick="closeCartDrawer()">x</button>
+      <button style="background: transparent; border: none; cursor: pointer; color: var(--color-slate); padding: 4px; display: flex; align-items: center; justify-content: center;" onclick="closeCartDrawer()" aria-label="Close cart">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
     </div>
 
     <div class="cart-drawer-body" id="cartItemsList">
@@ -2539,8 +2468,7 @@
         menu: `Dine-In Menu · Table ${currentTable}`,
         stand: 'Acrylic Stand Generator',
         tracker: 'Order Live Tracker',
-        kds: 'Kitchen Display (KDS)',
-        floor: 'Cashier & Seating (Deprecated)'
+        kds: 'Kitchen Display (KDS)'
       };
       const headerBreadcrumbEl = document.getElementById('headerBreadcrumbTag');
       if (headerBreadcrumbEl) headerBreadcrumbEl.innerText = breadcrumbNames[screenId] || screenId;
@@ -2821,7 +2749,12 @@
         <div style="background: var(--color-vellum); border: 1px solid var(--color-gridline); border-radius: 10px; padding: 12px 14px; margin-bottom: 10px;">
           <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px;">
             <strong style="font-size: 14px;">${item.name}</strong>
-            <button style="background: transparent; border: none; cursor: pointer; color: var(--color-slate); font-weight: 700;" onclick="removeCartItem(${idx})">x</button>
+            <button style="background: transparent; border: none; cursor: pointer; color: var(--color-slate); padding: 2px; display: flex; align-items: center;" onclick="removeCartItem(${idx})" aria-label="Remove item">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
           </div>
           <div style="font-size: 12px; color: var(--color-slate); margin-bottom: 4px;">${item.portion}</div>
           ${item.extras.length > 0 ? `<div style="font-size: 11px; color: var(--color-ember-orange);">Extras: ${item.extras.map(e => e.label).join(', ')}</div>` : ''}
@@ -2849,7 +2782,13 @@
 
     async function dispatchOrderFromCart() {
       if (cart.length === 0) {
-        alert('Please add items to your table order first.');
+        if (window.showToast) {
+          window.showToast({
+            title: 'Order Cart Empty',
+            message: 'Please choose dishes from the menu before placing an order.',
+            type: 'warning'
+          });
+        }
         return;
       }
 
@@ -2882,6 +2821,16 @@
 
       lastDispatchedOrderId = ordId;
       updateTrackerProgress('new');
+
+      // In-app styled toast notification (replacing browser alert)
+      if (window.showToast) {
+        window.showToast({
+          title: 'Order Dispatched to Kitchen',
+          message: `Ticket #ORD-${ordId} sent to Flame Grill cook line.`,
+          meta: `${total.toFixed(2)} EGP · Table ${currentTable}`,
+          type: 'success'
+        });
+      }
 
       // Populate Tracker with ordered items
       document.getElementById('trackerOrderNumber').innerText = `#ORD-${ordId}`;
@@ -3096,15 +3045,14 @@
 }`;
       navigator.clipboard.writeText(code);
       btn.innerText = 'Copied!';
+      if (window.showToast) {
+        window.showToast({
+          title: 'Payload Copied',
+          message: 'WebSocket event JSON copied to clipboard.',
+          type: 'info'
+        });
+      }
       setTimeout(() => btn.innerText = 'Copy JSON', 2000);
-    }
-
-    function openWifiPolicyModal() {
-      document.getElementById('wifiPolicyModal').style.display = 'flex';
-    }
-
-    function closeWifiPolicyModal() {
-      document.getElementById('wifiPolicyModal').style.display = 'none';
     }
 
     function initLiveRealtime() {
@@ -3123,7 +3071,6 @@
         closeDishModal();
         closeCartDrawer();
         closeMobileSidebar();
-        closeWifiPolicyModal();
       }
     });
 
@@ -3139,5 +3086,14 @@
       initLiveRealtime();
     });
   </script>
+
+  <!-- Modular Domain Architecture Scripts -->
+  <script src="src/domain-ui/toast.js"></script>
+  <script src="src/domain-layout/shell.js"></script>
+  <script src="src/domain-utils/helpers.js"></script>
+  <script src="src/domain-state/store.js"></script>
+  <script src="src/domain-services/supabase.js"></script>
+  <script src="src/domain-features/interactive-tour.js"></script>
+  <script src="src/domain-qa/audit.js"></script>
 </body>
 </html>

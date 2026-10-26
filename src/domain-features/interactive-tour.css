@@ -1,0 +1,85 @@
+/* MatbakhLink Interactive Tour Studio */
+.interactive-tour-container {
+  background: #ffffff;
+  border: 1px solid var(--color-gridline, #e5e7eb);
+  border-radius: var(--radius-cards, 16px);
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  margin-top: 36px;
+  margin-bottom: 24px;
+  text-align: left;
+}
+
+.tour-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--color-gridline, #e5e7eb);
+}
+
+.tour-title-wrap h3 {
+  font-family: var(--font-sans, -apple-system, sans-serif);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-ink, #262626);
+  margin-bottom: 4px;
+}
+
+.tour-title-wrap p {
+  font-family: var(--font-sans, -apple-system, sans-serif);
+  font-size: 12px;
+  color: var(--color-slate, #727272);
+}
+
+.tour-tabs-segmented {
+  display: inline-flex;
+  background: var(--color-vellum, #f9f9f9);
+  border: 1px solid var(--color-gridline, #e5e7eb);
+  border-radius: 999px;
+  padding: 3px;
+  gap: 4px;
+}
+
+.tour-tab-pill {
+  border: none;
+  background: transparent;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-family: var(--font-sans, -apple-system, sans-serif);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-slate, #727272);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.tour-tab-pill:hover {
+  color: var(--color-ink, #262626);
+}
+
+.tour-tab-pill.active {
+  background: #ffffff;
+  color: var(--color-flame, #ff4d00);
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.tour-stage-box {
+  background: var(--color-vellum, #f9f9f9);
+  border: 1px solid var(--color-gridline, #e5e7eb);
+  border-radius: 12px;
+  padding: 20px;
+  min-height: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tour-stage-content {
+  width: 100%;
+}
