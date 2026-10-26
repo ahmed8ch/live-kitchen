@@ -33,11 +33,11 @@ export const MenuPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-[#e5e7eb] text-[12px] font-semibold text-[#262626] mb-2 shadow-xs">
-                <span className="w-2 h-2 rounded-full bg-[#ff4d00]" />
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-[#e5e7eb] text-[12px] font-semibold text-[#0f172a] mb-2 shadow-xs">
+                <span className="w-2 h-2 rounded-full bg-[#ea580c]" />
                 <span>Wood-Fired Kitchen & Grill</span>
               </div>
-              <h1 className="text-3xl sm:text-4xl font-extrabold text-[#262626] tracking-tight">
+              <h1 className="text-3xl sm:text-4xl font-extrabold text-[#0f172a] tracking-tight">
                 Dine-In Self-Ordering Menu
               </h1>
               <p className="mt-1 text-[15px] text-[#727272]">
@@ -50,7 +50,7 @@ export const MenuPage: React.FC = () => {
                 <div className="text-[11px] font-semibold text-[#727272] uppercase tracking-wider">
                   Assigned Seating
                 </div>
-                <div className="text-xl font-bold font-mono-num text-[#ff4d00]">
+                <div className="text-xl font-bold font-mono-num text-[#ea580c]">
                   Table {activeTable}
                 </div>
               </div>
@@ -59,7 +59,7 @@ export const MenuPage: React.FC = () => {
                 <div className="text-[11px] font-semibold text-[#727272] uppercase tracking-wider">
                   Browsing Online
                 </div>
-                <div className="text-[13px] font-medium text-[#262626]">
+                <div className="text-[13px] font-medium text-[#0f172a]">
                   Dine-In & Counter Pickup
                 </div>
               </div>
@@ -74,7 +74,7 @@ export const MenuPage: React.FC = () => {
                 onClick={() => setActiveCategory(cat.id)}
                 className={`px-4 py-2 rounded-full text-[13px] font-semibold transition-all shrink-0 cursor-pointer ${
                   activeCategory === cat.id
-                    ? 'bg-[#262626] text-white shadow-xs'
+                    ? 'bg-[#0f172a] text-white shadow-xs'
                     : 'bg-white hover:bg-[#f0f0f0] text-[#727272] border border-[#e5e7eb]'
                 }`}
               >
@@ -88,7 +88,7 @@ export const MenuPage: React.FC = () => {
       {/* Dish Grid Section */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-12">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-[#262626]">
+          <h2 className="text-xl font-bold text-[#0f172a]">
             {CATEGORIES.find((c) => c.id === activeCategory)?.label}
           </h2>
           <span className="text-[13px] font-mono-num text-[#727272]">
@@ -101,7 +101,7 @@ export const MenuPage: React.FC = () => {
             <div
               key={dish.id}
               onClick={() => setSelectedDish(dish)}
-              className="group bg-white rounded-2xl border border-[#e5e7eb] overflow-hidden shadow-xs hover:border-[#ff4d00]/40 hover:shadow-md transition-all cursor-pointer flex flex-col active:scale-[0.99]"
+              className="group bg-white rounded-2xl border border-[#e5e7eb] overflow-hidden shadow-xs hover:border-[#ea580c]/40 hover:shadow-md transition-all cursor-pointer flex flex-col active:scale-[0.99]"
             >
               {/* Dish Image */}
               <div className="relative h-48 sm:h-52 w-full bg-[#f9f9f9] overflow-hidden">
@@ -116,7 +116,7 @@ export const MenuPage: React.FC = () => {
                   }}
                 />
                 {dish.badge && (
-                  <div className="absolute top-3 left-3 px-2.5 py-0.5 rounded-full bg-[#ff4d00] text-white text-[10px] font-bold uppercase tracking-wider shadow-xs">
+                  <div className="absolute top-3 left-3 px-2.5 py-0.5 rounded-full bg-[#ea580c] text-white text-[10px] font-bold uppercase tracking-wider shadow-xs">
                     {dish.badge}
                   </div>
                 )}
@@ -128,7 +128,7 @@ export const MenuPage: React.FC = () => {
               {/* Dish Information */}
               <div className="p-5 flex-1 flex flex-col justify-between">
                 <div>
-                  <h3 className="text-[16px] font-bold text-[#262626] group-hover:text-[#ff4d00] transition-colors">
+                  <h3 className="text-[16px] font-bold text-[#0f172a] group-hover:text-[#ea580c] transition-colors">
                     {dish.name}
                   </h3>
                   <p className="mt-1.5 text-[13px] text-[#727272] line-clamp-2 leading-relaxed">
@@ -137,7 +137,7 @@ export const MenuPage: React.FC = () => {
                 </div>
 
                 <div className="mt-5 pt-4 border-t border-[#e5e7eb] flex items-center justify-between">
-                  <div className="font-mono-num font-bold text-[16px] text-[#262626]">
+                  <div className="font-mono-num font-bold text-[16px] text-[#0f172a]">
                     {dish.basePrice.toFixed(2)}{' '}
                     <span className="text-[12px] font-sans font-normal text-[#727272]">EGP</span>
                   </div>
@@ -147,7 +147,7 @@ export const MenuPage: React.FC = () => {
                       e.stopPropagation();
                       setSelectedDish(dish);
                     }}
-                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#f9f9f9] hover:bg-[#ff4d00] hover:text-white border border-[#e5e7eb] hover:border-[#ff4d00] text-[12px] font-semibold text-[#262626] transition-all cursor-pointer"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#f9f9f9] hover:bg-[#ea580c] hover:text-white border border-[#e5e7eb] hover:border-[#ea580c] text-[12px] font-semibold text-[#0f172a] transition-all cursor-pointer"
                   >
                     <span>+ Customize</span>
                   </button>

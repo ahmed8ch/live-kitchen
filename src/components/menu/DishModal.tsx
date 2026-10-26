@@ -37,33 +37,32 @@ export const DishModal: React.FC<DishModalProps> = ({ dish, onClose }) => {
     setTimeout(() => {
       setAddedFeedback(false);
       onClose();
-    }, 400);
+    }, 350);
   };
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/55 backdrop-blur-xs animate-in fade-in duration-200"
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-lg bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[90vh] border border-[#e5e7eb]"
+        className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[88vh] border border-[#e5e7eb]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header & Dish Image */}
-        <div className="relative h-56 sm:h-64 w-full bg-[#f9f9f9]">
+        <div className="relative h-44 sm:h-52 w-full bg-[#f9f9f9] shrink-0 overflow-hidden">
           <img
             src={dish.imageUrl}
             alt={dish.name}
             className="w-full h-full object-cover"
             onError={(e) => {
-              // Fallback placeholder if image load fails
               (e.currentTarget as HTMLImageElement).src =
                 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80';
             }}
           />
           <button
             onClick={onClose}
-            className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 hover:bg-white text-[#262626] flex items-center justify-center shadow-md transition-transform active:scale-90"
+            className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/95 hover:bg-white text-[#0f172a] flex items-center justify-center shadow-md transition-transform active:scale-90 cursor-pointer"
             aria-label="Close modal"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -71,18 +70,18 @@ export const DishModal: React.FC<DishModalProps> = ({ dish, onClose }) => {
             </svg>
           </button>
           {dish.badge && (
-            <div className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-[#ff4d00] text-white text-[11px] font-bold uppercase tracking-wider shadow-xs">
+            <div className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-[#ea580c] text-white text-[11px] font-bold uppercase tracking-wider shadow-xs">
               {dish.badge}
             </div>
           )}
         </div>
 
-        {/* Modal Scrollable Body */}
-        <div className="p-6 overflow-y-auto space-y-6 flex-1">
+        {/* Modal Scrollable Body with No Clipping */}
+        <div className="p-6 overflow-y-auto space-y-6 flex-1 overscroll-contain">
           <div>
             <div className="flex items-start justify-between gap-4">
-              <h3 className="text-xl font-bold text-[#262626]">{dish.name}</h3>
-              <div className="text-lg font-bold font-mono-num text-[#ff4d00] shrink-0">
+              <h3 className="text-xl font-bold text-[#0f172a]">{dish.name}</h3>
+              <div className="text-lg font-bold font-mono-num text-[#ea580c] shrink-0">
                 {dish.basePrice.toFixed(2)} EGP
               </div>
             </div>
@@ -91,27 +90,27 @@ export const DishModal: React.FC<DishModalProps> = ({ dish, onClose }) => {
               <span className="text-[#e5e7eb]">&bull;</span>
               <span className="text-[12px] text-[#727272] capitalize">{dish.category}</span>
             </div>
-            <p className="mt-3 text-[14px] text-[#727272] leading-relaxed">
+            <p className="mt-2.5 text-[14px] text-[#727272] leading-relaxed">
               {dish.description}
             </p>
           </div>
 
-          {/* Modifiers / Add-ons */}
+          {/* Customize & Add-ons (Full Visibility, Generous Spacing) */}
           {dish.modifiers && dish.modifiers.length > 0 && (
             <div className="pt-4 border-t border-[#e5e7eb]">
-              <div className="text-[13px] font-bold text-[#262626] uppercase tracking-wider mb-3">
+              <div className="text-[13px] font-bold text-[#0f172a] uppercase tracking-wider mb-3">
                 Customize & Add-ons
               </div>
-              <div className="space-y-2.5">
+              <div className="space-y-2.5 pb-2">
                 {dish.modifiers.map((mod) => {
                   const isChecked = selectedModifiers.some((m) => m.id === mod.id);
                   return (
                     <label
                       key={mod.id}
                       onClick={() => toggleModifier(mod)}
-                      className={`flex items-center justify-between p-3 rounded-xl border transition-all cursor-pointer ${
+                      className={`flex items-center justify-between p-3.5 rounded-xl border transition-all cursor-pointer ${
                         isChecked
-                          ? 'border-[#ff4d00] bg-orange-50/50'
+                          ? 'border-[#ea580c] bg-orange-50/50 shadow-xs'
                           : 'border-[#e5e7eb] bg-[#f9f9f9] hover:bg-white'
                       }`}
                     >
@@ -119,7 +118,7 @@ export const DishModal: React.FC<DishModalProps> = ({ dish, onClose }) => {
                         <div
                           className={`w-4 h-4 rounded flex items-center justify-center border transition-colors ${
                             isChecked
-                              ? 'bg-[#ff4d00] border-[#ff4d00] text-white'
+                              ? 'bg-[#ea580c] border-[#ea580c] text-white'
                               : 'border-[#d1d5db] bg-white'
                           }`}
                         >
@@ -129,7 +128,7 @@ export const DishModal: React.FC<DishModalProps> = ({ dish, onClose }) => {
                             </svg>
                           )}
                         </div>
-                        <span className="text-[13px] font-medium text-[#262626]">{mod.name}</span>
+                        <span className="text-[13px] font-medium text-[#0f172a]">{mod.name}</span>
                       </div>
                       <span className="text-[13px] font-mono-num font-semibold text-[#727272]">
                         +{mod.price.toFixed(2)} EGP
@@ -143,7 +142,7 @@ export const DishModal: React.FC<DishModalProps> = ({ dish, onClose }) => {
 
           {/* Kitchen / Allergy Notes */}
           <div className="pt-4 border-t border-[#e5e7eb]">
-            <label htmlFor="dish-notes" className="block text-[13px] font-bold text-[#262626] uppercase tracking-wider mb-2">
+            <label htmlFor="dish-notes" className="block text-[13px] font-bold text-[#0f172a] uppercase tracking-wider mb-2">
               Kitchen Instructions / Allergies
             </label>
             <input
@@ -152,29 +151,29 @@ export const DishModal: React.FC<DishModalProps> = ({ dish, onClose }) => {
               placeholder="e.g. Extra sauce on side, no onions"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-lg border border-[#e5e7eb] text-[13px] text-[#262626] placeholder-[#9ca3af] focus:outline-none focus:border-[#ff4d00] transition-colors"
+              className="w-full px-3.5 py-2.5 rounded-lg border border-[#e5e7eb] text-[13px] text-[#0f172a] placeholder-[#9ca3af] focus:outline-none focus:border-[#ea580c] transition-colors"
             />
           </div>
         </div>
 
         {/* Modal Footer */}
-        <div className="p-4 sm:p-6 bg-[#f9f9f9] border-t border-[#e5e7eb] flex items-center justify-between gap-4">
+        <div className="p-4 sm:p-5 bg-[#f9f9f9] border-t border-[#e5e7eb] flex items-center justify-between gap-4 shrink-0">
           {/* Quantity Stepper */}
-          <div className="inline-flex items-center border border-[#e5e7eb] bg-white rounded-full p-1">
+          <div className="inline-flex items-center border border-[#e5e7eb] bg-white rounded-full p-1 shadow-xs">
             <button
               onClick={() => setQuantity((q) => Math.max(1, q - 1))}
               disabled={quantity <= 1}
-              className="w-8 h-8 rounded-full flex items-center justify-center text-[#262626] hover:bg-[#f0f0f0] disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
+              className="w-8 h-8 rounded-full flex items-center justify-center text-[#0f172a] hover:bg-[#f0f0f0] disabled:opacity-30 disabled:hover:bg-transparent transition-colors cursor-pointer"
               aria-label="Decrease quantity"
             >
               -
             </button>
-            <span className="w-8 text-center font-mono-num font-bold text-[14px] text-[#262626]">
+            <span className="w-8 text-center font-mono-num font-bold text-[14px] text-[#0f172a]">
               {quantity}
             </span>
             <button
               onClick={() => setQuantity((q) => q + 1)}
-              className="w-8 h-8 rounded-full flex items-center justify-center text-[#262626] hover:bg-[#f0f0f0] transition-colors"
+              className="w-8 h-8 rounded-full flex items-center justify-center text-[#0f172a] hover:bg-[#f0f0f0] transition-colors cursor-pointer"
               aria-label="Increase quantity"
             >
               +
@@ -184,10 +183,10 @@ export const DishModal: React.FC<DishModalProps> = ({ dish, onClose }) => {
           {/* Add to Order Button */}
           <button
             onClick={handleAddToCart}
-            className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full bg-[#ff4d00] hover:bg-[#e04400] text-white text-[14px] font-semibold transition-all shadow-sm active:scale-95"
+            className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full bg-[#ea580c] hover:bg-[#c2410c] text-white text-[14px] font-semibold transition-all shadow-sm active:scale-95 cursor-pointer"
           >
             {addedFeedback ? (
-              <span>Added to Cart!</span>
+              <span>Added to Order!</span>
             ) : (
               <>
                 <span>Add to Order</span>

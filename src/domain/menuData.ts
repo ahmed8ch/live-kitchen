@@ -39,8 +39,9 @@ export const MENU_ITEMS: MenuItem[] = [
     category: 'burgers',
     basePrice: 245,
     calories: 780,
+    badge: 'Crispy & Spicy',
     description: 'Buttermilk-brined chicken breast fried in spiced tallow, dipped in cayenne chili oil, topped with pickled cucumber ribbons and creamy slaw.',
-    imageUrl: 'https://images.unsplash.com/photo-1625813506062-0aeb1d7a094b?auto=format&fit=crop&w=800&q=80',
+    imageUrl: 'https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?auto=format&fit=crop&w=800&q=80',
     modifiers: [
       { id: 'mod-spice-extra', name: 'Ghost Chili Hot Oil Dip', price: 15 },
       { id: 'mod-cheese-pepperjack', name: 'Melted Pepper Jack', price: 30 },
