@@ -193,6 +193,7 @@
       color: var(--color-ember-orange);
       letter-spacing: -0.25px;
       margin-top: 1px;
+      padding-left: 0.8px; /* Mathematical stem lock: aligns stem of L directly under stem of t */
     }
 
     .wm-spacer {
@@ -306,25 +307,59 @@
       flex-shrink: 0;
     }
 
-    .live-pulse-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: var(--kds-green);
-      animation: pulseGreen 1.8s infinite;
+    /* Top Header SaaS Navigation Links */
+    .saas-header-nav {
+      display: flex;
+      align-items: center;
+      gap: 22px;
     }
 
-    @keyframes pulseGreen {
-      0% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.4); }
-      70% { box-shadow: 0 0 0 6px rgba(22, 163, 74, 0); }
-      100% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0); }
+    .saas-nav-link {
+      background: transparent;
+      border: none;
+      font-family: var(--font-suisse);
+      font-size: 13.5px;
+      font-weight: 500;
+      color: var(--color-slate);
+      cursor: pointer;
+      padding: 6px 0;
+      position: relative;
+      transition: color 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .saas-nav-link:hover {
+      color: var(--color-ink);
+    }
+
+    .saas-nav-link.active {
+      color: var(--color-ember-orange);
+      font-weight: 600;
+    }
+
+    .saas-nav-link.active::after {
+      content: '';
+      position: absolute;
+      bottom: -16px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--color-ember-orange);
+      border-radius: 999px;
+    }
+
+    @media (max-width: 900px) {
+      .saas-header-nav {
+        display: none !important;
+      }
     }
 
     .cart-header-btn {
       background: var(--color-ink);
       color: #ffffff;
       border: none;
-      padding: 6px 14px;
+      padding: 8px 16px;
+      min-height: 40px;
       border-radius: var(--radius-buttons);
       font-family: var(--font-geist-mono);
       font-size: 12px;
@@ -333,7 +368,7 @@
       display: flex;
       align-items: center;
       gap: 6px;
-      transition: opacity 0.15s ease;
+      transition: opacity 0.15s ease, transform 0.15s ease;
       white-space: nowrap;
       flex-shrink: 0;
     }
@@ -342,18 +377,33 @@
       opacity: 0.9;
     }
 
+    .cart-header-btn:active {
+      transform: scale(0.97);
+    }
+
     /* Mobile Menu Hamburger Button */
     .mobile-menu-btn {
       display: none;
       background: transparent;
       border: 1px solid var(--color-gridline);
       border-radius: 8px;
-      padding: 6px 8px;
+      padding: 8px;
+      min-width: 44px;
+      min-height: 44px;
       cursor: pointer;
       color: var(--color-ink);
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
+      transition: background 0.15s ease, transform 0.15s ease;
+    }
+
+    .mobile-menu-btn:hover {
+      background: var(--color-vellum);
+    }
+
+    .mobile-menu-btn:active {
+      transform: scale(0.95);
     }
 
     /* Buttons */
@@ -877,7 +927,7 @@
     .metric-cell {
       background: var(--color-vellum);
       border: 1px solid var(--color-gridline);
-      border-radius: 12px;
+      border-radius: var(--radius-cards);
       padding: 16px 14px;
       text-align: center;
     }
@@ -906,7 +956,7 @@
       background: var(--color-vellum);
       border: 1px solid var(--color-gridline);
       padding: 12px 18px;
-      border-radius: 12px;
+      border-radius: var(--radius-cards);
       gap: 12px;
       flex-wrap: wrap;
     }
@@ -928,7 +978,8 @@
     .category-pill {
       background: var(--color-vellum);
       border: 1px solid var(--color-gridline);
-      padding: 6px 16px;
+      padding: 8px 18px;
+      min-height: 40px;
       border-radius: var(--radius-tags);
       font-family: var(--font-suisse);
       font-size: 13px;
@@ -938,12 +989,19 @@
       white-space: nowrap;
       transition: all 0.15s ease;
       flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .category-pill:hover {
       background: #ffffff;
       color: var(--color-ink);
       border-color: #d1d5db;
+    }
+
+    .category-pill:active {
+      transform: scale(0.97);
     }
 
     .category-pill.active {
@@ -1149,7 +1207,7 @@
       padding: 6px;
       background: #ffffff;
       border: 1px solid var(--color-gridline);
-      border-radius: 12px;
+      border-radius: var(--radius-cards);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -1220,7 +1278,7 @@
     .kds-metric-card {
       background: var(--color-vellum);
       border: 1px solid var(--color-gridline);
-      border-radius: 12px;
+      border-radius: var(--radius-cards);
       padding: 14px;
     }
 
@@ -1312,6 +1370,39 @@
     /* ==================================================================== */
     /* 10. MODALS & DRAWERS                                                 */
     /* ==================================================================== */
+    .cart-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.35);
+      z-index: 215;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.25s ease, visibility 0.25s ease;
+      touch-action: manipulation;
+    }
+
+    .cart-backdrop.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    @keyframes screenFadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .screen-container > section {
+      animation: screenFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    button, .rich-dish-card, .btn-pill-primary, .btn-pill-ghost, .cf-nav-item, .cart-header-btn, .category-pill, .select-table-box {
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+
     .cart-drawer {
       position: fixed;
       top: 0;
@@ -1325,7 +1416,7 @@
       z-index: 220;
       display: flex;
       flex-direction: column;
-      transition: right 0.25s ease;
+      transition: right 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     .cart-drawer.open {
@@ -1549,25 +1640,17 @@
           </div>
         </div>
       </div>
-
-      <div class="header-divider"></div>
-
-      <div class="branch-tag">
-        <span class="branch-dot"></span>
-        <span>Downtown Branch #01</span>
-      </div>
     </div>
 
-    <div class="saas-header-center">
-      <div class="active-view-breadcrumb" id="headerBreadcrumbTag">Platform Overview</div>
-    </div>
+    <!-- Center: Clean SaaS Navigation Links -->
+    <nav class="saas-header-nav" aria-label="Main Navigation">
+      <button class="saas-nav-link active" id="navLink-hero" onclick="switchMainScreen('hero')">Product</button>
+      <button class="saas-nav-link" id="navLink-menu" onclick="switchMainScreen('menu')">Live Dine-In Menu</button>
+      <button class="saas-nav-link" id="navLink-kds" onclick="switchMainScreen('kds')">KDS Pass</button>
+      <button class="saas-nav-link" id="navLink-stand" onclick="switchMainScreen('stand')">Table Stands</button>
+    </nav>
 
     <div class="saas-header-right">
-      <div class="status-pill-live">
-        <span class="live-pulse-dot"></span>
-        <span>Live WebSocket</span>
-      </div>
-
       <!-- Device Viewport Switcher (Desktop Simulator) -->
       <div class="device-viewport-toggle">
         <button class="viewport-btn active" id="vpBtnFull" onclick="setCanvasViewport('full')">Desktop</button>
@@ -1628,7 +1711,7 @@
 
       <div class="cf-nav-body">
         <div>
-          <div class="cf-nav-group-title">Core Platform</div>
+          <div class="cf-nav-group-title">Dine-In Customer Experience</div>
           <div class="cf-nav-items-list">
             <button class="cf-nav-item active" id="sideBtn-hero" onclick="switchMainScreen('hero')">
               <div class="cf-nav-item-left">
@@ -1647,9 +1730,9 @@
                   <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
                   <line x1="6" y1="1" x2="6" y2="4"></line>
                 </svg>
-                <span class="cf-nav-item-text">Customer Dine-In Menu</span>
+                <span class="cf-nav-item-text">Guest Self-Ordering Menu</span>
               </div>
-              <span class="cf-nav-item-chevron">&gt;</span>
+              <span class="cf-item-badge count" id="activeTableBadge">T-04</span>
             </button>
 
             <button class="cf-nav-item" id="sideBtn-tracker" onclick="switchMainScreen('tracker')">
@@ -1658,7 +1741,7 @@
                   <circle cx="12" cy="12" r="10"></circle>
                   <polyline points="12 6 12 12 16 14"></polyline>
                 </svg>
-                <span class="cf-nav-item-text">Order Live Tracker</span>
+                <span class="cf-nav-item-text">Live Order Tracker</span>
               </div>
               <span class="cf-item-badge live">Live</span>
             </button>
@@ -1669,7 +1752,7 @@
                   <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
                   <line x1="3" y1="9" x2="21" y2="9"></line>
                 </svg>
-                <span class="cf-nav-item-text">Acrylic Stand Generator</span>
+                <span class="cf-nav-item-text">Deploy Table QR Stands</span>
               </div>
               <span class="cf-nav-item-chevron">&gt;</span>
             </button>
@@ -1677,7 +1760,7 @@
         </div>
 
         <div>
-          <div class="cf-nav-group-title">Kitchen &amp; Pass</div>
+          <div class="cf-nav-group-title">Kitchen Operations</div>
           <div class="cf-nav-items-list">
             <button class="cf-nav-item" id="sideBtn-kds" onclick="switchMainScreen('kds')">
               <div class="cf-nav-item-left">
@@ -1685,7 +1768,7 @@
                   <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
                   <line x1="8" y1="21" x2="16" y2="21"></line>
                 </svg>
-                <span class="cf-nav-item-text">Kitchen Display (KDS)</span>
+                <span class="cf-nav-item-text">Kitchen Display Pass (KDS)</span>
               </div>
               <span class="cf-item-badge count" id="sidebarKdsCount">3</span>
             </button>
@@ -1693,7 +1776,7 @@
         </div>
 
         <div>
-          <div class="cf-nav-group-title">Audited Scope</div>
+          <div class="cf-nav-group-title">Audited &amp; Deprecated</div>
           <div class="cf-nav-items-list">
             <button class="cf-nav-item" id="sideBtn-floor" onclick="switchMainScreen('floor')" style="opacity: 0.85;">
               <div class="cf-nav-item-left">
@@ -1701,7 +1784,7 @@
                   <circle cx="9" cy="7" r="4"></circle>
                   <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                 </svg>
-                <span class="cf-nav-item-text">Cashier &amp; Seating</span>
+                <span class="cf-nav-item-text">Cashier Queue Station</span>
               </div>
               <span class="cf-item-badge deprecated">DEPRECATED</span>
             </button>
@@ -1718,8 +1801,8 @@
           <span id="collapseBtnText">Collapse</span>
         </button>
 
-        <button class="cf-wifi-link-btn" style="background: transparent; border: none; cursor: pointer; color: var(--color-slate); font-size: 11px; text-decoration: underline;" onclick="openWifiPolicyModal()" title="Wi-Fi Policy Research">
-          Wi-Fi Policy
+        <button class="cf-wifi-link-btn" style="background: transparent; border: none; cursor: pointer; color: var(--color-slate); font-size: 11px; text-decoration: underline;" onclick="openWifiPolicyModal()" title="Network Architecture Specs">
+          Network Specs: 4G vs Wi-Fi
         </button>
       </div>
     </aside>
@@ -1740,11 +1823,11 @@
             </div>
 
             <h1 class="hero-display-headline">
-              Connect your seated diners directly to the <span class="orange-highlight">kitchen flame grill</span>
+              Turn Every Restaurant Table into a <span class="orange-highlight">Self-Ordering Revenue Engine</span>
             </h1>
 
             <p class="hero-subhead">
-              The live synchronized ordering system that bridges customer mobile phones with kitchen lines and acrylic table stands. No waitstaff bottlenecks. No app installs. 100% light-theme engineering.
+              Empower seated diners to browse, customize, and order directly from their smartphones with zero app downloads. Synchronize tickets to the kitchen line in under 1 second.
             </p>
 
             <div class="hero-cta-group">
@@ -1753,11 +1836,11 @@
               </button>
 
               <button class="btn-pill-ghost" onclick="switchMainScreen('stand')">
-                <span>View Acrylic Stand</span>
+                <span>Deploy Table QR Stands</span>
               </button>
 
               <button class="btn-pill-ghost" onclick="switchMainScreen('kds')">
-                <span>Kitchen Display (KDS)</span>
+                <span>Kitchen Display Pass</span>
               </button>
             </div>
 
@@ -1770,9 +1853,9 @@
                     <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
                   </svg>
                 </div>
-                <h3 class="feature-card-title">Touch-First Digital Menu</h3>
+                <h3 class="feature-card-title">+22% Average Order Value</h3>
                 <p class="feature-card-desc">
-                  Guests touch anywhere on the dish card to customize doneness, toppings, and notes with live calorie and macro calculation.
+                  Interactive dish cards drive high-margin modifier add-ons, portion upgrades, and beverage pairings at peak ordering intent.
                 </p>
               </div>
 
@@ -1783,9 +1866,9 @@
                     <line x1="8" y1="21" x2="16" y2="21"></line>
                   </svg>
                 </div>
-                <h3 class="feature-card-title">Sub-Second Kitchen Sync</h3>
+                <h3 class="feature-card-title">14-Minute Faster Table Turns</h3>
                 <p class="feature-card-desc">
-                  Orders placed at tables dispatch via Supabase WebSockets directly to the kitchen display line with color-coded urgency timers.
+                  Tickets transmit to the cook line in under 800ms. Eliminates waiter order-taking rounds and kitchen transcription errors.
                 </p>
               </div>
 
@@ -1796,9 +1879,9 @@
                     <line x1="3" y1="9" x2="21" y2="9"></line>
                   </svg>
                 </div>
-                <h3 class="feature-card-title">Zero-Hardware QR Stands</h3>
+                <h3 class="feature-card-title">Zero Tabletop Hardware CapEx</h3>
                 <p class="feature-card-desc">
-                  No expensive proprietary tablets required per table. Printable acrylic stand templates bind each guest session instantly.
+                  Printable acrylic stands replace $1,200/table proprietary kiosks. Zero charging docks, broken screens, or theft risks.
                 </p>
               </div>
             </div>
@@ -1835,19 +1918,19 @@
             <div class="saas-metrics-strip">
               <div class="metric-cell">
                 <div class="metric-number">&lt; 0.8s</div>
-                <div class="metric-label">Ticket Sync Latency</div>
+                <div class="metric-label">Order-to-Kitchen Sync</div>
               </div>
               <div class="metric-cell">
-                <div class="metric-number">100%</div>
-                <div class="metric-label">Light Theme Workspace</div>
+                <div class="metric-number">+22%</div>
+                <div class="metric-label">Avg Order Value via Add-Ons</div>
               </div>
               <div class="metric-cell">
-                <div class="metric-number">Zero</div>
-                <div class="metric-label">Proprietary Table Hardware</div>
+                <div class="metric-number">14 Min</div>
+                <div class="metric-label">Saved per Table Turn</div>
               </div>
               <div class="metric-cell">
-                <div class="metric-number">Managed</div>
-                <div class="metric-label">Supabase Cloud WebSockets</div>
+                <div class="metric-number">$0</div>
+                <div class="metric-label">Tabletop Hardware CapEx</div>
               </div>
             </div>
           </div>
@@ -1866,7 +1949,7 @@
               </div>
             </div>
             <div style="display: flex; align-items: center; gap: 8px;">
-              <select style="padding: 5px 10px; border: 1px solid var(--color-gridline); border-radius: 8px; font-family: var(--font-geist-mono); font-size: 12px; background: #ffffff;" onchange="changeActiveTable(this.value)">
+              <select id="menuTableSelect" style="padding: 5px 10px; border: 1px solid var(--color-gridline); border-radius: 8px; font-family: var(--font-geist-mono); font-size: 12px; background: #ffffff;" onchange="changeActiveTable(this.value)">
                 <option value="T-01">Switch: Table T-01</option>
                 <option value="T-02">Switch: Table T-02</option>
                 <option value="T-04" selected>Table T-04 (Current)</option>
@@ -1980,7 +2063,7 @@
             </div>
 
             <!-- Stepper -->
-            <div class="tracker-step-row">
+            <div class="tracker-step-row" id="trackerStep1">
               <div class="tracker-circle done">1</div>
               <div>
                 <strong>Order Received by System</strong>
@@ -1988,7 +2071,7 @@
               </div>
             </div>
 
-            <div class="tracker-step-row">
+            <div class="tracker-step-row" id="trackerStep2">
               <div class="tracker-circle active">2</div>
               <div>
                 <strong style="color: var(--color-ember-orange);">Flame Grill Cooking in Progress</strong>
@@ -1996,7 +2079,7 @@
               </div>
             </div>
 
-            <div class="tracker-step-row">
+            <div class="tracker-step-row" id="trackerStep3">
               <div class="tracker-circle pending">3</div>
               <div>
                 <strong style="color: var(--color-slate);">Plating &amp; Quality Check</strong>
@@ -2004,7 +2087,7 @@
               </div>
             </div>
 
-            <div class="tracker-step-row">
+            <div class="tracker-step-row" id="trackerStep4">
               <div class="tracker-circle pending">4</div>
               <div>
                 <strong style="color: var(--color-slate);">Served to Your Table</strong>
@@ -2183,8 +2266,10 @@
   </div>
 
   <!-- ==================================================================== -->
-  <!-- CART SLIDE-OVER DRAWER                                               -->
+  <!-- CART SLIDE-OVER DRAWER & BACKDROP                                    -->
   <!-- ==================================================================== -->
+  <div class="cart-backdrop" id="cartBackdrop" onclick="closeCartDrawer()"></div>
+
   <aside class="cart-drawer" id="cartDrawer">
     <div class="cart-drawer-header">
       <div style="display: flex; align-items: center; gap: 8px;">
@@ -2436,6 +2521,19 @@
         if (sideBtn) sideBtn.classList.toggle('active', s === screenId);
       });
 
+      // Sync Top SaaS Header Navigation
+      const navLinkMap = {
+        hero: 'navLink-hero',
+        menu: 'navLink-menu',
+        kds: 'navLink-kds',
+        stand: 'navLink-stand'
+      };
+      document.querySelectorAll('.saas-nav-link').forEach(el => el.classList.remove('active'));
+      if (navLinkMap[screenId]) {
+        const activeHeaderLink = document.getElementById(navLinkMap[screenId]);
+        if (activeHeaderLink) activeHeaderLink.classList.add('active');
+      }
+
       const breadcrumbNames = {
         hero: 'Platform Overview',
         menu: `Dine-In Menu · Table ${currentTable}`,
@@ -2444,10 +2542,23 @@
         kds: 'Kitchen Display (KDS)',
         floor: 'Cashier & Seating (Deprecated)'
       };
-      document.getElementById('headerBreadcrumbTag').innerText = breadcrumbNames[screenId] || screenId;
+      const headerBreadcrumbEl = document.getElementById('headerBreadcrumbTag');
+      if (headerBreadcrumbEl) headerBreadcrumbEl.innerText = breadcrumbNames[screenId] || screenId;
 
       if (screenId === 'menu') {
-        document.getElementById('menuTableLabel').innerText = `Table ${currentTable} Active Session`;
+        const menuLabel = document.getElementById('menuTableLabel');
+        if (menuLabel) menuLabel.innerText = `Table ${currentTable} Active Session`;
+        const menuSelect = document.getElementById('menuTableSelect');
+        if (menuSelect) {
+          let opt = menuSelect.querySelector(`option[value="${currentTable}"]`);
+          if (!opt) {
+            opt = document.createElement('option');
+            opt.value = currentTable;
+            opt.text = `Table ${currentTable}`;
+            menuSelect.appendChild(opt);
+          }
+          menuSelect.value = currentTable;
+        }
         renderRichFoodGrid(RICH_MENU);
       }
       if (screenId === 'stand') renderAcrylicStandQr();
@@ -2466,8 +2577,21 @@
 
     function changeActiveTable(tableVal) {
       currentTable = tableVal;
-      document.getElementById('menuTableLabel').innerText = `Table ${currentTable} Active Session`;
-      document.getElementById('headerBreadcrumbTag').innerText = `Dine-In Menu · Table ${currentTable}`;
+      const menuLabelEl = document.getElementById('menuTableLabel');
+      if (menuLabelEl) menuLabelEl.innerText = `Table ${currentTable} Active Session`;
+      const menuSelect = document.getElementById('menuTableSelect');
+      if (menuSelect && menuSelect.value !== tableVal) {
+        let opt = menuSelect.querySelector(`option[value="${tableVal}"]`);
+        if (!opt) {
+          opt = document.createElement('option');
+          opt.value = tableVal;
+          opt.text = `Table ${tableVal}`;
+          menuSelect.appendChild(opt);
+        }
+        menuSelect.value = tableVal;
+      }
+      const headerBreadcrumbEl = document.getElementById('headerBreadcrumbTag');
+      if (headerBreadcrumbEl) headerBreadcrumbEl.innerText = `Dine-In Menu · Table ${currentTable}`;
     }
 
     // Mobile Sidebar Drawer Controls
@@ -2662,10 +2786,14 @@
     // Cart Management
     function openCartDrawer() {
       document.getElementById('cartDrawer').classList.add('open');
+      const backdrop = document.getElementById('cartBackdrop');
+      if (backdrop) backdrop.classList.add('active');
     }
 
     function closeCartDrawer() {
       document.getElementById('cartDrawer').classList.remove('open');
+      const backdrop = document.getElementById('cartBackdrop');
+      if (backdrop) backdrop.classList.remove('active');
     }
 
     function refreshCartUI() {
@@ -2752,6 +2880,9 @@
         }
       }
 
+      lastDispatchedOrderId = ordId;
+      updateTrackerProgress('new');
+
       // Populate Tracker with ordered items
       document.getElementById('trackerOrderNumber').innerText = `#ORD-${ordId}`;
       document.getElementById('trackerTableDestination').innerText = `TABLE ${currentTable}`;
@@ -2773,6 +2904,46 @@
       refreshCartUI();
       closeCartDrawer();
       switchMainScreen('tracker');
+    }
+
+    // Dynamic Live Tracker Progress Synchronization
+    let lastDispatchedOrderId = 104;
+
+    function updateTrackerProgress(status) {
+      const step1 = document.getElementById('trackerStep1');
+      const step2 = document.getElementById('trackerStep2');
+      const step3 = document.getElementById('trackerStep3');
+      const step4 = document.getElementById('trackerStep4');
+      if (!step1 || !step2 || !step3 || !step4) return;
+
+      const setStep = (stepEl, state, titleColor) => {
+        const circle = stepEl.querySelector('.tracker-circle');
+        const title = stepEl.querySelector('strong');
+        if (circle) circle.className = `tracker-circle ${state}`;
+        if (title && titleColor) title.style.color = titleColor;
+      };
+
+      if (status === 'new' || status === 'received') {
+        setStep(step1, 'done', 'var(--color-ink)');
+        setStep(step2, 'active', 'var(--color-ember-orange)');
+        setStep(step3, 'pending', 'var(--color-slate)');
+        setStep(step4, 'pending', 'var(--color-slate)');
+      } else if (status === 'cooking' || status === 'preparing') {
+        setStep(step1, 'done', 'var(--color-ink)');
+        setStep(step2, 'done', 'var(--color-ink)');
+        setStep(step3, 'active', 'var(--color-ember-orange)');
+        setStep(step4, 'pending', 'var(--color-slate)');
+      } else if (status === 'ready') {
+        setStep(step1, 'done', 'var(--color-ink)');
+        setStep(step2, 'done', 'var(--color-ink)');
+        setStep(step3, 'done', 'var(--color-ink)');
+        setStep(step4, 'active', 'var(--color-ember-orange)');
+      } else if (status === 'served' || status === 'completed') {
+        setStep(step1, 'done', 'var(--color-ink)');
+        setStep(step2, 'done', 'var(--color-ink)');
+        setStep(step3, 'done', 'var(--color-ink)');
+        setStep(step4, 'done', '#16a34a');
+      }
     }
 
     // QR Acrylic Stand Generator
@@ -2805,7 +2976,7 @@
       let orders = [];
       if (supabaseClient) {
         try {
-          const { data } = await supabaseClient.from('orders').select('*').order('id', { ascending: false }).limit(10);
+          const { data } = await supabaseClient.from('orders').select('*').neq('status', 'served').order('id', { ascending: false }).limit(10);
           if (data && data.length > 0) orders = data;
         } catch(e){}
       }
@@ -2850,16 +3021,33 @@
       document.getElementById('kdsInGrill').innerText = orders.filter(o => o.status === 'cooking').length;
 
       grid.innerHTML = orders.map(ord => {
-        const isCooking = (ord.status === 'cooking');
-        const color = isCooking ? 'var(--kds-orange)' : 'var(--kds-blue)';
-        const btnText = isCooking ? 'Mark Ready for Table ->' : 'Start Flame Grill ->';
-        const next = isCooking ? 'ready' : 'cooking';
+        let color = 'var(--kds-blue)';
+        let btnText = 'Start Flame Grill -&gt;';
+        let next = 'cooking';
+        let badgeText = 'NEW';
+
+        if (ord.status === 'cooking' || ord.status === 'preparing') {
+          color = 'var(--kds-orange)';
+          btnText = 'Mark Ready for Table -&gt;';
+          next = 'ready';
+          badgeText = 'IN GRILL';
+        } else if (ord.status === 'ready') {
+          color = 'var(--kds-green)';
+          btnText = 'Mark Delivered / Served -&gt;';
+          next = 'served';
+          badgeText = 'READY';
+        } else if (ord.status === 'served') {
+          color = '#727272';
+          btnText = 'Delivered to Table';
+          next = null;
+          badgeText = 'SERVED';
+        }
 
         return `
           <div style="background: #ffffff; border: 1px solid var(--color-gridline); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow-card);">
             <div style="background: ${color}; color: #ffffff; padding: 10px 14px; font-family: var(--font-geist-mono); font-size: 13px; font-weight: 700; display: flex; justify-content: space-between;">
               <span>#ORD-${ord.id} · TABLE ${ord.table_number}</span>
-              <span>${isCooking ? 'IN GRILL' : 'NEW'}</span>
+              <span>${badgeText}</span>
             </div>
             <div style="padding: 14px 16px;">
               <div style="font-size: 12px; color: var(--color-slate); margin-bottom: 8px;">Order Total: <strong>${Number(ord.total_amount).toFixed(2)} EGP</strong></div>
@@ -2874,9 +3062,15 @@
               </div>
             </div>
             <div style="padding: 10px 16px; border-top: 1px solid var(--color-gridline); background: var(--color-vellum);">
-              <button class="btn-pill-primary" style="width: 100%; font-size: 12px; padding: 7px;" onclick="advanceKds(${ord.id}, '${next}')">
-                ${btnText}
-              </button>
+              ${next ? `
+                <button class="btn-pill-primary" style="width: 100%; font-size: 12px; padding: 7px;" onclick="advanceKds(${ord.id}, '${next}')">
+                  ${btnText}
+                </button>
+              ` : `
+                <button class="btn-pill-primary" disabled style="width: 100%; font-size: 12px; padding: 7px; opacity: 0.6; cursor: default; background: var(--color-gridline); color: var(--color-slate); box-shadow: none;">
+                  ${btnText}
+                </button>
+              `}
             </div>
           </div>
         `;
@@ -2886,6 +3080,9 @@
     async function advanceKds(id, status) {
       if (supabaseClient) {
         await supabaseClient.from('orders').update({ status }).eq('id', id);
+      }
+      if (id == lastDispatchedOrderId) {
+        updateTrackerProgress(status);
       }
       loadKdsFeed();
     }
@@ -2912,10 +3109,23 @@
 
     function initLiveRealtime() {
       if (!supabaseClient) return;
-      supabaseClient.channel('global-feed').on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => {
+      supabaseClient.channel('global-feed').on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, (payload) => {
         if (currentScreen === 'kds') loadKdsFeed();
+        if (payload && payload.new && payload.new.id == lastDispatchedOrderId) {
+          updateTrackerProgress(payload.new.status);
+        }
       }).subscribe();
     }
+
+    // Keyboard Accessibility & Dismissal
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeDishModal();
+        closeCartDrawer();
+        closeMobileSidebar();
+        closeWifiPolicyModal();
+      }
+    });
 
     // Initialize application: auto-route seated diners directly to menu
     window.addEventListener('DOMContentLoaded', () => {

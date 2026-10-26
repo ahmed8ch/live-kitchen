@@ -106,6 +106,7 @@
       color: var(--color-ember-orange);
       letter-spacing: -0.25px;
       margin-top: 1px;
+      padding-left: 0.8px; /* Mathematical stem lock: aligns stem of L directly under stem of t */
     }
 
     .wm-spacer {
@@ -219,7 +220,7 @@
     .kpi-card {
       background: var(--color-vellum);
       border: 1px solid var(--color-gridline);
-      border-radius: 12px;
+      border-radius: var(--radius-cards);
       padding: 18px 20px;
     }
 
@@ -248,7 +249,7 @@
     .ticket-card {
       background: #ffffff;
       border: 1px solid var(--color-gridline);
-      border-radius: 14px;
+      border-radius: var(--radius-cards);
       overflow: hidden;
       box-shadow: var(--shadow-card);
       display: flex;
@@ -276,6 +277,7 @@
     .band-orange { background: var(--kds-orange); }
     .band-red { background: var(--kds-red); }
     .band-green { background: var(--kds-green); }
+    .band-gray { background: #727272; }
 
     .ticket-content {
       padding: 16px 20px;
@@ -395,7 +397,7 @@
     .matrix-table-card {
       background: #ffffff;
       border: 1px solid var(--color-gridline);
-      border-radius: 12px;
+      border-radius: var(--radius-cards);
       padding: 18px;
       text-align: center;
       cursor: pointer;
@@ -705,6 +707,7 @@
         const { data, error } = await supabaseClient
           .from('orders')
           .select('*')
+          .neq('status', 'served')
           .order('id', { ascending: false })
           .limit(16);
 
@@ -755,8 +758,14 @@
           nextStatus = 'ready';
         } else if (ord.status === 'ready') {
           bandColor = 'band-green';
-          actionBtnText = 'Mark Delivered / Served';
+          actionBtnText = 'Mark Delivered / Served -&gt;';
+          actionClass = 'ready-step';
           nextStatus = 'served';
+        } else if (ord.status === 'served') {
+          bandColor = 'band-gray';
+          actionBtnText = 'Delivered to Table';
+          actionClass = '';
+          nextStatus = null;
         }
 
         const elapsedMins = Math.floor((Date.now() - new Date(ord.created_at).getTime()) / 60000);
@@ -786,9 +795,15 @@
               </div>
             </div>
             <div class="ticket-footer-actions">
-              <button class="btn-action-kds ${actionClass}" onclick="updateTicketStatus(${ord.id}, '${nextStatus}')">
-                ${actionBtnText}
-              </button>
+              ${nextStatus ? `
+                <button class="btn-action-kds ${actionClass}" onclick="updateTicketStatus(${ord.id}, '${nextStatus}')">
+                  ${actionBtnText}
+                </button>
+              ` : `
+                <button class="btn-action-kds" disabled style="opacity: 0.6; cursor: default; background: var(--color-gridline); color: var(--color-slate);">
+                  ${actionBtnText}
+                </button>
+              `}
             </div>
           </div>
         `;
