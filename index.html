@@ -3,534 +3,1119 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>مخبز السنبلة · عيش وحلويات طازة كل يوم</title>
+  <title>Live Kitchen · نظام طلبات المطعم وشاشة المطبخ الحية</title>
   
-  <!-- خط عربي حديث وأنيق -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   
-  <!-- مكتبة Supabase الرسمية للويب -->
+  <!-- مكتبة Supabase الرسمية مع دعم Realtime -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
     :root {
-      --primary: #c26928;
-      --primary-dark: #9e4e16;
-      --primary-light: #fef4ec;
-      --bg: #faf7f2;
+      --primary: #ea580c;
+      --primary-hover: #c2410c;
+      --primary-light: #fff7ed;
+      --bg: #f8fafc;
       --surface: #ffffff;
-      --text: #2c2523;
-      --text-muted: #6b635f;
-      --line: #ede4dc;
-      --success: #15803d;
-      --success-bg: #dcfce7;
-      --error: #b91c1c;
-      --error-bg: #fee2e2;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --line: #e2e8f0;
+      --success: #16a34a;
+      --success-light: #dcfce7;
+      --warning: #d97706;
+      --warning-light: #fef3c7;
+      --danger: #dc2626;
+      --danger-light: #fee2e2;
       --radius: 16px;
-      --shadow: 0 4px 20px -2px rgba(44, 37, 35, 0.08);
+      --shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.08);
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       font-family: 'Readex Pro', sans-serif;
       background-color: var(--bg);
       color: var(--text);
-      line-height: 1.7;
-      padding-bottom: 60px;
-    }
-
-    .container {
-      width: 100%;
-      max-width: 720px;
-      margin: 0 auto;
-      padding: 0 20px;
-    }
-
-    /* الهيدر وقسم الترحيب */
-    header {
-      background: linear-gradient(180deg, #f7ede2 0%, var(--bg) 100%);
-      padding: 50px 0 35px;
-      text-align: center;
-      border-bottom: 1px solid var(--line);
-    }
-
-    .badge {
-      display: inline-block;
-      background: var(--primary-light);
-      color: var(--primary-dark);
-      padding: 4px 14px;
-      border-radius: 50px;
-      font-size: 0.88rem;
-      font-weight: 600;
-      margin-bottom: 14px;
-      border: 1px solid rgba(194, 105, 40, 0.2);
-    }
-
-    h1 {
-      font-size: 2.3rem;
-      font-weight: 700;
-      color: var(--primary-dark);
-      margin-bottom: 12px;
-      line-height: 1.25;
-    }
-
-    .tagline {
-      font-size: 1.18rem;
-      font-weight: 500;
-      color: var(--text);
-      margin-bottom: 16px;
-    }
-
-    .about-text {
-      color: var(--text-muted);
-      font-size: 0.98rem;
-      max-width: 520px;
-      margin: 0 auto;
-    }
-
-    /* الكروت والأقسام */
-    .section-card {
-      background: var(--surface);
-      border-radius: var(--radius);
-      padding: 28px 24px;
-      margin-top: 28px;
-      border: 1px solid var(--line);
-      box-shadow: var(--shadow);
-    }
-
-    .section-title {
-      font-size: 1.35rem;
-      font-weight: 700;
-      color: var(--primary-dark);
-      margin-bottom: 18px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      border-bottom: 2px solid var(--primary-light);
-      padding-bottom: 10px;
-    }
-
-    /* جدول وقائمة الأسعار */
-    .pricing-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-    }
-
-    .pricing-table th {
-      text-align: right;
-      padding: 12px;
-      background: var(--primary-light);
-      color: var(--primary-dark);
-      font-size: 0.95rem;
-      font-weight: 600;
-    }
-
-    .pricing-table th:first-child {
-      border-top-right-radius: 8px;
-      border-bottom-right-radius: 8px;
-    }
-
-    .pricing-table th:last-child {
-      border-top-left-radius: 8px;
-      border-bottom-left-radius: 8px;
-    }
-
-    .pricing-table td {
-      padding: 14px 12px;
-      border-bottom: 1px solid var(--line);
-      font-size: 0.98rem;
-    }
-
-    .pricing-table tr:last-child td {
-      border-bottom: none;
-    }
-
-    .price-tag {
-      font-weight: 700;
-      color: var(--primary-dark);
-      white-space: nowrap;
-    }
-
-    /* المواعيد والعنوان */
-    .info-list {
-      list-style: none;
+      line-height: 1.6;
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
-      gap: 12px;
     }
 
-    .info-item {
+    /* شريط التنقل العلوي */
+    nav {
+      background: var(--surface);
+      border-bottom: 1px solid var(--line);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    }
+
+    .nav-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 12px 20px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 10px 14px;
-      background: var(--bg);
-      border-radius: 10px;
-      font-size: 0.95rem;
-    }
-
-    .info-item .label {
-      color: var(--text-muted);
-      font-weight: 500;
-    }
-
-    .info-item .value {
-      font-weight: 600;
-      color: var(--text);
-    }
-
-    /* تنويهات وتفاصيل التوصيل */
-    .notice-box {
-      background: #fdfaf5;
-      border-right: 4px solid var(--primary);
-      padding: 14px 16px;
-      border-radius: 8px;
-      margin-top: 16px;
-      font-size: 0.92rem;
-      color: var(--text-muted);
-    }
-
-    .notice-box ul {
-      margin-right: 20px;
-      margin-top: 6px;
-    }
-
-    /* أزرار الاتصال السريع */
-    .cta-buttons {
-      display: flex;
-      gap: 12px;
-      margin-top: 20px;
       flex-wrap: wrap;
+      gap: 12px;
     }
 
-    .btn {
-      display: inline-flex;
+    .brand {
+      display: flex;
       align-items: center;
-      justify-content: center;
-      gap: 8px;
-      padding: 12px 22px;
-      border-radius: 12px;
-      font-size: 0.98rem;
-      font-weight: 600;
+      gap: 10px;
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--primary);
       text-decoration: none;
+    }
+
+    .brand span {
+      background: var(--primary);
+      color: white;
+      padding: 2px 8px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+    }
+
+    /* مبدل المشهد (زبون / شاشة مطبخ) */
+    .view-switcher {
+      display: flex;
+      background: #f1f5f9;
+      padding: 4px;
+      border-radius: 12px;
+      gap: 4px;
+    }
+
+    .view-btn {
+      padding: 8px 16px;
       border: none;
-      cursor: pointer;
-      transition: all 0.2s ease;
+      background: transparent;
+      border-radius: 8px;
       font-family: inherit;
-    }
-
-    .btn-whatsapp {
-      background-color: #25d366;
-      color: #ffffff;
-      flex: 1;
-      min-width: 180px;
-    }
-
-    .btn-whatsapp:hover {
-      background-color: #1ebc59;
-    }
-
-    .btn-primary {
-      background-color: var(--primary);
-      color: #ffffff;
-      flex: 1;
-      min-width: 180px;
-    }
-
-    .btn-primary:hover {
-      background-color: var(--primary-dark);
-    }
-
-    /* فورم التواصل (Supabase) */
-    .form-group {
-      margin-bottom: 18px;
-    }
-
-    label {
-      display: block;
-      margin-bottom: 6px;
       font-size: 0.92rem;
       font-weight: 600;
-      color: var(--text);
+      cursor: pointer;
+      transition: all 0.2s;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
 
-    input, textarea {
+    .view-btn.active {
+      background: var(--surface);
+      color: var(--primary);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+
+    .main-container {
+      max-width: 1200px;
       width: 100%;
-      padding: 12px 14px;
+      margin: 0 auto;
+      padding: 24px 20px 80px;
+      flex: 1;
+    }
+
+    /* ================================================= */
+    /* واجهة الزبائن (Customer Ordering View) */
+    /* ================================================= */
+    .table-selector-card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .table-select-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    select, input[type="text"] {
+      padding: 10px 14px;
       border: 1.5px solid var(--line);
       border-radius: 10px;
       font-family: inherit;
       font-size: 0.95rem;
-      background: #fafafa;
-      transition: border-color 0.2s;
-    }
-
-    input:focus, textarea:focus {
       outline: none;
-      border-color: var(--primary);
-      background: #ffffff;
+      background: #fff;
     }
 
-    .status-alert {
-      padding: 14px 16px;
-      border-radius: 10px;
-      margin-top: 18px;
-      display: none;
+    select:focus, input:focus {
+      border-color: var(--primary);
+    }
+
+    /* شريط تصنيفات المنيو */
+    .categories-bar {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 12px;
+      margin-bottom: 24px;
+    }
+
+    .category-btn {
+      padding: 10px 20px;
+      border: 1px solid var(--line);
+      background: var(--surface);
+      border-radius: 50px;
+      font-family: inherit;
       font-size: 0.95rem;
       font-weight: 600;
-      text-align: center;
-    }
-
-    .status-alert.success {
-      display: block;
-      background-color: var(--success-bg);
-      color: var(--success);
-      border: 1px solid #bbf7d0;
-    }
-
-    .status-alert.error {
-      display: block;
-      background-color: var(--error-bg);
-      color: var(--error);
-      border: 1px solid #fecaca;
-    }
-
-    .config-banner {
-      background-color: #fffbeb;
-      border: 1px dashed #d97706;
-      color: #92400e;
-      padding: 12px 16px;
-      border-radius: 10px;
-      margin-bottom: 18px;
-      font-size: 0.88rem;
-    }
-
-    footer {
-      text-align: center;
-      margin-top: 40px;
       color: var(--text-muted);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+
+    .category-btn.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    /* شبكة منتجات المنيو */
+    .menu-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    .menu-card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .menu-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow);
+    }
+
+    .item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 8px;
+    }
+
+    .item-icon {
+      font-size: 2.2rem;
+      background: var(--primary-light);
+      width: 54px;
+      height: 54px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 14px;
+    }
+
+    .item-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .item-desc {
       font-size: 0.88rem;
+      color: var(--text-muted);
+      margin: 8px 0 16px;
+      flex: 1;
+    }
+
+    .item-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px dashed var(--line);
+      padding-top: 14px;
+    }
+
+    .item-price {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .btn-add {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 10px;
+      font-family: inherit;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.2s;
+    }
+
+    .btn-add:hover {
+      background: var(--primary-hover);
+    }
+
+    /* سلة الطلبات العائمة */
+    .cart-floating-bar {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1e293b;
+      color: white;
+      padding: 14px 24px;
+      border-radius: 50px;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+      z-index: 99;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .cart-floating-bar:hover {
+      transform: translateX(-50%) scale(1.02);
+    }
+
+    .cart-count-badge {
+      background: var(--primary);
+      color: white;
+      font-size: 0.85rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 50px;
+    }
+
+    /* نافذة السلة (Modal) */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      width: 100%;
+      max-width: 520px;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    }
+
+    .modal-header {
+      padding: 20px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-body {
+      padding: 20px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .modal-footer {
+      padding: 20px;
+      border-top: 1px solid var(--line);
+      background: #fafafa;
+    }
+
+    .cart-item-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .qty-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-qty {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: var(--surface);
+      cursor: pointer;
+      font-size: 1.1rem;
+      font-weight: bold;
+    }
+
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    .btn-submit-order {
+      width: 100%;
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 14px;
+      border-radius: 12px;
+      font-family: inherit;
+      font-size: 1.05rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    /* حالة الطلب للزبون (Order Tracker) */
+    .tracker-card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 28px;
+      text-align: center;
+      margin-top: 24px;
+      display: none;
+    }
+
+    .status-steps {
+      display: flex;
+      justify-content: space-around;
+      margin: 24px 0;
+      position: relative;
+    }
+
+    .step-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      z-index: 1;
+    }
+
+    .step-circle {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: #e2e8f0;
+      color: #64748b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 1.2rem;
+      transition: all 0.3s;
+    }
+
+    .step-item.active .step-circle {
+      background: var(--primary);
+      color: white;
+      box-shadow: 0 0 0 4px var(--primary-light);
+    }
+
+    .step-item.completed .step-circle {
+      background: var(--success);
+      color: white;
+    }
+
+    /* ================================================= */
+    /* شاشة المطبخ (Kitchen Display Screen - KDS) */
+    /* ================================================= */
+    .kds-container {
+      display: none;
+    }
+
+    .kds-columns {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 20px;
+      align-items: flex-start;
+    }
+
+    .kds-column {
+      background: #f1f5f9;
+      border-radius: var(--radius);
+      padding: 18px;
+      min-height: 600px;
+    }
+
+    .kds-col-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid;
+    }
+
+    .kds-col-header.new { border-color: var(--danger); color: var(--danger); }
+    .kds-col-header.preparing { border-color: var(--warning); color: var(--warning); }
+    .kds-col-header.ready { border-color: var(--success); color: var(--success); }
+
+    .kds-order-card {
+      background: var(--surface);
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      padding: 16px;
+      margin-bottom: 14px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .kds-order-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .badge-table {
+      background: #0f172a;
+      color: white;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 0.88rem;
+    }
+
+    .kds-time {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+
+    .kds-items-list {
+      background: #f8fafc;
+      padding: 10px 14px;
+      border-radius: 8px;
+      margin: 10px 0;
+      font-size: 0.95rem;
+      white-space: pre-line;
+      line-height: 1.6;
+    }
+
+    .kds-btn {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      font-family: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .kds-btn-start { background: var(--warning-light); color: var(--warning); border: 1px solid var(--warning); }
+    .kds-btn-ready { background: var(--success-light); color: var(--success); border: 1px solid var(--success); }
+    .kds-btn-done { background: #e2e8f0; color: #475569; }
+
+    .live-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.82rem;
+      background: #dcfce7;
+      color: #16a34a;
+      padding: 4px 10px;
+      border-radius: 50px;
+      font-weight: 600;
+    }
+
+    .live-dot {
+      width: 8px;
+      height: 8px;
+      background: #16a34a;
+      border-radius: 50%;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(1.2); }
+      100% { opacity: 1; transform: scale(1); }
     }
   </style>
 </head>
 <body>
 
-  <!-- الهيدر والتعريف -->
-  <header>
-    <div class="container">
-      <span class="badge">🥖 مخبز عيلة صغير</span>
-      <h1>مخبز السنبلة</h1>
-      <p class="tagline">«عيش وحلويات طازة كل يوم، من فرننا لبيتك.»</p>
-      <p class="about-text">بنخبز كل يوم الصبح بدري، ومفيش حاجة عندنا بايتة أبداً.</p>
+  <!-- شريط التنقل العلوي -->
+  <nav>
+    <div class="nav-container">
+      <a href="#" class="brand">
+        🔥 Live Kitchen <span>DEBI Project</span>
+      </a>
+
+      <!-- مفتاح التبديل بين الزبون والمطبخ -->
+      <div class="view-switcher">
+        <button id="btnCustomerView" class="view-btn active" onclick="switchView('customer')">
+          📱 منيو الزبائن
+        </button>
+        <button id="btnKitchenView" class="view-btn" onclick="switchView('kitchen')">
+          👨‍🍳 شاشة المطبخ (KDS)
+          <span class="live-dot" style="margin-right: 4px;"></span>
+        </button>
+      </div>
     </div>
-  </header>
+  </nav>
 
-  <main class="container">
+  <main class="main-container">
 
-    <!-- قائمة المنتجات والأسعار -->
-    <section class="section-card">
-      <h2 class="section-title">🥐 المنيو والأسعار</h2>
-      <table class="pricing-table">
-        <thead>
-          <tr>
-            <th>المنتج</th>
-            <th>الوحدة</th>
-            <th>السعر</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>عيش فينو</td>
-            <td>5 أرغفة</td>
-            <td class="price-tag">15 جنيه</td>
-          </tr>
-          <tr>
-            <td>عيش بلدي مخصوص</td>
-            <td>5 أرغفة</td>
-            <td class="price-tag">10 جنيه</td>
-          </tr>
-          <tr>
-            <td>كرواسون سادة</td>
-            <td>القطعة</td>
-            <td class="price-tag">20 جنيه</td>
-          </tr>
-          <tr>
-            <td>كرواسون شوكولاتة</td>
-            <td>القطعة</td>
-            <td class="price-tag">28 جنيه</td>
-          </tr>
-          <tr>
-            <td>بسبوسة</td>
-            <td>الكيلو</td>
-            <td class="price-tag">160 جنيه</td>
-          </tr>
-          <tr>
-            <td>تورتة عيد ميلاد</td>
-            <td>حسب الطلب</td>
-            <td class="price-tag">من 450 جنيه <small style="display:block; font-weight:normal; color:var(--text-muted);">(حجز قبلها بيومين)</small></td>
-          </tr>
-        </tbody>
-      </table>
-    </section>
-
-    <!-- المواعيد والتوصيل -->
-    <section class="section-card">
-      <h2 class="section-title">⏰ مواعيد العمل والعنوان</h2>
-      <ul class="info-list">
-        <li class="info-item">
-          <span class="label">السبت إلى الخميس:</span>
-          <span class="value">7:00 ص – 11:00 م</span>
-        </li>
-        <li class="info-item">
-          <span class="label">الجمعة:</span>
-          <span class="value">2:00 ظ – 11:00 م</span>
-        </li>
-        <li class="info-item">
-          <span class="label">العنوان:</span>
-          <span class="value">12 شارع النخيل، بجوار الصيدلية</span>
-        </li>
-        <li class="info-item">
-          <span class="label">الهاتف:</span>
-          <span class="value" dir="ltr">0100 000 0000</span>
-        </li>
-      </ul>
-
-      <div class="notice-box">
-        <strong>معلومات هامة:</strong>
-        <ul>
-          <li>🛵 خدمة التوصيل متاحة في حدود 3 كم، والحد الأدنى للطلب 100 جنيه.</li>
-          <li>💵 الدفع كاش أو إنستاباي عند الاستلام (لا يوجد دفع أونلاين).</li>
-          <li>🌾 لا يتوفر مخبوزات خالية من الجلوتين.</li>
-        </ul>
-      </div>
-
-      <div class="cta-buttons">
-        <a href="https://wa.me/201000000000?text=%D8%A3%D9%87%D9%84%D8%A7%D9%8B%20%D9%85%D8%AE%D8%A8%D8%B2%20%D8%A7%D9%84%D8%B3%D9%86%D8%A8%D9%84%D8%A9%D8%8C%20%D8%B9%D8%A7%D9%88%D8%B2%20%D8%A3%D8%B7%D9%84%D8%A8%20%D8%A3%D9%88%D8%B1%D8%AF%D8%B1" target="_blank" class="btn btn-whatsapp">
-          💬 تواصل عبر واتساب
-        </a>
-      </div>
-    </section>
-
-    <!-- فورم التواصل وحفظ الرسائل في Supabase -->
-    <section class="section-card" id="contact">
-      <h2 class="section-title">📩 تواصل معنا أو اطلب أوردر</h2>
+    <!-- ================================================= -->
+    <!-- 1. واجهة الزبائن والطلب -->
+    <!-- ================================================= -->
+    <div id="customerSection">
       
-      <!-- تنبيه إعداد Supabase -->
-      <div id="configNotice" class="config-banner" style="display: none;">
-        ⚙️ <strong>تنبيه الإعداد:</strong> يرجى إضافة رابط مشروع Supabase والمفتاح الـ publishable في ملف <code dir="ltr">supabase-config.js</code> ليتم حفظ الرسائل مباشرة في قاعدة البيانات.
+      <!-- اختيار الطاولة -->
+      <div class="table-selector-card">
+        <div class="table-select-group">
+          <label for="tableSelect"><strong>📍 مكان الطلب:</strong></label>
+          <select id="tableSelect">
+            <option value="طاولة 1">طاولة رقم 1</option>
+            <option value="طاولة 2">طاولة رقم 2</option>
+            <option value="طاولة 3">طاولة رقم 3</option>
+            <option value="طاولة 4">طاولة رقم 4</option>
+            <option value="طاولة 5">طاولة رقم 5</option>
+            <option value="تيك أواي (Takeaway)">طلب خارجي / تيك أواي</option>
+          </select>
+        </div>
+        <div class="table-select-group">
+          <input type="text" id="customerNameInput" placeholder="اسم العميل (اختياري)">
+        </div>
       </div>
 
-      <form id="contactForm">
-        <div class="form-group">
-          <label for="name">الاسم <span style="color:var(--error)">*</span></label>
-          <input type="text" id="name" name="name" placeholder="اكتب اسمك بالكامل" required>
+      <!-- فلاتر الأصناف -->
+      <div class="categories-bar">
+        <button class="category-btn active" onclick="filterCategory('all', this)">🍔 الكل</button>
+        <button class="category-btn" onclick="filterCategory('burger', this)">برجر وسندوتشات</button>
+        <button class="category-btn" onclick="filterCategory('pizza', this)">بيتزا وإيطالي</button>
+        <button class="category-btn" onclick="filterCategory('sides', this)">مقبلات وبطاطس</button>
+        <button class="category-btn" onclick="filterCategory('drinks', this)">مشروبات وحلويات</button>
+      </div>
+
+      <!-- شبكة المنتجات -->
+      <div class="menu-grid" id="menuGrid">
+        <!-- يتم ملء المنيو بالجافاسكريبت أدناه -->
+      </div>
+
+      <!-- متتبع الطلب بعد الإرسال -->
+      <div class="tracker-card" id="trackerCard">
+        <h3>🎉 تم استلام طلبك بنجاح!</h3>
+        <p style="color:var(--text-muted); margin-top:6px;">طلبك يظهر الآن مباشرة على شاشة شيف المطبخ لحظياً</p>
+        
+        <div class="status-steps">
+          <div class="step-item active" id="stepNew">
+            <div class="step-circle">1</div>
+            <span>تم الاستلام</span>
+          </div>
+          <div class="step-item" id="stepPrep">
+            <div class="step-circle">2</div>
+            <span>جاري التحضير</span>
+          </div>
+          <div class="step-item" id="stepReady">
+            <div class="step-circle">3</div>
+            <span>جاهز للتسليم! 🔔</span>
+          </div>
         </div>
 
-        <div class="form-group">
-          <label for="phone">رقم الموبايل <span style="color:var(--error)">*</span></label>
-          <input type="tel" id="phone" name="phone" placeholder="مثال: 01012345678" required>
+        <button class="btn-add" style="margin: 0 auto;" onclick="resetNewOrder()">طلب أوردر إضافي</button>
+      </div>
+
+    </div>
+
+    <!-- زر السلة العائم -->
+    <div class="cart-floating-bar" id="cartFloatingBar" onclick="openCartModal()" style="display: none;">
+      <span class="cart-count-badge" id="cartCountBadge">0 أصناف</span>
+      <span style="font-weight:600;">عرض سلة الطلبات</span>
+      <span style="font-weight:700; color: #f97316;" id="cartTotalPreview">0 جنيه</span>
+    </div>
+
+    <!-- ================================================= -->
+    <!-- 2. شاشة المطبخ (Kitchen Display Screen) -->
+    <!-- ================================================= -->
+    <div id="kitchenSection" class="kds-container">
+      
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
+        <div>
+          <h2>👨‍🍳 شاشة تجهيز الطلبات (Live KDS)</h2>
+          <p style="color: var(--text-muted);">تحديث فوري عبر Supabase WebSockets بدون الحاجة لعمل Refresh</p>
+        </div>
+        <div class="live-indicator">
+          <div class="live-dot"></div>
+          متصل بالسيرفر (Realtime Active)
+        </div>
+      </div>
+
+      <div class="kds-columns">
+        <!-- عمود: طلبات جديدة -->
+        <div class="kds-column">
+          <div class="kds-col-header new">
+            <h3>🔴 طلبات جديدة (<span id="countNew">0</span>)</h3>
+          </div>
+          <div id="colNew"></div>
         </div>
 
-        <div class="form-group">
-          <label for="message">رسالتك أو تفاصيل الطلب <span style="color:var(--error)">*</span></label>
-          <textarea id="message" name="message" rows="4" placeholder="اكتب استفسارك أو طلبك هنا..." required></textarea>
+        <!-- عمود: جاري التحضير -->
+        <div class="kds-column">
+          <div class="kds-col-header preparing">
+            <h3>🟡 جاري التحضير (<span id="countPrep">0</span>)</h3>
+          </div>
+          <div id="colPrep"></div>
         </div>
 
-        <button type="submit" id="submitBtn" class="btn btn-primary" style="width: 100%;">إرسال الرسالة</button>
-      </form>
+        <!-- عمود: جاهز للتسليم -->
+        <div class="kds-column">
+          <div class="kds-col-header ready">
+            <h3>🟢 جاهز للتسليم (<span id="countReady">0</span>)</h3>
+          </div>
+          <div id="colReady"></div>
+        </div>
+      </div>
 
-      <div id="statusAlert" class="status-alert"></div>
-    </section>
+    </div>
 
   </main>
 
-  <footer>
-    <p>© مخبز السنبلة · ورقة الشغل لليوم الأول · دفعة بورسعيد</p>
-  </footer>
+  <!-- نافذة سلة المشتريات Modal -->
+  <div class="modal-overlay" id="cartModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>🛒 سلة طلباتك</h3>
+        <button style="border:none; background:transparent; font-size:1.5rem; cursor:pointer;" onclick="closeCartModal()">✕</button>
+      </div>
+      <div class="modal-body" id="cartItemsList">
+        <!-- عناصر السلة -->
+      </div>
+      <div class="modal-footer">
+        <div class="total-row">
+          <span>الإجمالي:</span>
+          <span style="color:var(--primary);" id="modalTotalAmount">0 جنيه</span>
+        </div>
+        <button class="btn-submit-order" id="btnSubmitOrder" onclick="submitOrderToKitchen()">
+          🚀 إرسال الطلب للمطبخ الآن
+        </button>
+      </div>
+    </div>
+  </div>
 
-  <!-- ملف مفاتيح Supabase منفصل لسهولة التعديل والأمان -->
+  <!-- ملف إعداد Supabase -->
   <script src="supabase-config.js"></script>
 
   <script>
-    const form = document.getElementById('contactForm');
-    const submitBtn = document.getElementById('submitBtn');
-    const statusAlert = document.getElementById('statusAlert');
-    const configNotice = document.getElementById('configNotice');
+    // -------------------------------------------------------------
+    // بيانات منيو المطعم الرقمي (Live Kitchen Menu)
+    // -------------------------------------------------------------
+    const MENU_ITEMS = [
+      { id: 1, name: "دبل تشيز برجر فحم", cat: "burger", price: 160, icon: "🍔", desc: "لحم بقري مشوي على الفحم مع جبنة شيدر صوص خاص" },
+      { id: 2, name: "سندوتش كرسبي زنجر حار", cat: "burger", price: 135, icon: "🍗", desc: "صدر دجاج مقرمش مع صوص الرانش وخس وطماطم" },
+      { id: 3, name: "سموكد بيف باربكيو", cat: "burger", price: 180, icon: "🥓", desc: "قطعتين لحم مع لحم مدخن وبصل مكرمل وصوص باربكيو" },
+      { id: 4, name: "بيتزا مارجريتا نابوليتان", cat: "pizza", price: 140, icon: "🍕", desc: "صلصة طماطم إيطالية وموزاريلا فريش مع ريحان طازج" },
+      { id: 5, name: "بيتزا بيبروني خاصة", cat: "pizza", price: 175, icon: "🍕", desc: "شرائح بيبروني بقري وجبنة موزاريلا صوص بيتزا خاص" },
+      { id: 6, name: "بطاطس محمرة مع صوص شيدر", cat: "sides", price: 55, icon: "🍟", desc: "أصابع بطاطس مقرمشة ذهبية مع صوص الجبن الذائب" },
+      { id: 7, name: "أصابع موزاريلا مقرمشة", cat: "sides", price: 75, icon: "🧀", desc: "5 قطع أصابع جبنة موزاريلا مع صوص مارينارا" },
+      { id: 8, name: "كوكا كولا / مشروب غازي", cat: "drinks", price: 25, icon: "🥤", desc: "علبة كانز مثلجة" },
+      { id: 9, name: "مولتن لافا كيك شوكولاتة", cat: "drinks", price: 90, icon: "🍫", desc: "كيكة شوكولاتة دافئة مع آيس كريم فانيليا" }
+    ];
 
-    // التحقق من وجود مفاتيح Supabase
+    let cart = [];
+    let currentActiveOrder = null;
     let supabaseClient = null;
-    const hasConfig = window.SUPABASE_CONFIG && 
-                      window.SUPABASE_CONFIG.url && 
-                      !window.SUPABASE_CONFIG.url.includes('YOUR_PROJECT') &&
-                      window.SUPABASE_CONFIG.publishableKey && 
-                      !window.SUPABASE_CONFIG.publishableKey.includes('YOUR_KEY');
 
-    if (hasConfig && window.supabase) {
+    // تهيئة عميل Supabase
+    if (window.SUPABASE_CONFIG && window.supabase) {
       supabaseClient = window.supabase.createClient(
         window.SUPABASE_CONFIG.url,
         window.SUPABASE_CONFIG.publishableKey
       );
-    } else {
-      configNotice.style.display = 'block';
     }
 
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      
-      const name = document.getElementById('name').value.trim();
-      const phone = document.getElementById('phone').value.trim();
-      const message = document.getElementById('message').value.trim();
+    // -------------------------------------------------------------
+    // تشغيل المنيو وعرض المنتجات
+    // -------------------------------------------------------------
+    function renderMenu(items) {
+      const grid = document.getElementById('menuGrid');
+      grid.innerHTML = items.map(item => `
+        <div class="menu-card">
+          <div class="item-header">
+            <div>
+              <h4 class="item-title">${item.name}</h4>
+              <span style="font-size:0.75rem; color:var(--text-muted); background:#f1f5f9; padding:2px 8px; border-radius:4px;">
+                ${getCatName(item.cat)}
+              </span>
+            </div>
+            <div class="item-icon">${item.icon}</div>
+          </div>
+          <p class="item-desc">${item.desc}</p>
+          <div class="item-footer">
+            <span class="item-price">${item.price} ج.م</span>
+            <button class="btn-add" onclick="addToCart(${item.id})">
+              + أضف للطلب
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
 
-      if (!name || !phone || !message) {
-        showAlert('برجاء ملء جميع الخانات المطلوبة.', 'error');
+    function getCatName(cat) {
+      switch(cat) {
+        case 'burger': return 'برجر';
+        case 'pizza': return 'بيتزا';
+        case 'sides': return 'مقبلات';
+        case 'drinks': return 'مشروبات';
+        default: return 'صنف';
+      }
+    }
+
+    function filterCategory(cat, btn) {
+      document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      if (cat === 'all') {
+        renderMenu(MENU_ITEMS);
+      } else {
+        renderMenu(MENU_ITEMS.filter(i => i.cat === cat));
+      }
+    }
+
+    // -------------------------------------------------------------
+    // سلة المشتريات
+    // -------------------------------------------------------------
+    function addToCart(itemId) {
+      const item = MENU_ITEMS.find(i => i.id === itemId);
+      const existing = cart.find(i => i.id === itemId);
+      if (existing) {
+        existing.qty += 1;
+      } else {
+        cart.push({ ...item, qty: 1 });
+      }
+      updateCartUI();
+    }
+
+    function updateCartUI() {
+      const bar = document.getElementById('cartFloatingBar');
+      const badge = document.getElementById('cartCountBadge');
+      const preview = document.getElementById('cartTotalPreview');
+
+      const totalItems = cart.reduce((sum, i) => sum + i.qty, 0);
+      const totalAmount = cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
+
+      if (totalItems > 0) {
+        bar.style.display = 'flex';
+        badge.innerText = `${totalItems} أصناف`;
+        preview.innerText = `${totalAmount} جنيه`;
+      } else {
+        bar.style.display = 'none';
+        closeCartModal();
+      }
+
+      renderCartModalItems();
+    }
+
+    function renderCartModalItems() {
+      const container = document.getElementById('cartItemsList');
+      const totalSpan = document.getElementById('modalTotalAmount');
+      const totalAmount = cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
+      totalSpan.innerText = `${totalAmount} جنيه`;
+
+      if (cart.length === 0) {
+        container.innerHTML = '<p style="text-align:center; color:var(--text-muted); padding:30px;">السلة فارغة حالياً</p>';
         return;
       }
 
+      container.innerHTML = cart.map(item => `
+        <div class="cart-item-row">
+          <div>
+            <strong>${item.name}</strong>
+            <div style="color:var(--text-muted); font-size:0.85rem;">${item.price} ج.م × ${item.qty} = ${item.price * item.qty} ج.م</div>
+          </div>
+          <div class="qty-controls">
+            <button class="btn-qty" onclick="changeQty(${item.id}, -1)">-</button>
+            <span style="font-weight:600; min-width:20px; text-align:center;">${item.qty}</span>
+            <button class="btn-qty" onclick="changeQty(${item.id}, 1)">+</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function changeQty(id, delta) {
+      const item = cart.find(i => i.id === id);
+      if (!item) return;
+      item.qty += delta;
+      if (item.qty <= 0) {
+        cart = cart.filter(i => i.id !== id);
+      }
+      updateCartUI();
+    }
+
+    function openCartModal() {
+      document.getElementById('cartModal').style.display = 'flex';
+    }
+
+    function closeCartModal() {
+      document.getElementById('cartModal').style.display = 'none';
+    }
+
+    // -------------------------------------------------------------
+    // إرسال الطلب لـ Supabase (Order Submission)
+    // -------------------------------------------------------------
+    async function submitOrderToKitchen() {
+      if (cart.length === 0) return;
+
+      const submitBtn = document.getElementById('btnSubmitOrder');
       submitBtn.disabled = true;
-      submitBtn.innerText = 'جاري الإرسال...';
-      statusAlert.className = 'status-alert';
-      statusAlert.style.display = 'none';
+      submitBtn.innerText = 'جاري إرسال الطلب للمطبخ...';
+
+      const tableNumber = document.getElementById('tableSelect').value;
+      const customerName = document.getElementById('customerNameInput').value.trim() || 'عميل';
+      const totalAmount = cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
+      const itemsSummary = cart.map(i => `• ${i.name} (×${i.qty})`).join('\n');
 
       try {
-        if (!supabaseClient) {
-          throw new Error('لم يتم ضبط مفاتيح Supabase بعد في ملف supabase-config.js');
-        }
+        if (!supabaseClient) throw new Error('يرجى التحقق من مفاتيح Supabase');
 
-        // إدراج السجل في جدول messages
         const { data, error } = await supabaseClient
-          .from('messages')
+          .from('orders')
           .insert([
-            { name: name, phone: phone, message: message }
-          ]);
+            {
+              table_number: tableNumber,
+              customer_name: customerName,
+              status: 'new',
+              total_amount: totalAmount,
+              items_summary: itemsSummary
+            }
+          ])
+          .select();
 
-        if (error) {
-          throw error;
-        }
+        if (error) throw error;
 
-        // النص المطلوب نصاً في ورقة العمل:
-        showAlert('وصلتنا رسالتك، هنكلّمك في نفس اليوم.', 'success');
-        form.reset();
+        const order = data && data[0];
+        currentActiveOrder = order;
+
+        closeCartModal();
+        cart = [];
+        updateCartUI();
+
+        // إظهار بطاقة التتبع للزبون
+        showCustomerTracker(order);
 
       } catch (err) {
-        console.error('Error submitting form:', err);
-        showAlert(err.message || 'حدث خطأ أثناء الإرسال، يرجى المحاولة مرة أخرى.', 'error');
+        alert('حدث خطأ أثناء إرسال الطلب: ' + err.message);
       } finally {
         submitBtn.disabled = false;
-        submitBtn.innerText = 'إرسال الرسالة';
+        submitBtn.innerText = '🚀 إرسال الطلب للمطبخ الآن';
       }
-    });
-
-    function showAlert(text, type) {
-      statusAlert.textContent = text;
-      statusAlert.className = `status-alert ${type}`;
     }
+
+    function showCustomerTracker(order) {
+      const tracker = document.getElementById('trackerCard');
+      tracker.style.display = 'block';
+      updateTrackerUI(order ? order.status : 'new');
+
+      // اشتراك في تحديثات هذا الطلب فورياً عبر Realtime!
+      if (supabaseClient && order) {
+        supabaseClient
+          .channel(`order-${order.id}`)
+          .on(
+            'postgres_changes',
+            { event: 'UPDATE', schema: 'public', table: 'orders', filter: `id=eq.${order.id}` },
+            payload => {
+              updateTrackerUI(payload.new.status);
+            }
+          )
+          .subscribe();
+      }
+    }
+
+    function updateTrackerUI(status) {
+      const sNew = document.getElementById('stepNew');
+      const sPrep = document.getElementById('stepPrep');
+      const sReady = document.getElementById('stepReady');
+
+      sNew.className = 'step-item completed';
+      sPrep.className = 'step-item';
+      sReady.className = 'step-item';
+
+      if (status === 'preparing') {
+        sPrep.className = 'step-item active';
+      } else if (status === 'ready' || status === 'completed') {
+        sPrep.className = 'step-item completed';
+        sReady.className = 'step-item completed';
+      }
+    }
+
+    function resetNewOrder() {
+      document.getElementById('trackerCard').style.display = 'none';
+      currentActiveOrder = null;
+    }
+
+    // -------------------------------------------------------------
+    // شاشة المطبخ (Kitchen Display Screen - KDS)
+    // -------------------------------------------------------------
+    async function loadKitchenOrders() {
+      if (!supabaseClient) return;
+
+      const { data, error } = await supabaseClient
+        .from('orders')
+        .select('*')
+        .order('id', { ascending: false })
+        .limit(30);
+
+      if (error) {
+        console.error('Error fetching orders:', error);
+        return;
+      }
+
+      renderKDS(data || []);
+    }
+
+    function renderKDS(orders) {
+      const colNew = document.getElementById('colNew');
+      const colPrep = document.getElementById('colPrep');
+      const colReady = document.getElementById('colReady');
+
+      const newOrders = orders.filter(o => o.status === 'new');
+      const prepOrders = orders.filter(o => o.status === 'preparing');
+      const readyOrders = orders.filter(o => o.status === 'ready');
+
+      document.getElementById('countNew').innerText = newOrders.length;
+      document.getElementById('countPrep').innerText = prepOrders.length;
+      document.getElementById('countReady').innerText = readyOrders.length;
+
+      colNew.innerHTML = newOrders.map(o => createKdsCard(o, 'new')).join('');
+      colPrep.innerHTML = prepOrders.map(o => createKdsCard(o, 'preparing')).join('');
+      colReady.innerHTML = readyOrders.map(o => createKdsCard(o, 'ready')).join('');
+    }
+
+    function createKdsCard(order, status) {
+      let actionBtn = '';
+      if (status === 'new') {
+        actionBtn = `<button class="kds-btn kds-btn-start" onclick="updateOrderStatus(${order.id}, 'preparing')">بدء التحضير ➔</button>`;
+      } else if (status === 'preparing') {
+        actionBtn = `<button class="kds-btn kds-btn-ready" onclick="updateOrderStatus(${order.id}, 'ready')">جاهز للتسليم ✓</button>`;
+      } else if (status === 'ready') {
+        actionBtn = `<button class="kds-btn kds-btn-done" onclick="updateOrderStatus(${order.id}, 'completed')">تم الاستلام (أرشفة)</button>`;
+      }
+
+      const timeFormatted = new Date(order.created_at).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+
+      return `
+        <div class="kds-order-card">
+          <div class="kds-order-top">
+            <span class="badge-table">${order.table_number}</span>
+            <span class="kds-time">طلب #${order.id} · ${timeFormatted}</span>
+          </div>
+          <div style="font-size:0.85rem; color:var(--text-muted); margin-bottom:4px;">العميل: ${order.customer_name || 'عميل'}</div>
+          <div class="kds-items-list">${order.items_summary}</div>
+          <div style="font-weight:700; color:var(--primary); font-size:0.95rem; margin-bottom:6px;">${order.total_amount} ج.م</div>
+          ${actionBtn}
+        </div>
+      `;
+    }
+
+    async function updateOrderStatus(orderId, nextStatus) {
+      if (!supabaseClient) return;
+
+      const { error } = await supabaseClient
+        .from('orders')
+        .update({ status: nextStatus })
+        .eq('id', orderId);
+
+      if (error) {
+        alert('حدث خطأ أثناء تحديث حالة الطلب: ' + error.message);
+      } else {
+        loadKitchenOrders();
+      }
+    }
+
+    // تفعيل التحديث اللحظي للمطبخ (Supabase Realtime)
+    function setupKitchenRealtime() {
+      if (!supabaseClient) return;
+
+      supabaseClient
+        .channel('kitchen-kds')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'orders' },
+          payload => {
+            // تحديث شاشة المطبخ تلقائياً عند أي إضافة أو تعديل
+            loadKitchenOrders();
+          }
+        )
+        .subscribe();
+    }
+
+    // -------------------------------------------------------------
+    // التبديل بين الزبون وشاشة المطبخ
+    // -------------------------------------------------------------
+    function switchView(view) {
+      const custSection = document.getElementById('customerSection');
+      const kitSection = document.getElementById('kitchenSection');
+      const btnCust = document.getElementById('btnCustomerView');
+      const btnKit = document.getElementById('btnKitchenView');
+      const cartBar = document.getElementById('cartFloatingBar');
+
+      if (view === 'customer') {
+        custSection.style.display = 'block';
+        kitSection.style.display = 'none';
+        btnCust.classList.add('active');
+        btnKit.classList.remove('active');
+        if (cart.length > 0) cartBar.style.display = 'flex';
+      } else {
+        custSection.style.display = 'none';
+        kitSection.style.display = 'block';
+        btnCust.classList.remove('active');
+        btnKit.classList.add('active');
+        cartBar.style.display = 'none';
+        loadKitchenOrders();
+      }
+    }
+
+    // بدء تشغيل الصفحة
+    window.addEventListener('DOMContentLoaded', () => {
+      renderMenu(MENU_ITEMS);
+      setupKitchenRealtime();
+    });
   </script>
 </body>
 </html>
