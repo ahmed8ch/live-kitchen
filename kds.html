@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MatbakhLink · Operations Hub (KDS & Floor Management)</title>
+
+  <!-- Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+
+  <style>
+    /* Firecrawl System Tokens (DESIGN (3).md) */
+    :root {
+      --color-ember-orange: #ff4d00;
+      --color-ember-glow: #fcddcc;
+      --color-gridline: #e5e7eb;
+      --color-ink: #262626;
+      --color-vellum: #f9f9f9;
+      --color-slate: #727272;
+      --color-white: #ffffff;
+
+      --kds-blue: #2563eb;
+      --kds-orange: #ff4d00;
+      --kds-red: #dc2626;
+      --kds-green: #16a34a;
+
+      --font-suisse: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-geist-mono: 'JetBrains Mono', monospace;
+
+      --radius-pills: 999px;
+      --radius-cards: 16px;
+      --radius-inputs: 8px;
+
+      --shadow-subtle: rgb(249, 249, 249) 0 0 0 6px;
+      --shadow-card: rgba(0, 0, 0, 0.03) 0 20px 30px -10px, rgba(0, 0, 0, 0.02) 0 0 0 1px;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-suisse);
+      background-color: var(--color-white);
+      color: var(--color-ink);
+      line-height: 1.5;
+      font-size: 14px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Top Ops Header */
+    .ops-header {
+      background: #ffffff;
+      border-bottom: 1px solid var(--color-gridline);
+      padding: 12px 24px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .ops-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 600;
+      font-size: 16px;
+      color: var(--color-ink);
+    }
+
+    .ops-badge {
+      font-family: var(--font-geist-mono);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: var(--radius-pills);
+      background: var(--color-vellum);
+      border: 1px solid var(--color-gridline);
+      color: var(--color-slate);
+    }
+
+    .ops-nav-pills {
+      display: flex;
+      gap: 6px;
+      background: var(--color-vellum);
+      border: 1px solid var(--color-gridline);
+      padding: 3px;
+      border-radius: var(--radius-pills);
+    }
+
+    .ops-nav-btn {
+      font-family: var(--font-suisse);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--color-slate);
+      background: transparent;
+      border: none;
+      padding: 6px 16px;
+      border-radius: var(--radius-pills);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .ops-nav-btn.active {
+      background: var(--color-ink);
+      color: #ffffff;
+    }
+
+    .ops-header-right {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .live-status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--font-geist-mono);
+      font-size: 12px;
+      color: #166534;
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      padding: 4px 10px;
+      border-radius: var(--radius-pills);
+    }
+
+    .btn-customer-portal {
+      font-family: var(--font-suisse);
+      font-size: 13px;
+      color: var(--color-ink);
+      text-decoration: none;
+      border: 1px solid var(--color-gridline);
+      padding: 6px 14px;
+      border-radius: var(--radius-pills);
+      background: #ffffff;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+
+    .btn-customer-portal:hover {
+      border-color: var(--color-ember-orange);
+      color: var(--color-ember-orange);
+    }
+
+    /* Main Container */
+    .ops-main {
+      padding: 24px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    /* KPI Ribbon */
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .kpi-card {
+      background: var(--color-vellum);
+      border: 1px solid var(--color-gridline);
+      border-radius: 12px;
+      padding: 18px 20px;
+    }
+
+    .kpi-label {
+      font-size: 12px;
+      color: var(--color-slate);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .kpi-num {
+      font-family: var(--font-geist-mono);
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--color-ink);
+      margin-top: 4px;
+    }
+
+    /* KDS Kanban Grid */
+    .kds-tickets-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 20px;
+    }
+
+    .ticket-card {
+      background: #ffffff;
+      border: 1px solid var(--color-gridline);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: var(--shadow-card);
+      display: flex;
+      flex-direction: column;
+      animation: fadeIn 0.2s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .ticket-header-band {
+      padding: 10px 16px;
+      color: #ffffff;
+      font-family: var(--font-geist-mono);
+      font-size: 13px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .band-blue { background: var(--kds-blue); }
+    .band-orange { background: var(--kds-orange); }
+    .band-red { background: var(--kds-red); }
+    .band-green { background: var(--kds-green); }
+
+    .ticket-content {
+      padding: 16px 20px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .ticket-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--color-slate);
+    }
+
+    .ticket-items-box {
+      border-top: 1px dashed var(--color-gridline);
+      padding-top: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .ticket-dish-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--color-ink);
+    }
+
+    .ticket-modifier-detail {
+      font-size: 12px;
+      color: var(--color-slate);
+      margin-left: 10px;
+    }
+
+    .ticket-note-highlight {
+      background: #fff7ed;
+      border-left: 3px solid var(--color-ember-orange);
+      padding: 6px 10px;
+      font-size: 12px;
+      color: #9a3412;
+      border-radius: 0 4px 4px 0;
+      margin-top: 4px;
+    }
+
+    .ticket-footer-actions {
+      padding: 14px 20px;
+      border-top: 1px solid var(--color-gridline);
+      background: var(--color-vellum);
+    }
+
+    .btn-action-kds {
+      width: 100%;
+      font-family: var(--font-suisse);
+      font-size: 13px;
+      font-weight: 600;
+      color: #ffffff;
+      background: var(--color-ink);
+      border: none;
+      padding: 10px;
+      border-radius: var(--radius-pills);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .btn-action-kds.ready-step {
+      background: var(--color-ember-orange);
+      box-shadow: 0 0 0 4px var(--color-ember-glow);
+    }
+
+    .btn-action-kds:hover {
+      opacity: 0.92;
+      transform: translateY(-1px);
+    }
+
+    /* Floor Plan View */
+    .floor-view-container {
+      display: none;
+      background: var(--color-vellum);
+      border: 1px solid var(--color-gridline);
+      border-radius: var(--radius-cards);
+      padding: 32px;
+    }
+
+    .floor-sub-nav {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+
+    .floor-sub-btn {
+      font-family: var(--font-suisse);
+      font-size: 13px;
+      color: var(--color-slate);
+      background: #ffffff;
+      border: 1px solid var(--color-gridline);
+      padding: 7px 18px;
+      border-radius: var(--radius-pills);
+      cursor: pointer;
+    }
+
+    .floor-sub-btn.active {
+      background: var(--color-ink);
+      color: #ffffff;
+      border-color: var(--color-ink);
+    }
+
+    .floor-matrix {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px;
+    }
+
+    .matrix-table-card {
+      background: #ffffff;
+      border: 1px solid var(--color-gridline);
+      border-radius: 12px;
+      padding: 18px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .matrix-table-card:hover {
+      border-color: var(--color-ember-orange);
+      transform: translateY(-2px);
+    }
+
+    .mat-table-title {
+      font-family: var(--font-geist-mono);
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--color-ink);
+    }
+
+    .mat-table-seats {
+      font-size: 12px;
+      color: var(--color-slate);
+      margin: 4px 0 10px;
+    }
+
+    .badge-status {
+      font-family: var(--font-geist-mono);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: var(--radius-pills);
+      display: inline-block;
+    }
+
+    .st-avail { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+    .st-occ { background: #fff7ed; color: #ea580c; border: 1px solid #fed7aa; }
+    .st-res { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
+  </style>
+</head>
+<body>
+
+  <!-- Ops Header -->
+  <header class="ops-header">
+    <div class="ops-brand">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="#ff4d00">
+        <path d="M12 23c6.075 0 11-4.925 11-11 0-4.57-2.78-8.5-6.75-10.2-.42-.18-.89.14-.85.6.35 4.14-1.9 6.8-4.4 7.6-1.5.48-3-.2-3.8-1.5-.2-.33-.66-.41-.95-.17C4.1 10.15 3 12.95 3 16c0 3.86 4.03 7 9 7z"/>
+      </svg>
+      <span>MatbakhLink</span>
+      <span class="ops-badge">KDS & FLOOR OPS</span>
+    </div>
+
+    <div class="ops-nav-pills">
+      <button class="ops-nav-btn active" id="tabKdsBtn" onclick="switchOpsTab('kds')">Kitchen Live Feed</button>
+      <button class="ops-nav-btn" id="tabFloorBtn" onclick="switchOpsTab('floor')">Floor Seating Plan</button>
+    </div>
+
+    <div class="ops-header-right">
+      <div class="live-status-indicator">
+        <span style="width:6px; height:6px; border-radius:50%; background:#16a34a;"></span>
+        <span>Realtime Live</span>
+      </div>
+      <a href="index.html" class="btn-customer-portal">
+        <span>Customer Menu</span>
+        <span>➔</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- Main View -->
+  <main class="ops-main">
+
+    <!-- KPI Ribbon -->
+    <div class="kpi-row">
+      <div class="kpi-card">
+        <div class="kpi-label">Active Tickets</div>
+        <div class="kpi-num" id="kpiActiveTotal">2</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Flame Grill / Cooking</div>
+        <div class="kpi-num" id="kpiInGrill" style="color: var(--kds-orange);">1</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Delayed (>15 min)</div>
+        <div class="kpi-num" id="kpiDelayed" style="color: var(--kds-red);">0</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Avg Prep Time</div>
+        <div class="kpi-num" id="kpiAvgTime">11.4m</div>
+      </div>
+    </div>
+
+    <!-- KDS LIVE TICKETS SECTION -->
+    <section id="sectionKdsLive">
+      <div class="kds-tickets-container" id="kdsTicketsGrid">
+        <!-- Rendered Dynamically -->
+      </div>
+    </section>
+
+    <!-- FLOOR PLAN SECTION -->
+    <section class="floor-view-container" id="sectionFloorPlan">
+      <div class="floor-sub-nav">
+        <button class="floor-sub-btn active" onclick="switchFloorOps('First Floor', this)">First Floor (Main Hall)</button>
+        <button class="floor-sub-btn" onclick="switchFloorOps('Second Floor', this)">Second Floor (Balcony)</button>
+        <button class="floor-sub-btn" onclick="switchFloorOps('Terrace', this)">Outdoor Terrace</button>
+      </div>
+
+      <div class="floor-matrix" id="floorMatrixGrid">
+        <!-- Rendered Dynamically -->
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    const FLOOR_DATA = [
+      { code: 'T-01', floor: 'First Floor', seats: 2, status: 'avail' },
+      { code: 'T-02', floor: 'First Floor', seats: 4, status: 'occ', guest: 'Dr. Tarek', time: '18m' },
+      { code: 'T-03', floor: 'First Floor', seats: 4, status: 'avail' },
+      { code: 'T-04', floor: 'First Floor', seats: 2, status: 'occ', guest: 'Table Guest', time: '4m' },
+      { code: 'T-05', floor: 'First Floor', seats: 6, status: 'res', guest: 'Nour Family', time: '8:00 PM' },
+      { code: 'T-06', floor: 'First Floor', seats: 8, status: 'avail' },
+      { code: 'T-07', floor: 'Second Floor', seats: 4, status: 'avail' },
+      { code: 'T-08', floor: 'Second Floor', seats: 4, status: 'occ', guest: 'Salma', time: '28m' },
+      { code: 'T-09', floor: 'Second Floor', seats: 2, status: 'avail' },
+      { code: 'T-10', floor: 'Terrace', seats: 2, status: 'avail' },
+      { code: 'T-11', floor: 'Terrace', seats: 4, status: 'occ', guest: 'Karim', time: '11m' },
+      { code: 'T-12', floor: 'Terrace', seats: 6, status: 'avail' }
+    ];
+
+    let currentFloor = 'First Floor';
+    let supabaseClient = null;
+    if (window.SUPABASE_CONFIG && window.supabase) {
+      supabaseClient = window.supabase.createClient(
+        window.SUPABASE_CONFIG.url,
+        window.SUPABASE_CONFIG.publishableKey
+      );
+    }
+
+    function switchOpsTab(tab) {
+      const isKds = (tab === 'kds');
+      document.getElementById('sectionKdsLive').style.display = isKds ? 'block' : 'none';
+      document.getElementById('sectionFloorPlan').style.display = isKds ? 'none' : 'block';
+      document.getElementById('tabKdsBtn').classList.toggle('active', isKds);
+      document.getElementById('tabFloorBtn').classList.toggle('active', !isKds);
+
+      if (!isKds) renderFloorMatrix(currentFloor);
+    }
+
+    function switchFloorOps(floor, btn) {
+      currentFloor = floor;
+      document.querySelectorAll('.floor-sub-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderFloorMatrix(floor);
+    }
+
+    function renderFloorMatrix(floor) {
+      const grid = document.getElementById('floorMatrixGrid');
+      const filtered = FLOOR_DATA.filter(t => t.floor === floor);
+      grid.innerHTML = filtered.map(t => `
+        <div class="matrix-table-card" onclick="alert('Table ' + '${t.code}' + ' details: ' + '${t.status.toUpperCase()}')">
+          <div class="mat-table-title">${t.code}</div>
+          <div class="mat-table-seats">${t.seats} Guests · ${floor}</div>
+          <span class="badge-status st-${t.status}">${t.status === 'avail' ? 'AVAILABLE' : (t.status === 'occ' ? 'OCCUPIED' : 'RESERVED')}</span>
+          ${t.guest ? `<div style="font-size:11px; color:var(--color-slate); margin-top:6px;">${t.guest} (${t.time})</div>` : ''}
+        </div>
+      `).join('');
+    }
+
+    async function loadKdsTickets() {
+      const grid = document.getElementById('kdsTicketsGrid');
+      let orders = [];
+
+      if (supabaseClient) {
+        const { data, error } = await supabaseClient
+          .from('orders')
+          .select('*')
+          .order('id', { ascending: false })
+          .limit(16);
+
+        if (!error && data) orders = data;
+      }
+
+      if (orders.length === 0) {
+        orders = [
+          {
+            id: 104,
+            table_number: 'T-04',
+            customer_name: 'Table Guest',
+            status: 'cooking',
+            created_at: new Date(Date.now() - 4 * 60000).toISOString(),
+            total_amount: 285.00,
+            order_payload: [
+              { name: 'Angus Flame-Grilled Burger', portionLabel: 'Double Patty', extras: [{ label: 'Aged Cheddar' }], notes: 'sauce on side' },
+              { name: 'Golden Seasoned Fries', portionLabel: 'Loaded Basket', extras: [], notes: '' }
+            ]
+          },
+          {
+            id: 102,
+            table_number: 'T-02',
+            customer_name: 'Dr. Tarek',
+            status: 'new',
+            created_at: new Date(Date.now() - 1 * 60000).toISOString(),
+            total_amount: 364.80,
+            order_payload: [
+              { name: 'Flame-Grilled Tenderloin Steak', portionLabel: '250g Prime Cut', extras: [{ label: 'Truffle Mushroom' }], notes: 'Medium Rare' }
+            ]
+          }
+        ];
+      }
+
+      document.getElementById('kpiActiveTotal').innerText = orders.length;
+      document.getElementById('kpiInGrill').innerText = orders.filter(o => o.status === 'cooking' || o.status === 'preparing').length;
+
+      grid.innerHTML = orders.map(ord => {
+        let bandColor = 'band-blue';
+        let actionBtnText = 'Start Cooking ➔';
+        let actionClass = '';
+        let nextStatus = 'cooking';
+
+        if (ord.status === 'cooking' || ord.status === 'preparing') {
+          bandColor = 'band-orange';
+          actionBtnText = 'Mark Ready for Table ➔';
+          actionClass = 'ready-step';
+          nextStatus = 'ready';
+        } else if (ord.status === 'ready') {
+          bandColor = 'band-green';
+          actionBtnText = 'Mark Delivered / Served ✓';
+          nextStatus = 'served';
+        }
+
+        const elapsedMins = Math.floor((Date.now() - new Date(ord.created_at).getTime()) / 60000);
+
+        return `
+          <div class="ticket-card">
+            <div class="ticket-header-band ${bandColor}">
+              <span>#ORD-${ord.id} · TABLE ${ord.table_number}</span>
+              <span>${elapsedMins}m AGO</span>
+            </div>
+            <div class="ticket-content">
+              <div class="ticket-meta">
+                <span>Guest: ${ord.customer_name}</span>
+                <span style="font-family:var(--font-geist-mono); font-weight:600;">${Number(ord.total_amount).toFixed(2)} EGP</span>
+              </div>
+              <div class="ticket-items-box">
+                ${Array.isArray(ord.order_payload) ? ord.order_payload.map(item => `
+                  <div>
+                    <div class="ticket-dish-row">
+                      <span>${item.quantity || 1}x ${item.name}</span>
+                      <span style="font-family:var(--font-geist-mono); font-size:12px; font-weight:normal;">${item.portionLabel || ''}</span>
+                    </div>
+                    ${item.extras && item.extras.length > 0 ? `<div class="ticket-modifier-detail">+ ${item.extras.map(e => e.label).join(', ')}</div>` : ''}
+                    ${item.notes ? `<div class="ticket-note-highlight">Note: "${item.notes}"</div>` : ''}
+                  </div>
+                `).join('') : `<div>${ord.items_summary}</div>`}
+              </div>
+            </div>
+            <div class="ticket-footer-actions">
+              <button class="btn-action-kds ${actionClass}" onclick="updateTicketStatus(${ord.id}, '${nextStatus}')">
+                ${actionBtnText}
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function updateTicketStatus(id, newStatus) {
+      if (supabaseClient) {
+        await supabaseClient.from('orders').update({ status: newStatus }).eq('id', id);
+      }
+      loadKdsTickets();
+    }
+
+    function initRealtimeKds() {
+      if (!supabaseClient) return;
+      supabaseClient
+        .channel('kds-stream')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => {
+          loadKdsTickets();
+        })
+        .subscribe();
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      loadKdsTickets();
+      initRealtimeKds();
+    });
+  </script>
+</body>
+</html>

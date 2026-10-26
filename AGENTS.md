@@ -1,33 +1,37 @@
-# Live Kitchen (Order Management & Digital Dine-In Platform)
+# MatbakhLink (Digital Dine-In & Kitchen Synchronization Platform)
 ## Core Product Blueprint & AI Guidelines
 
-Live Kitchen digitizes the restaurant dine-in experience and seamlessly merges it with the speed, visibility, and tracking of modern online ordering.
+MatbakhLink digitizes the restaurant dine-in experience and seamlessly synchronizes table self-ordering with real-time kitchen operations.
 
 ---
 
-### 1. Dual-Interface Architecture
-The platform consists of two seamlessly connected real-time interfaces:
-
-1. **The Operations Dashboard (Staff / Kitchen / Owner)**:
-   - Inspired by world-class SaaS restaurant management systems (such as Orderio).
-   - **Left Navigation Rail**: Quick access to Dashboard, Kitchen Live Orders, Digital Menu Manager, Analytics, Tables, and Settings.
-   - **Top Navigation Bar**: Global search, Quick action (`+ New Order`), Store/Branch picker, Live Notification Bell, and Staff profile.
-   - **KPI Metrics Ribbon**: Real-time counters for Total Orders, New Orders, Total Served, Average Prep Time, and Completed Orders.
-   - **Order Lifecycle Kanban / Filter Matrix**: Filters for All Orders, New, Confirmed, Preparing, Ready, Served, and Completed.
-   - **Rich Order Cards**: Clean presentation with Order ID, Dine-In (Table Number) vs. Takeaway tag, customer details, elapsed time ticker, itemized order list, subtotal, and one-click workflow actions (e.g., "Start Prep", "Mark Ready", "Mark Served").
-
-2. **The Diner Digital Menu (Customer / Table)**:
-   - Accessible via table QR code or `/menu`.
-   - **Zero Friction**: Customers do NOT need to create an account or log in to order at their table. (Optional login for repeat history).
-   - Fast category navigation, dietary tags, price in local currency, instant cart drawer, and table confirmation.
-   - **Real-Time Live Status Tracker**: When submitted, the diner watches their order update from "Received" to "Preparing" to "Ready for Table" in real-time via WebSockets (Supabase Realtime).
+### 1. Persona Separation & Production-Ready UX (CRITICAL RULE)
+- **NO DEVELOPER/DEMO SHORTCUTS IN USER UI**:
+  - A real public customer dining at a table must NEVER see kitchen order screens, floor plans, developer device pickers, or administrative navigation tabs.
+  - The customer experience must be 100% focused on dining: Welcome/Table Identification ➔ Digital Menu ➔ Dish Customization ➔ Cart/Checkout ➔ Live Order Tracker.
+  - Operations/Staff interfaces (Kitchen Display System `KDS` and Floor Plan) must be separate dedicated portals (e.g. `kds.html` or protected staff view), accessed via a subtle staff link or credentialed portal.
+- **TOUCHSCREEN & TABLET ERGONOMICS**:
+  - The entire card for any menu item must be clickable (touch anywhere on the card to open customization, not just a small button).
+  - Touch targets must be generous (minimum 44x44px, large pills, clear tactile feedback).
+  - Layout must feel native whether opened on a guest's mobile phone (scanned QR) or a mounted tabletop tablet.
 
 ---
 
-### 2. Design Standards & Strict Prohibitions
-- **NO ACADEMIC/WORKSHOP MENTIONS**: Never show "DEBI", "Port Said", "workshop", or "assignment" in the user interface. It must look and feel like an enterprise, production-ready SaaS product.
-- **NO CHEESY EMOJIS**: Never use emojis (🍔, 🍕, 🍟) as icons or decorations. Use polished SVG icons, clean badges, and intentional typography.
-- **Apple HIG & Taste Skill Compliance**: Follow `ui-policy.json`, strict contrast (>= 4.5:1), refined typography (`Readex Pro` + SF Pro/system stack), clean radii, and responsive layout.
+### 2. Design System Compliance (`DESIGN (3).md` — Firecrawl Reference)
+- **Palette**:
+  - Canvas: `#ffffff` | Surfaces/Cards: `#f9f9f9` (Vellum) | Hairline borders: `#e5e7eb` (1px Gridline).
+  - Single Chromatic Signal: Ember Orange (`#ff4d00`) with warm ambient halo (`0 0 0 6px #fcddcc`).
+  - Text: Ink (`#262626`) for headings, Slate (`#727272`) for descriptions.
+- **Radii**:
+  - `999px` for all pills, buttons, and status tags.
+  - `16px` for all cards and modals.
+  - `8px` for inputs and notes.
+- **Typography**:
+  - Primary UI: `Inter` / `Suisse` (humanist grotesk).
+  - Technical Data & Pricing: `JetBrains Mono` / `Geist Mono` for prices (e.g. `185.00 EGP`), order IDs, and timers.
+- **Strict Prohibitions**:
+  - **NO EMOJIS**: Zero cheesy emojis (🍔, 🍕, 🍟). Use clean SVG icons, typographic glyphs, and badges.
+  - **NO ACADEMIC/WORKSHOP LABELS**: Never show "DEBI", "Port Said", "workshop", or "assignment" in the user interface.
 
 ---
 
