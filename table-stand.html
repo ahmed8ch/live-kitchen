@@ -94,14 +94,58 @@
       position: relative;
     }
 
+    /* BRAND LOGO LOCKUP: Flame + Matbakh (top) + Link (bottom, L under t) */
+    .brand-logo-lockup {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      text-decoration: none;
+      user-select: none;
+    }
+
+    .brand-flame-icon {
+      width: 24px;
+      height: 24px;
+      flex-shrink: 0;
+    }
+
+    .brand-wordmark-stack {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      line-height: 1.05;
+      text-align: left;
+    }
+
+    .brand-wordmark-top {
+      font-family: var(--font-suisse);
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--color-ink);
+      letter-spacing: -0.25px;
+    }
+
+    .brand-wordmark-bottom {
+      font-family: var(--font-suisse);
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--color-ember-orange);
+      letter-spacing: -0.25px;
+      margin-top: 1px;
+    }
+
+    .wm-spacer {
+      visibility: hidden;
+      user-select: none;
+      pointer-events: none;
+      display: inline;
+    }
+
     .stand-brand-header {
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
-      font-size: 17px;
-      font-weight: 700;
-      color: var(--color-ink);
       margin-bottom: 4px;
     }
 
@@ -217,10 +261,16 @@
   <!-- Physical Table Stand Acrylic Card -->
   <div class="table-stand-physical-card">
     <div class="stand-brand-header">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="#ff4d00">
-        <path d="M12 23c6.075 0 11-4.925 11-11 0-4.57-2.78-8.5-6.75-10.2-.42-.18-.89.14-.85.6.35 4.14-1.9 6.8-4.4 7.6-1.5.48-3-.2-3.8-1.5-.2-.33-.66-.41-.95-.17C4.1 10.15 3 12.95 3 16c0 3.86 4.03 7 9 7z"/>
-      </svg>
-      <span>MatbakhLink</span>
+      <div class="brand-logo-lockup" title="MatbakhLink" aria-label="MatbakhLink">
+        <svg class="brand-flame-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2C12 2 8 6 8 10C8 12.21 9.79 14 12 14C14.21 14 16 12.21 16 10C16 6 12 2 12 2Z" fill="#ff4d00"/>
+          <path d="M12 22C16.4183 22 20 18.4183 20 14C20 10.5 17.5 7.5 15 5.5C15.5 8 14 10 12 11C11.5 9 10 7.5 10 7.5C7.5 10 6 12 6 14C6 18.4183 8.68629 22 12 22Z" fill="#ff4d00"/>
+        </svg>
+        <div class="brand-wordmark-stack">
+          <div class="brand-wordmark-top">Matbakh</div>
+          <div class="brand-wordmark-bottom"><span class="wm-spacer" aria-hidden="true">Ma</span>Link</div>
+        </div>
+      </div>
     </div>
     <div class="stand-sub">Digital Dine-In Tabletop</div>
 
