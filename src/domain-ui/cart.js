@@ -65,6 +65,8 @@
     return bar;
   }
 
+  let isCartDrawerOpen = false;
+
   /**
    * Update floating bottom cart bar presentation.
    * @param {Array} cart - Active cart items
@@ -72,25 +74,35 @@
    */
   function updateFloatingCartBar(cart, currentTable) {
     const bar = ensureFloatingCartBar();
-    const totalItems = (cart || []).reduce((acc, i) => acc + (i.qty || 1), 0);
+    const safeCart = Array.isArray(cart) ? cart : [];
+    const totalItems = safeCart.reduce((acc, i) => acc + (i.qty || 1), 0);
 
-    if (totalItems <= 0) {
+    // Clear any stuck inline display property
+    bar.style.display = '';
+
+    const activeScreen = window.currentScreen || 'menu';
+
+    if (totalItems <= 0 || activeScreen === 'hero' || isCartDrawerOpen) {
       bar.classList.remove('is-visible');
       document.body.classList.remove('has-floating-cart');
       return;
     }
 
-    const sub = cart.reduce((acc, i) => acc + (i.price * (i.qty || 1)), 0);
+    const sub = safeCart.reduce((acc, i) => acc + (i.price * (i.qty || 1)), 0);
     const vat = sub * 0.14;
     const total = sub + vat;
 
-    const tableCode = String(currentTable || '04').replace(/^T-/, '');
     const tablePill = document.getElementById('floatingCartTablePill');
     const itemsCountEl = document.getElementById('floatingCartItemsCount');
     const totalPriceEl = document.getElementById('floatingCartTotalPrice');
 
     if (tablePill) {
-      tablePill.innerText = `Table ${tableCode} Order`;
+      if (currentTable) {
+        const tableCode = String(currentTable).replace(/^T-/, '');
+        tablePill.innerText = `Table ${tableCode} Order`;
+      } else {
+        tablePill.innerText = 'Dine-In Order';
+      }
     }
     if (itemsCountEl) {
       itemsCountEl.innerText = `${totalItems} ${totalItems === 1 ? 'Item' : 'Items'}`;
@@ -107,6 +119,7 @@
    * Open the slide-over cart drawer with scroll locking and safe-area adjustment.
    */
   function openCartDrawer() {
+    isCartDrawerOpen = true;
     const drawer = document.getElementById('cartDrawer');
     const backdrop = document.getElementById('cartBackdrop');
 
@@ -116,15 +129,19 @@
     // Prevent background scroll chain
     document.body.style.overflow = 'hidden';
 
-    // Temporarily hide floating bar while drawer is visible
+    // Smoothly hide floating bar while drawer is visible
     const bar = document.getElementById('matbakhFloatingCartBar');
-    if (bar) bar.style.display = 'none';
+    if (bar) {
+      bar.classList.remove('is-visible');
+      document.body.classList.remove('has-floating-cart');
+    }
   }
 
   /**
    * Close the slide-over cart drawer and restore background scrolling.
    */
   function closeCartDrawer() {
+    isCartDrawerOpen = false;
     const drawer = document.getElementById('cartDrawer');
     const backdrop = document.getElementById('cartBackdrop');
 
@@ -134,9 +151,12 @@
     // Restore background scrolling
     document.body.style.overflow = '';
 
-    // Restore floating bar
     const bar = document.getElementById('matbakhFloatingCartBar');
     if (bar) bar.style.display = '';
+
+    // Restore floating bar immediately if items exist and on menu screen
+    const activeCart = window.cart || [];
+    updateFloatingCartBar(activeCart, window.currentTable);
   }
 
   /**
@@ -267,7 +287,7 @@
     }
   });
 
-  // Export module API to window
+  // Export module API to window and global scope
   window.MatbakhCartUI = {
     renderCart,
     openCartDrawer,
@@ -275,5 +295,8 @@
     updateFloatingCartBar,
     ensureFloatingCartBar
   };
+
+  window.openCartDrawer = openCartDrawer;
+  window.closeCartDrawer = closeCartDrawer;
 
 })(window);

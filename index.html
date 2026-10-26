@@ -77,31 +77,32 @@
       -webkit-tap-highlight-color: transparent;
     }
 
-    /* Fixed App Shell — 100% height, zero vertical gaps */
+    /* Fluid Natural App Shell — zero vertical gaps, full page continuity */
     html, body {
-      height: 100%;
+      min-height: 100vh;
       margin: 0;
       padding: 0;
-      overflow: hidden;
+      background-color: var(--color-surface-white);
     }
 
     body {
       font-family: var(--font-suisse);
-      background-color: var(--color-surface-white);
       color: var(--color-ink);
       line-height: 1.5;
       font-size: 14px;
       -webkit-font-smoothing: antialiased;
       display: flex;
       flex-direction: column;
+      min-height: 100vh;
     }
 
-    /* Hairline Graph Paper Texture */
+    /* Hairline Graph Paper Texture with Fixed Continuity */
     .bg-grid-texture {
       background-image: 
         linear-gradient(to right, rgba(229, 231, 235, 0.45) 1px, transparent 1px),
         linear-gradient(to bottom, rgba(229, 231, 235, 0.45) 1px, transparent 1px);
       background-size: 32px 32px;
+      background-attachment: fixed;
     }
 
     /* ==================================================================== */
@@ -430,13 +431,12 @@
     }
 
     /* ==================================================================== */
-    /* 3. APPLICATION MAIN WRAPPER (Cloudflare Sidebar + Workspace)         */
+    /* 3. APPLICATION MAIN WRAPPER (Sidebar + Workspace)                    */
     /* ==================================================================== */
     .app-layout-wrapper {
       display: flex;
       flex: 1;
-      min-height: 0;
-      overflow: hidden;
+      min-height: calc(100vh - 52px);
       position: relative;
     }
 
@@ -671,7 +671,7 @@
 
     .screen-container {
       flex: 1;
-      padding: 28px 32px;
+      padding: 28px 32px 140px;
       max-width: 1200px;
       width: 100%;
       margin: 0 auto;
@@ -1630,7 +1630,7 @@
       }
 
       .screen-container {
-        padding: 16px 14px;
+        padding: 16px 14px 140px;
         max-width: 100% !important;
       }
 
@@ -1725,29 +1725,28 @@
   <!-- ==================================================================== -->
   <header class="saas-header">
     <div class="saas-header-left">
-      <!-- EXACT BRAND LOGO: Flame + Matbakh on top, Link directly under it, L locked under t -->
-      <div class="brand-logo-container" onclick="switchMainScreen('hero')" title="MatbakhLink Platform" aria-label="MatbakhLink">
-        <div class="brand-logo-lockup">
-          <svg class="brand-flame-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- High-craft unified brand mark: tight inline-flex container -->
+      <div class="brand-logo-container" onclick="switchMainScreen('hero')" title="MatbakhLink" aria-label="MatbakhLink">
+        <div style="display: inline-flex; align-items: center; gap: 8px;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink: 0;">
             <path d="M12 2C12 2 8 6 8 10C8 12.21 9.79 14 12 14C14.21 14 16 12.21 16 10C16 6 12 2 12 2Z" fill="#ff4d00"/>
             <path d="M12 22C16.4183 22 20 18.4183 20 14C20 10.5 17.5 7.5 15 5.5C15.5 8 14 10 12 11C11.5 9 10 7.5 10 7.5C7.5 10 6 12 6 14C6 18.4183 8.68629 22 12 22Z" fill="#ff4d00"/>
           </svg>
-          <div class="brand-wordmark-stack">
-            <div class="brand-wordmark-top">Matbakh</div>
-            <div class="brand-wordmark-bottom"><span class="wm-spacer" aria-hidden="true">Ma</span>Link</div>
-          </div>
+          <span style="font-family: var(--font-suisse); font-size: 16px; font-weight: 700; letter-spacing: -0.3px; display: inline-flex; align-items: baseline;">
+            <span style="color: #262626;">Matbakh</span><span style="color: #ff4d00;">Link</span>
+          </span>
         </div>
       </div>
     </div>
 
-    <!-- Center: Contextual View Indicator (Single source of truth, no duplicate nav links) -->
+    <!-- Center: Contextual View Indicator (Single source of truth) -->
     <div class="saas-header-center">
-      <div class="active-view-breadcrumb" id="headerBreadcrumbTag">Platform Overview</div>
+      <div class="active-view-breadcrumb" id="headerBreadcrumbTag">Online Dine-In Menu</div>
     </div>
 
-    <!-- Right: Table Cart Access & Mobile Menu Toggle -->
+    <!-- Right: Table Cart Access (Scoped strictly to menu view) & Mobile Menu Toggle -->
     <div class="saas-header-right">
-      <button class="cart-header-btn" onclick="openCartDrawer()" aria-label="Open Table Cart">
+      <button class="cart-header-btn" id="headerCartBtn" style="display: none;" onclick="openCartDrawer()" aria-label="Open Table Cart">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
           <line x1="3" y1="6" x2="21" y2="6"></line>
@@ -1768,26 +1767,25 @@
   </header>
 
   <!-- ==================================================================== -->
-  <!-- 3. APPLICATION MAIN WRAPPER (Cloudflare Sidebar + Workspace)         -->
+  <!-- 3. APPLICATION MAIN WRAPPER (Sidebar + Workspace)                    -->
   <!-- ==================================================================== -->
   <div class="app-layout-wrapper">
 
     <!-- Mobile Drawer Backdrop -->
     <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeMobileSidebar()"></div>
 
-    <!-- CLOUDFLARE-STYLE SIDEBAR (Reaches 100% of Viewport Bottom - COMPACT BY DEFAULT) -->
+    <!-- SIDEBAR (COMPACT RAIL) -->
     <aside class="cf-sidebar collapsed" id="cfSidebar">
       <!-- Mobile Drawer Top Bar with Close Button -->
       <div class="cf-mobile-drawer-header">
-        <div class="brand-logo-lockup" style="transform: scale(0.9); transform-origin: left center;">
-          <svg class="brand-flame-icon" viewBox="0 0 24 24" fill="none">
+        <div style="display: inline-flex; align-items: center; gap: 8px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
             <path d="M12 2C12 2 8 6 8 10C8 12.21 9.79 14 12 14C14.21 14 16 12.21 16 10C16 6 12 2 12 2Z" fill="#ff4d00"/>
             <path d="M12 22C16.4183 22 20 18.4183 20 14C20 10.5 17.5 7.5 15 5.5C15.5 8 14 10 12 11C11.5 9 10 7.5 10 7.5C7.5 10 6 12 6 14C6 18.4183 8.68629 22 12 22Z" fill="#ff4d00"/>
           </svg>
-          <div class="brand-wordmark-stack">
-            <div class="brand-wordmark-top">Matbakh</div>
-            <div class="brand-wordmark-bottom"><span class="wm-spacer" aria-hidden="true">Ma</span>Link</div>
-          </div>
+          <span style="font-family: var(--font-suisse); font-size: 15px; font-weight: 700; letter-spacing: -0.3px;">
+            <span style="color: #262626;">Matbakh</span><span style="color: #ff4d00;">Link</span>
+          </span>
         </div>
         <button class="cf-drawer-close-btn" onclick="closeMobileSidebar()" aria-label="Close menu">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1850,32 +1848,26 @@
               <span class="cf-item-badge">ETA 14%</span>
             </button>
 
-            <button class="cf-nav-item" id="sideBtn-stand" onclick="switchMainScreen('stand')">
-              <div class="cf-nav-item-left">
-                <svg class="cf-nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                  <line x1="3" y1="9" x2="21" y2="9"></line>
-                </svg>
-                <span class="cf-nav-item-text">Deploy Table QR Stands</span>
-              </div>
-              <span class="cf-nav-item-chevron">&gt;</span>
-            </button>
           </div>
         </div>
 
         <div>
-          <div class="cf-nav-group-title">Kitchen Operations</div>
+          <div class="cf-nav-group-title">Operations</div>
           <div class="cf-nav-items-list">
-            <button class="cf-nav-item" id="sideBtn-kds" onclick="switchMainScreen('kds')">
+            <a href="kds.html" target="_blank" class="cf-nav-item" style="text-decoration: none;">
               <div class="cf-nav-item-left">
                 <svg class="cf-nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
                   <line x1="8" y1="21" x2="16" y2="21"></line>
                 </svg>
-                <span class="cf-nav-item-text">Kitchen Display Pass (KDS)</span>
+                <span class="cf-nav-item-text">Kitchen KDS (Staff)</span>
               </div>
-              <span class="cf-item-badge count" id="sidebarKdsCount">3</span>
-            </button>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--color-slate); flex-shrink: 0;">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                <polyline points="15 3 21 3 21 9"></polyline>
+                <line x1="10" y1="14" x2="21" y2="3"></line>
+              </svg>
+            </a>
           </div>
         </div>
       </div>
@@ -1896,7 +1888,7 @@
       <div class="screen-container" id="screenContainer">
 
         <!-- ============================================================== -->
-        <!-- VIEW 1: PLATFORM HERO (Pure Firecrawl Spec — Balanced)         -->
+        <!-- VIEW 1: PLATFORM HERO                                          -->
         <!-- ============================================================== -->
         <section id="screen-hero">
           <div class="hero-stack">
@@ -1907,51 +1899,23 @@
             </div>
 
             <h1 class="hero-display-headline">
-              Turn Every Restaurant Table into a <span class="orange-highlight">Self-Ordering Revenue Engine</span>
+              Turn Every Restaurant Table into a <span class="orange-highlight">Self-Ordering Experience</span>
             </h1>
 
             <p class="hero-subhead">
-              Empower seated diners to browse, customize, and order directly from their smartphones with zero app downloads. Synchronize tickets to the kitchen line in under 1 second.
+              Browse our handcrafted menu, customize toppings and portions, and send your order directly to the flame line cooks in real-time.
             </p>
 
             <div class="hero-cta-group">
               <button class="btn-pill-primary" onclick="switchMainScreen('menu')">
-                <span>Start Table Menu Order -&gt;</span>
+                <span>Browse Dine-In Menu -&gt;</span>
               </button>
-
-              <button class="btn-pill-ghost" onclick="switchMainScreen('stand')">
-                <span>Deploy Table QR Stands</span>
-              </button>
-
-              <button class="btn-pill-ghost" onclick="switchMainScreen('kds')">
-                <span>Kitchen Display Pass</span>
+              <button class="btn-pill-ghost" onclick="switchMainScreen('tracker')">
+                <span>Track Existing Order</span>
               </button>
             </div>
 
-            <!-- Interactive Live Tour Studio (Tabbed Product Sandbox) -->
-            <div class="interactive-tour-container" id="interactive-demo">
-              <div class="tour-header-row">
-                <div class="tour-title-wrap">
-                  <h3>Interactive System Tour</h3>
-                  <p>Experience the dining workflow from guest self-order to kitchen pass fulfillment.</p>
-                </div>
-                <div class="tour-tabs-segmented" role="tablist">
-                  <button class="tour-tab-pill active" data-tab="menu" onclick="setTourTab('menu')">1. Diner Menu</button>
-                  <button class="tour-tab-pill" data-tab="kds" onclick="setTourTab('kds')">2. Kitchen KDS</button>
-                  <button class="tour-tab-pill" data-tab="tracker" onclick="setTourTab('tracker')">3. Order Tracker</button>
-                  <button class="tour-tab-pill" data-tab="stand" onclick="setTourTab('stand')">4. Table Stand</button>
-                  <button class="tour-tab-pill" data-tab="payment" onclick="setTourTab('payment')">5. Table Settlement</button>
-                </div>
-              </div>
-              <div class="tour-stage-box" id="tourStageBox"></div>
-              <div style="margin-top: 14px; display: flex; justify-content: flex-end;">
-                <button class="btn-pill-primary" id="tourActionBtn" style="font-size: 13px; padding: 7px 18px;" onclick="switchMainScreen('menu')">
-                  Launch Full Diner Menu -&gt;
-                </button>
-              </div>
-            </div>
-
-            <!-- 3-Column Feature Cards Grid -->
+            <!-- 3-Column Clean Feature Highlights -->
             <div class="feature-grid-3col">
               <div class="feature-card-firecrawl" onclick="switchMainScreen('menu')">
                 <div class="feature-card-icon-circle">
@@ -1960,173 +1924,52 @@
                     <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
                   </svg>
                 </div>
-                <h3 class="feature-card-title">+22% Average Order Value</h3>
+                <h3 class="feature-card-title">Rich Visual Menu</h3>
                 <p class="feature-card-desc">
-                  Interactive dish cards drive high-margin modifier add-ons, portion upgrades, and beverage pairings at peak ordering intent.
+                  Explore flame-grilled dishes with detailed ingredients, portion options, and custom toppings.
                 </p>
               </div>
 
-              <div class="feature-card-firecrawl" onclick="switchMainScreen('kds')">
+              <div class="feature-card-firecrawl" onclick="switchMainScreen('tracker')">
                 <div class="feature-card-icon-circle">
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-                    <line x1="8" y1="21" x2="16" y2="21"></line>
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
                   </svg>
                 </div>
-                <h3 class="feature-card-title">14-Minute Faster Table Turns</h3>
+                <h3 class="feature-card-title">Sub-Second Dispatch</h3>
                 <p class="feature-card-desc">
-                  Tickets transmit to the cook line in under 800ms. Eliminates waiter order-taking rounds and kitchen transcription errors.
+                  Tickets reach kitchen stations instantly. Watch live order progress from prep to plating.
                 </p>
               </div>
 
-              <div class="feature-card-firecrawl" onclick="switchMainScreen('stand')">
+              <div class="feature-card-firecrawl" onclick="switchMainScreen('pay')">
                 <div class="feature-card-icon-circle">
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                    <line x1="3" y1="9" x2="21" y2="9"></line>
+                    <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                    <line x1="1" y1="10" x2="23" y2="10"></line>
                   </svg>
                 </div>
-                <h3 class="feature-card-title">Zero Tabletop Hardware CapEx</h3>
+                <h3 class="feature-card-title">Table Settlement</h3>
                 <p class="feature-card-desc">
-                  Printable acrylic stands replace $1,200/table proprietary kiosks. Zero charging docks, broken screens, or theft risks.
+                  Split checks, pay with Apple Pay or card at table, or generate an instant cashier pass.
                 </p>
-              </div>
-            </div>
-
-            <!-- B2B SaaS Outcome Card: Live Kitchen Routing & Autonomous Settlement -->
-            <div class="saas-outcome-card">
-              <div class="outcome-card-header">
-                <div class="outcome-header-left">
-                  <span class="pulse-indicator-dot"></span>
-                  <span class="outcome-header-title">LIVE DINE-IN PIPELINE &middot; TABLE T-04</span>
-                </div>
-                <div class="outcome-header-right">
-                  <span class="telemetry-badge">SYNC LATENCY: 142ms</span>
-                  <span class="telemetry-badge security">E2E TLS 1.3 ENCRYPTED</span>
-                </div>
-              </div>
-
-              <div class="outcome-card-grid">
-                <!-- Stream 1: Sub-Second Kitchen Dispatch -->
-                <div class="outcome-stream-panel">
-                  <div class="outcome-stream-meta">
-                    <span class="stream-pill kitchen">KITCHEN LINE ROUTING</span>
-                    <span class="stream-time">STATION 01 &middot; FLAME GRILL</span>
-                  </div>
-                  <div class="outcome-ticket-preview">
-                    <div class="ticket-header-row">
-                      <div class="ticket-order-tag">Ticket #ORD-104</div>
-                      <div class="ticket-status-tag">Sent in 142ms</div>
-                    </div>
-                    <div class="ticket-item-row">
-                      <span class="ticket-item-name"><strong>1x</strong> Flame-Grilled Angus Burger</span>
-                      <span class="ticket-item-addons">Double Patty &middot; Aged Cheddar &middot; Brioche</span>
-                    </div>
-                    <div class="ticket-item-row">
-                      <span class="ticket-item-name"><strong>1x</strong> Truffle Parmesan Fries</span>
-                      <span class="ticket-item-addons">Rosemary Sea Salt &middot; Garlic Aioli</span>
-                    </div>
-                    <div class="ticket-footer-row">
-                      <div class="ticket-alert">Zero waiter transcription delay &middot; Line cooks start immediately</div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Stream 2: Autonomous Table Settlement & Fiscal Invoicing -->
-                <div class="outcome-stream-panel">
-                  <div class="outcome-stream-meta">
-                    <span class="stream-pill settlement">AUTONOMOUS CHECKOUT</span>
-                    <span class="stream-time">FISCAL INVOICE READY</span>
-                  </div>
-                  <div class="outcome-ticket-preview">
-                    <div class="ticket-header-row">
-                      <div class="ticket-order-tag">Total Due: 308.70 EGP</div>
-                      <div class="ticket-status-tag settled">Zero Waiter Needed</div>
-                    </div>
-                    <div class="fiscal-breakdown-row">
-                      <span>Food &amp; Beverage Net</span>
-                      <span class="mono-amount">245.00 EGP</span>
-                    </div>
-                    <div class="fiscal-breakdown-row">
-                      <span>Service Charge (12%) + VAT (14%)</span>
-                      <span class="mono-amount">63.70 EGP</span>
-                    </div>
-                    <div class="payment-action-preview">
-                      <div class="pay-method-badge">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-                        <span>Apple Pay &middot; 1-Tap</span>
-                      </div>
-                      <div class="pay-method-badge">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>
-                        <span>Contactless Card / Meeza</span>
-                      </div>
-                    </div>
-                    <div class="ticket-footer-row">
-                      <div class="ticket-alert fiscal">QR Fiscal Invoice Generated &middot; Registered Tax ID: 642-891-204</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Proof Points Footnote Strip -->
-              <div class="outcome-card-footer">
-                <div class="outcome-footnote-item">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ff4d00" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                  <span>14 min saved per table turn</span>
-                </div>
-                <div class="outcome-footnote-item">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ff4d00" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                  <span>0% manual kitchen keying errors</span>
-                </div>
-                <div class="outcome-footnote-item">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ff4d00" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                  <span>Zero tabletop hardware CapEx ($0/table)</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Architecture Proof Points Strip -->
-            <div class="saas-metrics-strip">
-              <div class="metric-cell">
-                <div class="metric-number">&lt; 0.8s</div>
-                <div class="metric-label">Order-to-Kitchen Sync</div>
-              </div>
-              <div class="metric-cell">
-                <div class="metric-number">+22%</div>
-                <div class="metric-label">Avg Order Value via Add-Ons</div>
-              </div>
-              <div class="metric-cell">
-                <div class="metric-number">14 Min</div>
-                <div class="metric-label">Saved per Table Turn</div>
-              </div>
-              <div class="metric-cell">
-                <div class="metric-number">$0</div>
-                <div class="metric-label">Tabletop Hardware CapEx</div>
               </div>
             </div>
           </div>
         </section>
 
         <!-- ============================================================== -->
-        <!-- VIEW 2: CUSTOMER DINE-IN MENU (FLAVORFIT MACROS)               -->
+        <!-- VIEW 2: CUSTOMER DINE-IN MENU                                  -->
         <!-- ============================================================== -->
         <section id="screen-menu" style="display: none;">
           <div class="menu-greeting-banner">
             <div style="display: flex; align-items: center; gap: 10px;">
               <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--color-ember-orange);"></span>
               <div>
-                <strong id="menuTableLabel" style="font-size: 14px;">Table T-04 Active Session</strong>
-                <div style="font-size: 12px; color: var(--color-slate);">Flame-Grilled Fresh · Line Kitchen: Synchronized</div>
+                <strong id="menuTableLabel" style="font-size: 14px;">Dine-In Menu</strong>
+                <div id="menuTableSubtext" style="font-size: 12px; color: var(--color-slate);">Flame-Grilled Fresh · Direct Kitchen Synchronization</div>
               </div>
-            </div>
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <select id="menuTableSelect" style="padding: 5px 10px; border: 1px solid var(--color-gridline); border-radius: 8px; font-family: var(--font-geist-mono); font-size: 12px; background: #ffffff;" onchange="changeActiveTable(this.value)">
-                <option value="T-01">Switch: Table T-01</option>
-                <option value="T-02">Switch: Table T-02</option>
-                <option value="T-04" selected>Table T-04 (Current)</option>
-                <option value="T-05">Switch: Table T-05</option>
-                <option value="T-08">Switch: Table T-08</option>
-              </select>
             </div>
           </div>
 
@@ -2144,73 +1987,7 @@
           <div class="rich-food-grid" id="richFoodGrid"></div>
         </section>
 
-        <!-- ============================================================== -->
-        <!-- VIEW 3: PHYSICAL TABLE STAND SIMULATOR (BALANCED 2-COLUMN)     -->
-        <!-- ============================================================== -->
-        <section id="screen-stand" style="display: none;">
-          <div class="stand-grid-layout">
-            <!-- Left Column: Specs & Instructions -->
-            <div class="stand-info-panel">
-              <span class="hero-pill-tag" style="margin-bottom: 0;">Physical Table Deployment</span>
-              <h2 style="font-size: 26px; font-weight: 600; line-height: 1.2;">Acrylic Table Stand Kiosk Card</h2>
-              <p style="color: var(--color-slate); font-size: 14px; line-height: 1.55;">
-                This printable card slides into standard 4x6" acrylic tent stands mounted directly on restaurant tables. Guests scan with their phone camera to instantly bind their dining session without downloading apps.
-              </p>
 
-              <div style="background: var(--color-vellum); border: 1px solid var(--color-gridline); border-radius: 12px; padding: 18px;">
-                <div style="font-family: var(--font-geist-mono); font-size: 11px; text-transform: uppercase; color: var(--color-slate); margin-bottom: 8px;">Select Table to Print:</div>
-                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                  <select style="flex: 1; min-width: 180px; padding: 8px 12px; border: 1px solid var(--color-gridline); border-radius: 8px; font-family: var(--font-geist-mono); background: #ffffff;" onchange="changeStandTable(this.value)">
-                    <option value="T-01">Table T-01 (Couples · 2 Seats)</option>
-                    <option value="T-02">Table T-02 (Family · 4 Seats)</option>
-                    <option value="T-04" selected>Table T-04 (Current Test · 2 Seats)</option>
-                    <option value="T-05">Table T-05 (Booth · 6 Seats)</option>
-                    <option value="T-08">Table T-08 (Terrace · 4 Seats)</option>
-                  </select>
-                  <button class="btn-pill-primary" style="padding: 8px 16px;" onclick="window.print()">Print Card</button>
-                </div>
-              </div>
-
-              <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                <button class="btn-pill-ghost" onclick="switchMainScreen('menu')">Open Diner Menu on Screen -&gt;</button>
-                <a href="table-stand.html" target="_blank" class="btn-pill-ghost" style="text-decoration: none; display: inline-flex; align-items: center;">
-                  <span>Standalone Print View</span>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left: 6px;">
-                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-                    <polyline points="15 3 21 3 21 9"></polyline>
-                    <line x1="10" y1="14" x2="21" y2="3"></line>
-                  </svg>
-                </a>
-              </div>
-            </div>
-
-            <!-- Right Column: Realistic Acrylic Stand Preview -->
-            <div>
-              <div class="acrylic-stand-tent">
-                <div style="display: flex; justify-content: center; margin-bottom: 12px;">
-                  <div class="brand-logo-lockup" style="transform: scale(0.9);">
-                    <svg class="brand-flame-icon" viewBox="0 0 24 24" fill="none">
-                      <path d="M12 2C12 2 8 6 8 10C8 12.21 9.79 14 12 14C14.21 14 16 12.21 16 10C16 6 12 2 12 2Z" fill="#ff4d00"/>
-                      <path d="M12 22C16.4183 22 20 18.4183 20 14C20 10.5 17.5 7.5 15 5.5C15.5 8 14 10 12 11C11.5 9 10 7.5 10 7.5C7.5 10 6 12 6 14C6 18.4183 8.68629 22 12 22Z" fill="#ff4d00"/>
-                    </svg>
-                    <div class="brand-wordmark-stack">
-                      <div class="brand-wordmark-top">Matbakh</div>
-                      <div class="brand-wordmark-bottom"><span class="wm-spacer" aria-hidden="true">Ma</span>Link</div>
-                    </div>
-                  </div>
-                </div>
-                <div style="font-size: 11px; font-family: var(--font-geist-mono); color: var(--color-slate); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;">Dine-In Self-Ordering</div>
-                <h3 style="font-size: 26px; font-weight: 700; color: var(--color-ink);" id="standCardTableCode">TABLE 04</h3>
-                <div style="font-size: 12px; color: var(--color-slate); margin-bottom: 14px;">Scan with native camera to view menu</div>
-
-                <div class="acrylic-qr-frame" id="acrylicStandQrHolder"></div>
-
-                <div style="font-size: 12px; font-weight: 600; color: var(--color-ember-orange); margin-top: 10px;">No App Download Required</div>
-                <div style="font-size: 11px; color: var(--color-slate); margin-top: 2px;">Orders synchronized directly to kitchen</div>
-              </div>
-            </div>
-          </div>
-        </section>
 
         <!-- ============================================================== -->
         <!-- VIEW 4: LIVE ORDER TRACKER                                     -->
@@ -2435,46 +2212,7 @@
           </div>
         </section>
 
-        <!-- ============================================================== -->
-        <!-- VIEW 5: KITCHEN DISPLAY SYSTEM (KDS PASS)                      -->
-        <!-- ============================================================== -->
-        <section id="screen-kds" style="display: none;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 10px;">
-            <div>
-              <h2 style="font-size: 20px; font-weight: 600;">Kitchen Display System (KDS Pass)</h2>
-              <div style="font-size: 12px; color: var(--color-slate);">Live ticket stream synchronized with table ordering</div>
-            </div>
-            <a href="kds.html" target="_blank" class="btn-pill-ghost" style="font-size: 12px; padding: 6px 14px;">
-              <span>Full-Screen KDS View</span>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-                <polyline points="15 3 21 3 21 9"></polyline>
-                <line x1="10" y1="14" x2="21" y2="3"></line>
-              </svg>
-            </a>
-          </div>
 
-          <div class="kds-metrics-bar">
-            <div class="kds-metric-card">
-              <div style="font-family: var(--font-geist-mono); font-size: 11px; color: var(--color-slate); text-transform: uppercase;">Active Tickets</div>
-              <div class="kds-metric-val" id="kdsActiveTotal">3</div>
-            </div>
-            <div class="kds-metric-card">
-              <div style="font-family: var(--font-geist-mono); font-size: 11px; color: var(--color-slate); text-transform: uppercase;">On Flame Grill</div>
-              <div class="kds-metric-val" style="color: var(--kds-orange);" id="kdsInGrill">2</div>
-            </div>
-            <div class="kds-metric-card">
-              <div style="font-family: var(--font-geist-mono); font-size: 11px; color: var(--color-slate); text-transform: uppercase;">Delayed (&gt;15m)</div>
-              <div class="kds-metric-val" style="color: var(--kds-red);">0</div>
-            </div>
-            <div class="kds-metric-card">
-              <div style="font-family: var(--font-geist-mono); font-size: 11px; color: var(--color-slate); text-transform: uppercase;">Avg Prep Time</div>
-              <div class="kds-metric-val">11.8m</div>
-            </div>
-          </div>
-
-          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 16px;" id="kdsTicketCards"></div>
-        </section>
 
       </div>
     </main>
@@ -2963,7 +2701,7 @@
 
     // Application State
     let currentScreen = 'hero';
-    let currentTable = 'T-04';
+    let currentTable = null;
     let cart = [];
     let modalDish = null;
     let modalPortion = null;
@@ -2980,7 +2718,8 @@
     // View Switching
     function switchMainScreen(screenId) {
       currentScreen = screenId;
-      const screens = ['hero', 'menu', 'stand', 'tracker', 'kds', 'pay'];
+      window.currentScreen = screenId;
+      const screens = ['hero', 'menu', 'tracker', 'pay'];
       screens.forEach(s => {
         const el = document.getElementById(`screen-${s}`);
         const sideBtn = document.getElementById(`sideBtn-${s}`);
@@ -2988,38 +2727,40 @@
         if (sideBtn) sideBtn.classList.toggle('active', s === screenId);
       });
 
+      // Contextual Header Cart Control: Hide on Home/Landing, Show on Menu/Ordering
+      const headerCart = document.getElementById('headerCartBtn');
+      if (headerCart) {
+        headerCart.style.display = (screenId === 'hero') ? 'none' : 'flex';
+      }
+
+      // Sync floating cart bar
+      if (window.MatbakhCartUI && typeof window.MatbakhCartUI.updateFloatingCartBar === 'function') {
+        window.MatbakhCartUI.updateFloatingCartBar(cart, currentTable);
+      }
+
       const breadcrumbNames = {
         hero: 'Platform Overview',
-        menu: `Dine-In Menu · Table ${currentTable}`,
-        stand: 'Deploy Table QR Stands',
+        menu: currentTable ? `Dine-In Menu · Table ${currentTable}` : 'Dine-In Menu',
         tracker: 'Order Live Tracker',
-        kds: 'Kitchen Display (KDS)',
-        pay: 'Table Payment & Fiscal Invoicing'
+        pay: 'Table Payment & Invoicing'
       };
       const headerBreadcrumbEl = document.getElementById('headerBreadcrumbTag');
       if (headerBreadcrumbEl) headerBreadcrumbEl.innerText = breadcrumbNames[screenId] || screenId;
 
       if (screenId === 'menu') {
         const menuLabel = document.getElementById('menuTableLabel');
-        if (menuLabel) menuLabel.innerText = `Table ${currentTable} Active Session`;
-        const menuSelect = document.getElementById('menuTableSelect');
-        if (menuSelect) {
-          let opt = menuSelect.querySelector(`option[value="${currentTable}"]`);
-          if (!opt) {
-            opt = document.createElement('option');
-            opt.value = currentTable;
-            opt.text = `Table ${currentTable}`;
-            menuSelect.appendChild(opt);
-          }
-          menuSelect.value = currentTable;
+        if (menuLabel) {
+          menuLabel.innerText = currentTable ? `Table ${currentTable} Active Session` : 'Dine-In Menu';
+        }
+        const menuSub = document.getElementById('menuTableSubtext');
+        if (menuSub) {
+          menuSub.innerText = currentTable ? 'Flame-Grilled Fresh · Direct Kitchen Synchronization' : 'Flame-Grilled Fresh · Handcrafted Kitchen Orders';
         }
         renderRichFoodGrid(RICH_MENU);
       }
-      if (screenId === 'stand') renderAcrylicStandQr();
-      if (screenId === 'kds') loadKdsFeed();
       if (screenId === 'tracker') {
         const destEl = document.getElementById('trackerTableDestination');
-        if (destEl) destEl.innerText = `TABLE ${currentTable}`;
+        if (destEl) destEl.innerText = currentTable ? `TABLE ${currentTable}` : 'ONLINE ORDER';
       }
       if (screenId === 'pay') {
         if (window.TablePayment) {
@@ -3034,25 +2775,6 @@
 
       const ws = document.getElementById('mainWorkspace');
       if (ws) ws.scrollTop = 0;
-    }
-
-    function changeActiveTable(tableVal) {
-      currentTable = tableVal;
-      const menuLabelEl = document.getElementById('menuTableLabel');
-      if (menuLabelEl) menuLabelEl.innerText = `Table ${currentTable} Active Session`;
-      const menuSelect = document.getElementById('menuTableSelect');
-      if (menuSelect && menuSelect.value !== tableVal) {
-        let opt = menuSelect.querySelector(`option[value="${tableVal}"]`);
-        if (!opt) {
-          opt = document.createElement('option');
-          opt.value = tableVal;
-          opt.text = `Table ${tableVal}`;
-          menuSelect.appendChild(opt);
-        }
-        menuSelect.value = tableVal;
-      }
-      const headerBreadcrumbEl = document.getElementById('headerBreadcrumbTag');
-      if (headerBreadcrumbEl) headerBreadcrumbEl.innerText = `Dine-In Menu · Table ${currentTable}`;
     }
 
     // Mobile Sidebar Drawer Controls
@@ -3265,9 +2987,10 @@
       closeDishModal();
 
       if (window.showToast) {
+        const tableDesc = currentTable ? `Table ${currentTable}` : 'your order';
         window.showToast({
           title: 'Dish Added to Cart',
-          message: `${modalDish.name} (${modalPortion ? modalPortion.label : 'Standard'}) added to Table ${currentTable}.`,
+          message: `${modalDish.name} (${modalPortion ? modalPortion.label : 'Standard'}) added to ${tableDesc}.`,
           type: 'success',
           duration: 2500
         });
@@ -3276,6 +2999,10 @@
 
     // Cart Management
     function openCartDrawer() {
+      if (window.MatbakhCartUI && typeof window.MatbakhCartUI.openCartDrawer === 'function') {
+        window.MatbakhCartUI.openCartDrawer();
+        return;
+      }
       const drawer = document.getElementById('cartDrawer');
       if (drawer) drawer.classList.add('open');
       const backdrop = document.getElementById('cartBackdrop');
@@ -3283,6 +3010,10 @@
     }
 
     function closeCartDrawer() {
+      if (window.MatbakhCartUI && typeof window.MatbakhCartUI.closeCartDrawer === 'function') {
+        window.MatbakhCartUI.closeCartDrawer();
+        return;
+      }
       const drawer = document.getElementById('cartDrawer');
       if (drawer) drawer.classList.remove('open');
       const backdrop = document.getElementById('cartBackdrop');
@@ -3386,10 +3117,11 @@
       const total = sub + vat;
       const summary = cart.map(i => `${i.qty}x ${i.name}`).join(', ');
 
+      const tableLabel = currentTable ? `Table ${currentTable}` : 'Dine-In Guest';
       const payload = {
-        table_number: currentTable,
+        table_number: currentTable || 'Online-DineIn',
         order_type: 'dine_in',
-        customer_name: 'Table Guest',
+        customer_name: tableLabel,
         status: 'new',
         subtotal: sub,
         tax_amount: vat,
@@ -3416,7 +3148,7 @@
         window.showToast({
           title: 'Order Dispatched to Kitchen',
           message: `Ticket #ORD-${ordId} sent to Flame Grill cook line.`,
-          meta: `${total.toFixed(2)} EGP · Table ${currentTable}`,
+          meta: `${total.toFixed(2)} EGP · ${tableLabel}`,
           type: 'success'
         });
       }
@@ -3425,7 +3157,7 @@
       const trackerOrdNum = document.getElementById('trackerOrderNumber');
       if (trackerOrdNum) trackerOrdNum.innerText = `#ORD-${ordId}`;
       const trackerDest = document.getElementById('trackerTableDestination');
-      if (trackerDest) trackerDest.innerText = `TABLE ${currentTable}`;
+      if (trackerDest) trackerDest.innerText = currentTable ? `TABLE ${currentTable}` : 'ONLINE ORDER';
       const trackerList = document.getElementById('trackerItemsList');
       if (trackerList) {
         trackerList.innerHTML = cart.map(i => `
@@ -3484,171 +3216,6 @@
         setStep(step3, 'done', 'var(--color-ink)');
         setStep(step4, 'done', '#16a34a');
       }
-    }
-
-    // QR Acrylic Stand Generator (Ultra-reliable with instant fallback)
-    function renderAcrylicStandQr() {
-      const container = document.getElementById('acrylicStandQrHolder');
-      if (!container) return;
-
-      const safeTable = (currentTable || 'T-04').replace(/^T-/, '');
-      const standCodeEl = document.getElementById('standCardTableCode');
-      if (standCodeEl) standCodeEl.innerText = `TABLE ${safeTable}`;
-
-      const origin = (window.location && window.location.origin && window.location.origin !== 'null') ? window.location.origin : 'https://live-kitchen.pages.dev';
-      const path = (window.location && window.location.pathname) ? window.location.pathname : '/';
-      const targetUrl = `${origin}${path}?table=T-${safeTable}`;
-
-      // Instant verified QR rendering (API fallback guaranteed so frame is never empty)
-      const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=152x152&data=${encodeURIComponent(targetUrl)}&color=26-26-26&bgcolor=ffffff`;
-      container.innerHTML = `<img src="${qrApiUrl}" width="152" height="152" alt="QR Code for Table ${safeTable}" style="display:block; width:152px; height:152px; border-radius:6px; object-fit:contain;" loading="eager">`;
-
-      if (typeof QRCode !== 'undefined') {
-        try {
-          const testDiv = document.createElement('div');
-          new QRCode(testDiv, {
-            text: targetUrl,
-            width: 152,
-            height: 152,
-            colorDark: "#262626",
-            colorLight: "#ffffff",
-            correctLevel: (QRCode.CorrectLevel && QRCode.CorrectLevel.H) ? QRCode.CorrectLevel.H : 2
-          });
-          if (testDiv.children.length > 0) {
-            container.innerHTML = '';
-            container.appendChild(testDiv.firstChild);
-          }
-        } catch(e) {
-          console.warn('QRCode JS engine notice, keeping API fallback:', e);
-        }
-      }
-    }
-
-    function changeStandTable(val) {
-      currentTable = val;
-      renderAcrylicStandQr();
-    }
-
-    // KDS Live Kanban Feed
-    async function loadKdsFeed() {
-      const grid = document.getElementById('kdsTicketCards');
-      if (!grid) return;
-
-      let orders = [];
-      if (supabaseClient) {
-        try {
-          const { data } = await supabaseClient.from('orders').select('*').neq('status', 'served').order('id', { ascending: false }).limit(10);
-          if (data && data.length > 0) orders = data;
-        } catch(e){}
-      }
-
-      if (orders.length === 0) {
-        orders = [
-          {
-            id: 104,
-            table_number: 'T-04',
-            status: 'cooking',
-            created_at: new Date(Date.now() - 5 * 60000).toISOString(),
-            total_amount: 285.00,
-            order_payload: [
-              { name: 'Angus Flame-Grilled Burger', portion: 'Double Patty', extras: [{ label: 'Aged Cheddar' }], notes: 'sauce on side' }
-            ]
-          },
-          {
-            id: 102,
-            table_number: 'T-02',
-            status: 'new',
-            created_at: new Date(Date.now() - 2 * 60000).toISOString(),
-            total_amount: 320.00,
-            order_payload: [
-              { name: 'Flame-Grilled Tenderloin Steak', portion: '250g Prime Cut', extras: [], notes: 'Medium' }
-            ]
-          },
-          {
-            id: 105,
-            table_number: 'T-05',
-            status: 'cooking',
-            created_at: new Date(Date.now() - 8 * 60000).toISOString(),
-            total_amount: 295.00,
-            order_payload: [
-              { name: 'Neapolitan Artisan Margherita', portion: '14-inch Table Share', extras: [{ label: 'Burrata Center' }], notes: 'crispy crust' }
-            ]
-          }
-        ];
-      }
-
-      const kdsActive = document.getElementById('kdsActiveTotal');
-      if (kdsActive) kdsActive.innerText = orders.length;
-      const kdsSide = document.getElementById('sidebarKdsCount');
-      if (kdsSide) kdsSide.innerText = orders.length;
-      const kdsGrill = document.getElementById('kdsInGrill');
-      if (kdsGrill) kdsGrill.innerText = orders.filter(o => o.status === 'cooking').length;
-
-      grid.innerHTML = orders.map(ord => {
-        let color = 'var(--kds-blue)';
-        let btnText = 'Start Flame Grill -&gt;';
-        let next = 'cooking';
-        let badgeText = 'NEW';
-
-        if (ord.status === 'cooking' || ord.status === 'preparing') {
-          color = 'var(--kds-orange)';
-          btnText = 'Mark Ready for Table -&gt;';
-          next = 'ready';
-          badgeText = 'IN GRILL';
-        } else if (ord.status === 'ready') {
-          color = 'var(--kds-green)';
-          btnText = 'Mark Delivered / Served -&gt;';
-          next = 'served';
-          badgeText = 'READY';
-        } else if (ord.status === 'served') {
-          color = '#727272';
-          btnText = 'Delivered to Table';
-          next = null;
-          badgeText = 'SERVED';
-        }
-
-        return `
-          <div style="background: #ffffff; border: 1px solid var(--color-gridline); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow-card);">
-            <div style="background: ${color}; color: #ffffff; padding: 10px 14px; font-family: var(--font-geist-mono); font-size: 13px; font-weight: 700; display: flex; justify-content: space-between;">
-              <span>#ORD-${ord.id} · TABLE ${ord.table_number}</span>
-              <span>${badgeText}</span>
-            </div>
-            <div style="padding: 14px 16px;">
-              <div style="font-size: 12px; color: var(--color-slate); margin-bottom: 8px;">Order Total: <strong>${Number(ord.total_amount).toFixed(2)} EGP</strong></div>
-              <div style="border-top: 1px dashed var(--color-gridline); padding-top: 8px; font-size: 13px;">
-                ${Array.isArray(ord.order_payload) ? ord.order_payload.map(p => `
-                  <div style="margin-bottom: 6px;">
-                    <strong>1x ${p.name}</strong>
-                    <div style="font-size: 11px; color: var(--color-slate);">${p.portion || ''}</div>
-                    ${p.notes ? `<div style="font-size: 11px; color: #9a3412;">Note: "${p.notes}"</div>` : ''}
-                  </div>
-                `).join('') : `<div>${ord.items_summary}</div>`}
-              </div>
-            </div>
-            <div style="padding: 10px 16px; border-top: 1px solid var(--color-gridline); background: var(--color-vellum);">
-              ${next ? `
-                <button class="btn-pill-primary" style="width: 100%; font-size: 12px; padding: 7px;" onclick="advanceKds(${ord.id}, '${next}')">
-                  ${btnText}
-                </button>
-              ` : `
-                <button class="btn-pill-primary" disabled style="width: 100%; font-size: 12px; padding: 7px; opacity: 0.6; cursor: default; background: var(--color-gridline); color: var(--color-slate); box-shadow: none;">
-                  ${btnText}
-                </button>
-              `}
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
-
-    async function advanceKds(id, status) {
-      if (supabaseClient) {
-        await supabaseClient.from('orders').update({ status }).eq('id', id);
-      }
-      if (id == lastDispatchedOrderId) {
-        updateTrackerProgress(status);
-      }
-      loadKdsFeed();
     }
 
     // Table Payment & Fiscal Settlement Engine
@@ -3721,29 +3288,9 @@
       }
     }
 
-    function copyCodeSnippet(btn) {
-      const code = `{
-  "event": "order.dispatched",
-  "table_number": "T-04",
-  "sync_latency_ms": 142,
-  "status": "flame_grill_queue"
-}`;
-      navigator.clipboard.writeText(code);
-      btn.innerText = 'Copied!';
-      if (window.showToast) {
-        window.showToast({
-          title: 'Payload Copied',
-          message: 'WebSocket event JSON copied to clipboard.',
-          type: 'info'
-        });
-      }
-      setTimeout(() => btn.innerText = 'Copy JSON', 2000);
-    }
-
     function initLiveRealtime() {
       if (!supabaseClient) return;
       supabaseClient.channel('global-feed').on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, (payload) => {
-        if (currentScreen === 'kds') loadKdsFeed();
         if (payload && payload.new && payload.new.id == lastDispatchedOrderId) {
           updateTrackerProgress(payload.new.status);
         }
@@ -3762,13 +3309,15 @@
     // Initialize application: auto-route seated diners directly to menu
     window.addEventListener('DOMContentLoaded', () => {
       const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get('table')) {
-        currentTable = urlParams.get('table');
+      const tableParam = urlParams.get('table');
+      if (tableParam) {
+        currentTable = tableParam.toUpperCase().replace(/^TABLE\s*/i, '');
         switchMainScreen('menu'); // Seated diner goes straight to the digital menu!
       } else {
+        currentTable = null;
         switchMainScreen('hero');
       }
-      renderAcrylicStandQr();
+      renderRichFoodGrid(RICH_MENU);
       initLiveRealtime();
     });
   </script>
@@ -3780,9 +3329,7 @@
   <script src="src/domain-utils/helpers.js"></script>
   <script src="src/domain-state/store.js"></script>
   <script src="src/domain-services/supabase.js"></script>
-  <script src="src/domain-features/interactive-tour.js"></script>
   <script src="src/domain-features/table-payment.js"></script>
-  <script src="src/domain-features/kds-pass.js"></script>
   <script src="src/domain-qa/audit.js"></script>
 </body>
 </html>

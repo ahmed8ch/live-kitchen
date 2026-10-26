@@ -58,76 +58,17 @@
     if (backdrop) backdrop.classList.remove('active');
   }
 
-  /**
-   * Switch the active screen across the workspace and synchronize all nav items.
-   * @param {'hero' | 'menu' | 'tracker' | 'stand' | 'kds'} screenId
-   */
-  function switchMainScreen(screenId) {
-    const screens = {
-      hero: document.getElementById('screen-hero'),
-      menu: document.getElementById('screen-menu'),
-      tracker: document.getElementById('screen-tracker'),
-      stand: document.getElementById('screen-stand'),
-      kds: document.getElementById('screen-kds')
-    };
-
-    // Close any deprecated screens
-    const floorScreen = document.getElementById('screen-floor');
-    if (floorScreen) floorScreen.style.display = 'none';
-
-    // Hide all valid screens
-    Object.keys(screens).forEach(id => {
-      if (screens[id]) screens[id].style.display = 'none';
-    });
-
-    // Show target screen
-    if (screens[screenId]) {
-      screens[screenId].style.display = 'block';
-    } else if (screens.hero) {
-      screens.hero.style.display = 'block';
-      screenId = 'hero';
-    }
-
-    // Synchronize Top View Breadcrumb
-    const breadcrumbNames = {
-      hero: 'Platform Overview',
-      menu: 'Dine-In Self-Ordering Menu',
-      stand: 'Acrylic Stand Generator',
-      tracker: 'Order Live Tracker',
-      kds: 'Kitchen Display (KDS)',
-      pay: 'Table Payment & Fiscal Invoicing'
-    };
-    const headerBreadcrumbEl = document.getElementById('headerBreadcrumbTag');
-    if (headerBreadcrumbEl) headerBreadcrumbEl.innerText = breadcrumbNames[screenId] || screenId;
-
-    // Synchronize Sidebar Buttons
-    document.querySelectorAll('.cf-nav-item').forEach(btn => {
-      btn.classList.remove('active');
-    });
-    const activeSideBtn = document.getElementById('sideBtn-' + screenId);
-    if (activeSideBtn) activeSideBtn.classList.add('active');
-
-    // Close mobile drawer on navigation
-    closeMobileSidebar();
-
-    // Scroll workspace to top smoothly
-    const ws = document.getElementById('mainWorkspace');
-    if (ws) ws.scrollTop = 0;
-  }
-
   window.MatbakhShell = {
     init: initShell,
     toggleCollapse: toggleSidebarCollapse,
     toggleMobile: toggleMobileSidebar,
-    closeMobile: closeMobileSidebar,
-    switchScreen: switchMainScreen
+    closeMobile: closeMobileSidebar
   };
 
   // Bind global helpers for backward compatibility with inline triggers
   window.toggleSidebarCollapse = toggleSidebarCollapse;
   window.toggleMobileSidebar = toggleMobileSidebar;
   window.closeMobileSidebar = closeMobileSidebar;
-  window.switchMainScreen = switchMainScreen;
 
   // Run initial state setup on DOMContentLoaded
   if (document.readyState === 'loading') {
