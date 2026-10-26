@@ -449,10 +449,24 @@
 
     <!-- FLOOR PLAN SECTION -->
     <section class="floor-view-container" id="sectionFloorPlan">
+      <!-- Host Walk-In Party Filter -->
+      <div style="background: #ffffff; border: 1px solid var(--color-gridline); border-radius: 12px; padding: 16px 20px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px;">
+        <div>
+          <div style="font-size: 14px; font-weight: 600; color: var(--color-ink);">Host Station: Seat Walk-In Guests</div>
+          <div style="font-size: 12px; color: var(--color-slate);">Filter available tables by party size to seat arriving guests:</div>
+        </div>
+        <div style="display: flex; gap: 6px;">
+          <button class="floor-sub-btn active" id="btnFilterSeatsAll" onclick="filterByPartySize(0, this)">All Sizes</button>
+          <button class="floor-sub-btn" id="btnFilterSeats2" onclick="filterByPartySize(2, this)">2 Persons</button>
+          <button class="floor-sub-btn" id="btnFilterSeats4" onclick="filterByPartySize(4, this)">4 Persons</button>
+          <button class="floor-sub-btn" id="btnFilterSeats6" onclick="filterByPartySize(6, this)">6+ Booths</button>
+        </div>
+      </div>
+
       <div class="floor-sub-nav">
-        <button class="floor-sub-btn active" onclick="switchFloorOps('First Floor', this)">First Floor (Main Hall)</button>
-        <button class="floor-sub-btn" onclick="switchFloorOps('Second Floor', this)">Second Floor (Balcony)</button>
-        <button class="floor-sub-btn" onclick="switchFloorOps('Terrace', this)">Outdoor Terrace</button>
+        <button class="floor-sub-btn active" id="btnFloorLvl1" onclick="switchFloorOps('First Floor', this)">First Floor (Main Hall)</button>
+        <button class="floor-sub-btn" id="btnFloorLvl2" onclick="switchFloorOps('Second Floor', this)">Second Floor (Balcony)</button>
+        <button class="floor-sub-btn" id="btnFloorLvl3" onclick="switchFloorOps('Terrace', this)">Outdoor Terrace</button>
       </div>
 
       <div class="floor-matrix" id="floorMatrixGrid">
@@ -479,6 +493,7 @@
     ];
 
     let currentFloor = 'First Floor';
+    let partyFilterSize = 0; // 0 = all
     let supabaseClient = null;
     if (window.SUPABASE_CONFIG && window.supabase) {
       supabaseClient = window.supabase.createClient(
@@ -499,22 +514,68 @@
 
     function switchFloorOps(floor, btn) {
       currentFloor = floor;
-      document.querySelectorAll('.floor-sub-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('#sectionFloorPlan .floor-sub-nav .floor-sub-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       renderFloorMatrix(floor);
     }
 
+    function filterByPartySize(seats, btn) {
+      partyFilterSize = seats;
+      document.querySelectorAll('#btnFilterSeatsAll, #btnFilterSeats2, #btnFilterSeats4, #btnFilterSeats6').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderFloorMatrix(currentFloor);
+    }
+
     function renderFloorMatrix(floor) {
       const grid = document.getElementById('floorMatrixGrid');
-      const filtered = FLOOR_DATA.filter(t => t.floor === floor);
+      let filtered = FLOOR_DATA.filter(t => t.floor === floor);
+
+      if (partyFilterSize > 0) {
+        if (partyFilterSize === 6) {
+          filtered = filtered.filter(t => t.seats >= 6);
+        } else {
+          filtered = filtered.filter(t => t.seats === partyFilterSize);
+        }
+      }
+
+      if (filtered.length === 0) {
+        grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: var(--color-slate); padding: 30px;">No tables matching ${partyFilterSize} seats on ${floor}.</div>`;
+        return;
+      }
+
       grid.innerHTML = filtered.map(t => `
-        <div class="matrix-table-card" onclick="alert('Table ' + '${t.code}' + ' details: ' + '${t.status.toUpperCase()}')">
+        <div class="matrix-table-card" onclick="handleTableClick('${t.code}')">
           <div class="mat-table-title">${t.code}</div>
-          <div class="mat-table-seats">${t.seats} Guests · ${floor}</div>
+          <div class="mat-table-seats">${t.seats} Seats · ${floor}</div>
           <span class="badge-status st-${t.status}">${t.status === 'avail' ? 'AVAILABLE' : (t.status === 'occ' ? 'OCCUPIED' : 'RESERVED')}</span>
           ${t.guest ? `<div style="font-size:11px; color:var(--color-slate); margin-top:6px;">${t.guest} (${t.time})</div>` : ''}
+          ${t.status === 'avail' ? `<div style="font-size:11px; color:var(--color-ember-orange); margin-top:8px; font-weight:600;">+ Tap to Seat Guests</div>` : ''}
         </div>
       `).join('');
+    }
+
+    function handleTableClick(code) {
+      const table = FLOOR_DATA.find(t => t.code === code);
+      if (!table) return;
+
+      if (table.status === 'avail') {
+        const guest = prompt(`Seat arriving walk-in guests at Table ${code} (${table.seats} seats)? Enter guest name:`, "Walk-In Diner");
+        if (guest && guest.trim()) {
+          table.status = 'occ';
+          table.guest = guest.trim();
+          table.time = 'Just seated';
+          renderFloorMatrix(currentFloor);
+          alert(`Table ${code} is now marked OCCUPIED for ${guest.trim()}.`);
+        }
+      } else {
+        const action = confirm(`Table ${code} is currently ${table.status.toUpperCase()} (${table.guest || 'Seated'}). Mark as CLEAN & AVAILABLE?`);
+        if (action) {
+          table.status = 'avail';
+          delete table.guest;
+          delete table.time;
+          renderFloorMatrix(currentFloor);
+        }
+      }
     }
 
     async function loadKdsTickets() {

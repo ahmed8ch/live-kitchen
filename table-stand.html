@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MatbakhLink · Physical Table Stand Card</title>
+
+  <!-- Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- QRCode.js -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+
+  <style>
+    :root {
+      --color-ember-orange: #ff4d00;
+      --color-ink: #262626;
+      --color-slate: #727272;
+      --color-gridline: #e5e7eb;
+      --color-vellum: #f9f9f9;
+      --font-suisse: 'Inter', -apple-system, sans-serif;
+      --font-geist-mono: 'JetBrains Mono', monospace;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-suisse);
+      background-color: #f3f4f6;
+      color: var(--color-ink);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .toolbar-bar {
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .select-table-box {
+      font-family: var(--font-geist-mono);
+      font-size: 13px;
+      padding: 8px 14px;
+      border: 1px solid var(--color-gridline);
+      border-radius: 999px;
+      background: #ffffff;
+      outline: none;
+    }
+
+    .btn-action {
+      font-family: var(--font-suisse);
+      font-size: 13px;
+      font-weight: 500;
+      padding: 8px 18px;
+      border-radius: 999px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid var(--color-gridline);
+      background: #ffffff;
+      color: var(--color-ink);
+    }
+
+    .btn-action.primary {
+      background: var(--color-ember-orange);
+      color: #ffffff;
+      border-color: var(--color-ember-orange);
+    }
+
+    /* The Physical Stand Card (Acrylic / Wooden Table Tent Simulator) */
+    .table-stand-physical-card {
+      background: #ffffff;
+      border: 1px solid #d1d5db;
+      border-radius: 20px;
+      width: 360px;
+      padding: 36px 28px;
+      text-align: center;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05);
+      position: relative;
+    }
+
+    .stand-brand-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--color-ink);
+      margin-bottom: 4px;
+    }
+
+    .stand-sub {
+      font-size: 12px;
+      color: var(--color-slate);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 24px;
+    }
+
+    .stand-table-number-box {
+      background: #fff7ed;
+      border: 1px solid #ffedd5;
+      border-radius: 12px;
+      padding: 8px 16px;
+      display: inline-block;
+      margin-bottom: 20px;
+    }
+
+    .table-num-large {
+      font-family: var(--font-geist-mono);
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--color-ember-orange);
+      letter-spacing: -0.5px;
+    }
+
+    .qr-frame-box {
+      padding: 16px;
+      background: #ffffff;
+      border: 1px solid var(--color-gridline);
+      border-radius: 16px;
+      display: inline-block;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    }
+
+    #qrCanvasContainer {
+      display: flex;
+      justify-content: center;
+    }
+
+    .scan-guide-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--color-ink);
+      margin-bottom: 6px;
+    }
+
+    .scan-guide-desc {
+      font-size: 12px;
+      color: var(--color-slate);
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+
+    .stand-wifi-strip {
+      border-top: 1px solid var(--color-gridline);
+      padding-top: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      font-size: 11px;
+      color: var(--color-slate);
+      font-family: var(--font-geist-mono);
+    }
+
+    /* Print styles */
+    @media print {
+      body {
+        background: #ffffff;
+        padding: 0;
+      }
+      .toolbar-bar {
+        display: none;
+      }
+      .table-stand-physical-card {
+        box-shadow: none;
+        border: 1px solid #000000;
+        margin: 0 auto;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Toolbar -->
+  <div class="toolbar-bar">
+    <label style="font-size: 13px; font-weight: 500;">Select Table to Preview / Print:</label>
+    <select class="select-table-box" id="tablePicker" onchange="updateStandTable(this.value)">
+      <option value="T-01">Table T-01 (First Floor)</option>
+      <option value="T-02">Table T-02 (First Floor)</option>
+      <option value="T-03">Table T-03 (First Floor)</option>
+      <option value="T-04" selected>Table T-04 (First Floor)</option>
+      <option value="T-05">Table T-05 (First Floor)</option>
+      <option value="T-06">Table T-06 (First Floor)</option>
+      <option value="T-07">Table T-07 (Second Floor)</option>
+      <option value="T-08">Table T-08 (Second Floor)</option>
+      <option value="T-10">Table T-10 (Outdoor Terrace)</option>
+      <option value="T-11">Table T-11 (Outdoor Terrace)</option>
+    </select>
+
+    <button class="btn-action primary" onclick="window.print()">
+      Print Stand Card 🖨️
+    </button>
+    <a href="index.html?table=T-04" class="btn-action" id="testLink">
+      Open Diner Menu on Screen ➔
+    </a>
+  </div>
+
+  <!-- Physical Table Stand Acrylic Card -->
+  <div class="table-stand-physical-card">
+    <div class="stand-brand-header">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="#ff4d00">
+        <path d="M12 23c6.075 0 11-4.925 11-11 0-4.57-2.78-8.5-6.75-10.2-.42-.18-.89.14-.85.6.35 4.14-1.9 6.8-4.4 7.6-1.5.48-3-.2-3.8-1.5-.2-.33-.66-.41-.95-.17C4.1 10.15 3 12.95 3 16c0 3.86 4.03 7 9 7z"/>
+      </svg>
+      <span>MatbakhLink</span>
+    </div>
+    <div class="stand-sub">Digital Dine-In Tabletop</div>
+
+    <div class="stand-table-number-box">
+      <div class="table-num-large" id="cardTableNumber">TABLE 04</div>
+    </div>
+
+    <!-- Scannable QR Code -->
+    <div class="qr-frame-box">
+      <div id="qrCanvasContainer"></div>
+    </div>
+
+    <div class="scan-guide-title">Scan to View Menu & Order</div>
+    <div class="scan-guide-desc">
+      Point your smartphone camera at this code to explore our flame-grilled dishes, customize toppings, and order directly to the kitchen.
+    </div>
+
+    <div class="stand-wifi-strip">
+      <span>WiFi: <strong>LiveKitchen</strong></span>
+      <span>•</span>
+      <span>Pass: <strong>welcome2026</strong></span>
+    </div>
+  </div>
+
+  <script>
+    let currentCode = 'T-04';
+
+    function renderStandQr(code) {
+      const container = document.getElementById('qrCanvasContainer');
+      container.innerHTML = '';
+
+      // Direct URL targeting the table on customer app
+      const targetUrl = `${window.location.origin}${window.location.pathname.replace('table-stand.html', 'index.html')}?table=${code}`;
+      
+      new QRCode(container, {
+        text: targetUrl,
+        width: 170,
+        height: 170,
+        colorDark: "#262626",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.H
+      });
+
+      document.getElementById('cardTableNumber').innerText = `TABLE ${code.replace('T-', '')}`;
+      document.getElementById('testLink').href = `index.html?table=${code}`;
+    }
+
+    function updateStandTable(val) {
+      currentCode = val;
+      renderStandQr(val);
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      renderStandQr(currentCode);
+    });
+  </script>
+</body>
+</html>

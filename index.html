@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>MatbakhLink · Digital Dine-In & Table Ordering</title>
+  <title>MatbakhLink · Digital Dine-In</title>
 
-  <!-- Typography: Inter (Humanist Grotesk) + JetBrains Mono (Data & Currency) -->
+  <!-- Typography: Inter (UI) + JetBrains Mono (Prices, Timers, Codes) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;450;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -13,9 +13,6 @@
   <!-- Managed Supabase Client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js"></script>
-  
-  <!-- Table QR Code Generator -->
-  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 
   <style>
     /* ==================================================================== */
@@ -45,10 +42,9 @@
       --shadow-subtle: rgb(249, 249, 249) 0px 0px 0px 6px;
       --shadow-orange-glow: 0px 0px 0px 6px #fcddcc;
       --shadow-card: rgba(0, 0, 0, 0.02) 0px 40px 48px -20px, rgba(0, 0, 0, 0.03) 0px 32px 32px -20px, rgba(0, 0, 0, 0.03) 0px 16px 24px -12px, rgba(0, 0, 0, 0.03) 0px 0px 0px 1px;
-      --shadow-elevated: rgba(0, 0, 0, 0.04) 0px 24px 32px -12px, rgba(0, 0, 0, 0.03) 0px 8px 16px -4px, rgba(0, 0, 0, 0.03) 0px 0px 0px 1px;
       --shadow-ambient-ring: rgb(253, 253, 253) 0px 0px 0px 8px;
 
-      --page-max-width: 1120px;
+      --page-max-width: 1040px;
     }
 
     *, *::before, *::after {
@@ -133,10 +129,6 @@
       transition: background 0.15s ease;
     }
 
-    .header-table-badge:hover {
-      background: #ffedd5;
-    }
-
     .header-right-actions {
       display: flex;
       align-items: center;
@@ -177,7 +169,7 @@
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      transition: transform 0.1s ease, box-shadow 0.15s ease;
+      transition: transform 0.1s ease;
     }
 
     .cart-pill-trigger:active {
@@ -196,223 +188,13 @@
     .content-container {
       max-width: var(--page-max-width);
       margin: 0 auto;
-      padding: 24px 20px 100px;
+      padding: 20px 20px 100px;
       flex: 1;
       width: 100%;
     }
 
-    /* Primary Pill Button (Firecrawl) */
-    .btn-primary-pill {
-      font-family: var(--font-suisse);
-      font-size: 14px;
-      font-weight: 500;
-      color: #ffffff;
-      background: var(--color-ember-orange);
-      border: none;
-      padding: 11px 24px;
-      border-radius: var(--radius-buttons);
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      box-shadow: var(--shadow-orange-glow);
-      transition: transform 0.1s ease, box-shadow 0.15s ease;
-      text-decoration: none;
-    }
-
-    .btn-primary-pill:hover {
-      transform: translateY(-1px);
-      box-shadow: 0px 0px 0px 8px var(--color-ember-glow-light);
-    }
-
-    .btn-primary-pill:active {
-      transform: translateY(0);
-    }
-
-    /* Ghost Pill */
-    .btn-ghost-pill {
-      font-family: var(--font-suisse);
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--color-ink);
-      background: transparent;
-      border: 1px solid var(--color-gridline);
-      padding: 8px 16px;
-      border-radius: var(--radius-buttons);
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      transition: all 0.15s ease;
-    }
-
-    .btn-ghost-pill:hover {
-      background: var(--color-vellum);
-      border-color: var(--color-stone);
-    }
-
-    /* ==================================================================== */
-    /* VIEW A: TABLETOP WELCOME KIOSK (STANDBY / TABLE SCAN)                */
-    /* ==================================================================== */
-    .kiosk-welcome-card {
-      background: var(--color-vellum);
-      border: 1px solid var(--color-gridline);
-      border-radius: var(--radius-cards);
-      padding: 44px;
-      display: grid;
-      grid-template-columns: 1.15fr 1fr;
-      gap: 40px;
-      align-items: center;
-      box-shadow: var(--shadow-card);
-      margin-top: 10px;
-    }
-
-    .kiosk-title {
-      font-size: 38px;
-      font-weight: 500;
-      line-height: 1.15;
-      letter-spacing: -0.015em;
-      color: var(--color-ink);
-      margin-bottom: 12px;
-    }
-
-    .kiosk-title span.orange {
-      color: var(--color-ember-orange);
-    }
-
-    .kiosk-lead {
-      font-size: 15px;
-      color: var(--color-slate);
-      line-height: 1.6;
-      margin-bottom: 24px;
-      max-width: 480px;
-    }
-
-    /* Party Size Selector */
-    .guest-selector-group {
-      margin-bottom: 28px;
-    }
-
-    .guest-selector-label {
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--color-ink);
-      margin-bottom: 8px;
-      display: block;
-    }
-
-    .guest-pills-row {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .guest-pill-btn {
-      font-family: var(--font-geist-mono);
-      font-size: 13px;
-      color: var(--color-slate);
-      background: #ffffff;
-      border: 1px solid var(--color-gridline);
-      padding: 7px 16px;
-      border-radius: var(--radius-buttons);
-      cursor: pointer;
-      transition: all 0.15s ease;
-    }
-
-    .guest-pill-btn.active {
-      background: var(--color-ink);
-      color: #ffffff;
-      border-color: var(--color-ink);
-    }
-
-    /* QR Code Display Unit */
-    .qr-stand-unit {
-      background: #ffffff;
-      border: 1px solid var(--color-gridline);
-      border-radius: var(--radius-cards);
-      padding: 32px;
-      text-align: center;
-      box-shadow: var(--shadow-ambient-ring);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    .qr-canvas-holder {
-      padding: 16px;
-      background: #ffffff;
-      border: 1px solid var(--color-gridline);
-      border-radius: 12px;
-      margin-bottom: 16px;
-      display: inline-block;
-    }
-
-    .qr-canvas-holder canvas, .qr-canvas-holder img {
-      display: block;
-    }
-
-    .qr-table-headline {
-      font-family: var(--font-geist-mono);
-      font-size: 20px;
-      font-weight: 700;
-      color: var(--color-ink);
-      margin-bottom: 4px;
-    }
-
-    .qr-location-sub {
-      font-size: 13px;
-      color: var(--color-slate);
-      margin-bottom: 14px;
-    }
-
-    .qr-scan-hint {
-      font-size: 12px;
-      color: var(--color-graphite);
-      background: var(--color-vellum);
-      border: 1px solid var(--color-gridline);
-      padding: 6px 14px;
-      border-radius: var(--radius-buttons);
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .table-amenities-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      margin-top: 20px;
-      padding-top: 16px;
-      border-top: 1px solid var(--color-gridline);
-      width: 100%;
-      font-size: 12px;
-      color: var(--color-slate);
-    }
-
-    .amenity-link {
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      transition: color 0.15s ease;
-    }
-
-    .amenity-link:hover {
-      color: var(--color-ink);
-    }
-
-    /* ==================================================================== */
-    /* VIEW B: DIGITAL DINE-IN MENU (TOUCHSCREEN-FIRST CARDS)              */
-    /* ==================================================================== */
-    .diner-menu-view {
-      display: none;
-    }
-
-    /* Active Table Banner */
-    .active-table-banner {
+    /* Table Greeting Banner */
+    .table-greeting-strip {
       background: var(--color-vellum);
       border: 1px solid var(--color-gridline);
       border-radius: 12px;
@@ -424,31 +206,31 @@
       gap: 12px;
     }
 
-    .table-banner-left {
+    .greeting-left {
       display: flex;
       align-items: center;
       gap: 10px;
     }
 
-    .table-pulse-dot {
+    .table-live-dot {
       width: 8px;
       height: 8px;
       border-radius: 50%;
       background: var(--color-ember-orange);
     }
 
-    .table-banner-title {
+    .table-headline {
       font-size: 14px;
       font-weight: 600;
       color: var(--color-ink);
     }
 
-    .table-banner-meta {
+    .table-subtext {
       font-size: 12px;
       color: var(--color-slate);
     }
 
-    /* Firecrawl Style Search Bar */
+    /* Search Bar */
     .menu-search-wrapper {
       background: #ffffff;
       border: 1px solid var(--color-gridline);
@@ -518,22 +300,22 @@
     /* Touchscreen Menu Grid */
     .menu-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
       gap: 20px;
     }
 
-    /* Entire Card is a Large Touch Target */
+    /* Touchscreen Card (Whole Card is Clickable) */
     .touch-dish-card {
       background: var(--color-vellum);
       border: 1px solid var(--color-gridline);
       border-radius: var(--radius-cards);
-      padding: 24px;
+      padding: 22px;
       cursor: pointer;
       user-select: none;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+      transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
       position: relative;
     }
 
@@ -638,7 +420,7 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      pointer-events: none; /* Allows the entire card to receive the click */
+      pointer-events: none;
       transition: all 0.15s ease;
     }
 
@@ -648,9 +430,7 @@
       box-shadow: 0px 0px 0px 4px var(--color-ember-glow-light);
     }
 
-    /* ==================================================================== */
-    /* VIEW C: DISH MODIFIERS MODAL (CUSTOMIZE DISH)                        */
-    /* ==================================================================== */
+    /* Modal Backdrop & Customizer */
     .modal-backdrop {
       position: fixed;
       inset: 0;
@@ -771,7 +551,6 @@
       margin-top: 2px;
     }
 
-    /* Extras Touch List */
     .extras-touch-list {
       display: flex;
       flex-direction: column;
@@ -891,9 +670,53 @@
       text-align: center;
     }
 
-    /* ==================================================================== */
-    /* VIEW D: FLOATING CART DOCK & ORDER DRAWER                            */
-    /* ==================================================================== */
+    /* Primary Pill Button */
+    .btn-primary-pill {
+      font-family: var(--font-suisse);
+      font-size: 14px;
+      font-weight: 500;
+      color: #ffffff;
+      background: var(--color-ember-orange);
+      border: none;
+      padding: 11px 24px;
+      border-radius: var(--radius-buttons);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: var(--shadow-orange-glow);
+      transition: transform 0.1s ease, box-shadow 0.15s ease;
+      text-decoration: none;
+    }
+
+    .btn-primary-pill:hover {
+      transform: translateY(-1px);
+      box-shadow: 0px 0px 0px 8px var(--color-ember-glow-light);
+    }
+
+    .btn-primary-pill:active {
+      transform: translateY(0);
+    }
+
+    .btn-ghost-pill {
+      font-family: var(--font-suisse);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--color-ink);
+      background: transparent;
+      border: 1px solid var(--color-gridline);
+      padding: 8px 16px;
+      border-radius: var(--radius-buttons);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+
+    /* Floating Cart Bar */
     .floating-cart-bar {
       position: fixed;
       bottom: 24px;
@@ -944,7 +767,7 @@
       margin-left: auto;
     }
 
-    /* Cart Slide-Over Drawer */
+    /* Cart Drawer Overlay */
     .drawer-overlay {
       position: fixed;
       inset: 0;
@@ -1051,9 +874,7 @@
       margin-top: 10px;
     }
 
-    /* ==================================================================== */
-    /* VIEW E: REAL-TIME LIVE STATUS TRACKER                                */
-    /* ==================================================================== */
+    /* Live Order Tracker View */
     .live-tracker-view {
       display: none;
     }
@@ -1154,52 +975,7 @@
       margin-top: 2px;
     }
 
-    /* Footer */
-    .app-footer {
-      border-top: 1px solid var(--color-gridline);
-      background: var(--color-vellum);
-      padding: 28px 20px;
-      font-size: 13px;
-      color: var(--color-slate);
-      margin-top: auto;
-    }
-
-    .app-footer-inner {
-      max-width: var(--page-max-width);
-      margin: 0 auto;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 16px;
-    }
-
-    .staff-portal-link {
-      color: var(--color-ink);
-      text-decoration: none;
-      font-family: var(--font-geist-mono);
-      font-size: 12px;
-      font-weight: 500;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      border: 1px solid var(--color-gridline);
-      padding: 6px 12px;
-      border-radius: var(--radius-buttons);
-      background: #ffffff;
-      transition: all 0.15s ease;
-    }
-
-    .staff-portal-link:hover {
-      border-color: var(--color-ember-orange);
-      color: var(--color-ember-orange);
-    }
-
     @media (max-width: 768px) {
-      .kiosk-welcome-card {
-        grid-template-columns: 1fr;
-        padding: 24px;
-      }
       .stepper-flow {
         grid-template-columns: 1fr 1fr;
       }
@@ -1215,7 +991,7 @@
 <body class="bg-grid-texture">
 
   <!-- ==================================================================== -->
-  <!-- 1. TOP CUSTOMER HEADER (Focused purely on the dining experience)     -->
+  <!-- TOP CUSTOMER HEADER (Clean, unpolluted consumer dining header)       -->
   <!-- ==================================================================== -->
   <header class="customer-header">
     <div class="customer-header-inner">
@@ -1252,81 +1028,21 @@
   </header>
 
   <!-- ==================================================================== -->
-  <!-- 2. MAIN APPLICATION CONTENT                                          -->
+  <!-- MAIN APPLICATION CONTENT                                             -->
   <!-- ==================================================================== -->
   <main class="content-container">
 
-    <!-- ================================================================== -->
-    <!-- VIEW 1: TABLETOP WELCOME KIOSK (STANDBY & QR SCAN)                 -->
-    <!-- ================================================================== -->
-    <section class="kiosk-welcome-card" id="viewWelcomeKiosk">
-      <div>
-        <h1 class="kiosk-title">Welcome to <span class="orange">MatbakhLink</span>.</h1>
-        <p class="kiosk-lead">
-          Every dish is prepared fresh upon your order. Browse the digital menu on this table tablet, or scan the QR code with your smartphone camera to order from your seat.
-        </p>
-
-        <!-- Party Size -->
-        <div class="guest-selector-group">
-          <label class="guest-selector-label">Number of Diners at Table</label>
-          <div class="guest-pills-row">
-            <button class="guest-pill-btn" onclick="setPartySize(1, this)">1 Person</button>
-            <button class="guest-pill-btn active" onclick="setPartySize(2, this)">2 People</button>
-            <button class="guest-pill-btn" onclick="setPartySize(3, this)">3 People</button>
-            <button class="guest-pill-btn" onclick="setPartySize(4, this)">4 People</button>
-            <button class="guest-pill-btn" onclick="setPartySize(5, this)">5+ Booth</button>
-          </div>
-        </div>
-
-        <!-- Big Touch CTA -->
-        <button class="btn-primary-pill" onclick="enterDineInMenu()" style="width: 100%; max-width: 320px; font-size: 15px; padding: 13px 28px;">
-          Start Dine-In Order ➔
-        </button>
-      </div>
-
-      <!-- Right Side: Live Table QR Code -->
-      <div class="qr-stand-unit">
-        <div class="qr-canvas-holder">
-          <div id="tableQrCanvas"></div>
-        </div>
-        <div class="qr-table-headline" id="qrTableCodeText">TABLE T-04</div>
-        <div class="qr-location-sub">First Floor · Main Dining Room</div>
-        
-        <div class="qr-scan-hint">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
-            <line x1="12" y1="18" x2="12.01" y2="18"></line>
-          </svg>
-          Point your mobile camera to open on phone
-        </div>
-
-        <div class="table-amenities-row">
-          <div class="amenity-link" onclick="copyWifi()">
-            <span>WiFi: <strong>LiveKitchen</strong></span>
-          </div>
-          <div class="amenity-link" onclick="callWaiterAction()">
-            <span>Need Water or Napkins? ➔</span>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ================================================================== -->
-    <!-- VIEW 2: DIGITAL DINE-IN MENU (TOUCHSCREEN-FIRST)                   -->
-    <!-- ================================================================== -->
-    <section class="diner-menu-view" id="viewDineInMenu">
-      <!-- Active Table Banner -->
-      <div class="active-table-banner">
-        <div class="table-banner-left">
-          <span class="table-pulse-dot"></span>
+    <!-- DIGITAL DINE-IN MENU VIEW -->
+    <section id="viewDineInMenu">
+      <!-- Active Table Greeting -->
+      <div class="table-greeting-strip">
+        <div class="greeting-left">
+          <span class="table-live-dot"></span>
           <div>
-            <div class="table-banner-title" id="menuBannerTable">Ordering for Table T-04</div>
-            <div class="table-banner-meta">Kitchen Queue: Fast (Est. 12-15m) · Flame Grill Ready</div>
+            <div class="table-headline" id="menuBannerTable">Welcome to Table T-04</div>
+            <div class="table-subtext">Flame-grilled fresh to your order · Kitchen prep est. 12-15m</div>
           </div>
         </div>
-        <button class="btn-ghost-pill" onclick="showWelcomeKiosk()" style="padding: 5px 12px; font-size: 12px;">
-          Table Standby Screen
-        </button>
       </div>
 
       <!-- Firecrawl Search Bar -->
@@ -1339,7 +1055,7 @@
           type="text" 
           id="dishSearchInput" 
           class="menu-search-input" 
-          placeholder="Search burgers, pizzas, steaks, sides or ingredients..." 
+          placeholder="Search flame-grilled burgers, steaks, pizzas, sides or ingredients..." 
           oninput="handleSearch(this.value)"
         >
       </div>
@@ -1360,15 +1076,13 @@
       </div>
     </section>
 
-    <!-- ================================================================== -->
-    <!-- VIEW 3: REAL-TIME LIVE ORDER STATUS TRACKER                        -->
-    <!-- ================================================================== -->
+    <!-- REAL-TIME LIVE ORDER STATUS TRACKER -->
     <section class="live-tracker-view" id="viewLiveTracker">
       <div class="tracker-card">
         <div class="tracker-top-meta">
           <div>
             <div class="tracker-order-num" id="liveTrackerOrderId">#ORD-104</div>
-            <div style="font-size: 13px; color: var(--color-slate);" id="liveTrackerTableSub">Table T-04 · Dine-In</div>
+            <div style="font-size: 13px; color: var(--color-slate);" id="liveTrackerTableSub">Table T-04 · Dine-In Order</div>
           </div>
           <div class="tracker-timer-chip">
             <span class="pulse-amber"></span>
@@ -1401,13 +1115,13 @@
         </div>
 
         <div style="display: flex; gap: 12px; margin-top: 24px; flex-wrap: wrap;">
-          <button class="btn-primary-pill" onclick="enterDineInMenu()">
+          <button class="btn-primary-pill" onclick="returnToMenu()">
             + Order More Items for Table
           </button>
           <button class="btn-ghost-pill" onclick="callWaiterAction()">
             Call Waiter to Table
           </button>
-          <button class="btn-ghost-pill" onclick="alert('Bill requested. Your waiter will bring the payment terminal to your table.')">
+          <button class="btn-ghost-pill" onclick="alert('Bill requested. Your waiter will bring the payment terminal to Table ' + currentTable + ' shortly.')">
             Request Check / Bill
           </button>
         </div>
@@ -1417,7 +1131,7 @@
   </main>
 
   <!-- ==================================================================== -->
-  <!-- 3. DISH MODIFIERS MODAL (Deep Customization Dialog)                  -->
+  <!-- DISH MODIFIERS MODAL (Deep Customization Dialog)                     -->
   <!-- ==================================================================== -->
   <div class="modal-backdrop" id="customizerModalBackdrop">
     <div class="dish-customizer-dialog">
@@ -1476,7 +1190,7 @@
   </div>
 
   <!-- ==================================================================== -->
-  <!-- 4. FLOATING CART BAR & SLIDE-OUT DRAWER                             -->
+  <!-- FLOATING CART BAR & SLIDE-OUT DRAWER                                -->
   <!-- ==================================================================== -->
   <div class="floating-cart-bar" id="floatingCartBar" onclick="openCartDrawer()">
     <div class="cart-bar-info">
@@ -1495,7 +1209,7 @@
       <div class="drawer-header">
         <div>
           <div style="font-size: 16px; font-weight: 600; color: var(--color-ink);">Table Order Review</div>
-          <div style="font-family: var(--font-geist-mono); font-size: 12px; color: var(--color-slate);" id="drawerTableInfo">Table T-04 · First Floor</div>
+          <div style="font-family: var(--font-geist-mono); font-size: 12px; color: var(--color-slate);" id="drawerTableInfo">Table T-04 · Dine-In</div>
         </div>
         <button class="btn-dialog-close" onclick="closeCartDrawer()">✕</button>
       </div>
@@ -1522,23 +1236,6 @@
       </div>
     </div>
   </div>
-
-  <!-- ==================================================================== -->
-  <!-- 5. FOOTER (Discreet Staff Portal Link)                               -->
-  <!-- ==================================================================== -->
-  <footer class="app-footer">
-    <div class="app-footer-inner">
-      <div>
-        <strong>MatbakhLink</strong> · Digital Dine-In Platform & Kitchen Synchronization.
-      </div>
-      <div>
-        <a href="kds.html" class="staff-portal-link">
-          <span>Kitchen Display (KDS) & Floor Operations</span>
-          <span style="color: var(--color-ember-orange);">➔</span>
-        </a>
-      </div>
-    </div>
-  </footer>
 
   <!-- ==================================================================== -->
   <!-- JAVASCRIPT APPLICATION LOGIC                                         -->
@@ -1711,7 +1408,6 @@
 
     // State Variables
     let currentTable = 'T-04';
-    let currentGuests = 2;
     let tableCart = [];
     let currentCustomizingDish = null;
     let selectedPortion = null;
@@ -1728,83 +1424,36 @@
       );
     }
 
-    // ====================================================================
-    // VIEW SWITCHING (Customer-Centric Flow)
-    // ====================================================================
-    function showWelcomeKiosk() {
-      document.getElementById('viewWelcomeKiosk').style.display = 'grid';
-      document.getElementById('viewDineInMenu').style.display = 'none';
-      document.getElementById('viewLiveTracker').style.display = 'none';
-      renderTableQrCode();
-    }
-
-    function enterDineInMenu() {
-      document.getElementById('viewWelcomeKiosk').style.display = 'none';
-      document.getElementById('viewDineInMenu').style.display = 'block';
-      document.getElementById('viewLiveTracker').style.display = 'none';
-      document.getElementById('menuBannerTable').innerText = `Ordering for Table ${currentTable} (${currentGuests} Guests)`;
-      renderTouchMenuCards(MENU_ITEMS);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
+    // View Switching
     function showLiveTracker(orderId) {
-      document.getElementById('viewWelcomeKiosk').style.display = 'none';
       document.getElementById('viewDineInMenu').style.display = 'none';
       document.getElementById('viewLiveTracker').style.display = 'block';
       document.getElementById('liveTrackerOrderId').innerText = `#ORD-${orderId}`;
-      document.getElementById('liveTrackerTableSub').innerText = `Table ${currentTable} · Dine-In (${currentGuests} Diners)`;
+      document.getElementById('liveTrackerTableSub').innerText = `Table ${currentTable} · Dine-In Order`;
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // Party size
-    function setPartySize(num, btn) {
-      currentGuests = num;
-      document.querySelectorAll('.guest-pill-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
+    function returnToMenu() {
+      document.getElementById('viewDineInMenu').style.display = 'block';
+      document.getElementById('viewLiveTracker').style.display = 'none';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // Table Selector
     function showTableSelectorPrompt() {
-      const choice = prompt("Enter Table Code to switch (e.g. T-01, T-02, T-04, T-08):", currentTable);
+      const choice = prompt("Enter Table Code (e.g. T-01, T-02, T-04, T-08):", currentTable);
       if (choice && choice.trim()) {
         currentTable = choice.trim().toUpperCase();
         document.getElementById('headerTableCodeLabel').innerText = `TABLE ${currentTable}`;
-        document.getElementById('qrTableCodeText').innerText = `TABLE ${currentTable}`;
-        renderTableQrCode();
-        if (document.getElementById('viewDineInMenu').style.display === 'block') {
-          document.getElementById('menuBannerTable').innerText = `Ordering for Table ${currentTable} (${currentGuests} Guests)`;
-        }
+        document.getElementById('menuBannerTable').innerText = `Welcome to Table ${currentTable}`;
+        refreshCartUI();
       }
     }
 
-    // Render QR Code
-    function renderTableQrCode() {
-      const container = document.getElementById('tableQrCanvas');
-      if (!container) return;
-      container.innerHTML = '';
-      const url = `${window.location.origin}${window.location.pathname}?table=${currentTable}`;
-      new QRCode(container, {
-        text: url,
-        width: 136,
-        height: 136,
-        colorDark: "#262626",
-        colorLight: "#ffffff",
-        correctLevel: QRCode.CorrectLevel.M
-      });
-    }
-
-    function copyWifi() {
-      navigator.clipboard.writeText("SSID: LiveKitchen / Pass: welcome2026");
-      alert("WiFi copied: Network 'LiveKitchen' · Pass 'welcome2026'");
-    }
-
     function callWaiterAction() {
-      alert(`Waiter Called! A team member has been notified to assist Table ${currentTable}.`);
+      alert(`Waiter Called! A server has been dispatched to Table ${currentTable}.`);
     }
 
-    // ====================================================================
-    // TOUCHSCREEN MENU RENDERING
-    // ====================================================================
+    // Render Menu Cards (Touchscreen-first: whole card clickable)
     function renderTouchMenuCards(items) {
       const grid = document.getElementById('touchMenuGrid');
       if (!grid) return;
@@ -1857,9 +1506,7 @@
       renderTouchMenuCards(filtered);
     }
 
-    // ====================================================================
-    // DISH CUSTOMIZATION MODAL
-    // ====================================================================
+    // Modal Customizer
     function openDishCustomizer(dishId) {
       const dish = MENU_ITEMS.find(d => d.id === dishId);
       if (!dish) return;
@@ -1874,7 +1521,7 @@
       document.getElementById('qtyDisplayNumber').innerText = '1';
       document.getElementById('kitchenNotesInput').value = '';
 
-      // Render portion choices
+      // Portion choices
       const portionContainer = document.getElementById('portionSelectorContainer');
       portionContainer.innerHTML = dish.portions.map((p, idx) => `
         <div class="portion-option-card ${idx === 0 ? 'selected' : ''}" onclick="selectPortion('${p.key}', ${p.add}, '${p.label}', this)">
@@ -1883,7 +1530,7 @@
         </div>
       `).join('');
 
-      // Render extras
+      // Extras
       const extrasContainer = document.getElementById('extrasSelectorContainer');
       if (dish.extras && dish.extras.length > 0) {
         extrasContainer.innerHTML = dish.extras.map(ex => `
@@ -1967,9 +1614,7 @@
       refreshCartUI();
     }
 
-    // ====================================================================
-    // CART ENGINE & DISPATCH
-    // ====================================================================
+    // Cart Management
     function refreshCartUI() {
       const bar = document.getElementById('floatingCartBar');
       const headerTrigger = document.getElementById('headerCartTrigger');
@@ -2043,7 +1688,7 @@
       refreshCartUI();
     }
 
-    // Send to Kitchen
+    // Dispatch to Supabase
     async function dispatchOrder() {
       if (tableCart.length === 0) return;
 
@@ -2101,9 +1746,7 @@
       }
     }
 
-    // ====================================================================
-    // REALTIME LIVE UPDATES
-    // ====================================================================
+    // Realtime Stepper Updates
     function initRealtime() {
       if (!supabaseClient) return;
 
@@ -2146,23 +1789,20 @@
       }
     }
 
-    // URL Check (e.g. ?table=T-05 directly entered via phone QR scan)
-    function checkUrlForTable() {
+    // Parse URL parameter (e.g. ?table=T-04 from scanned table QR)
+    function parseTableFromUrl() {
       const params = new URLSearchParams(window.location.search);
       const t = params.get('table');
       if (t) {
         currentTable = t.toUpperCase();
-        document.getElementById('headerTableCodeLabel').innerText = `TABLE ${currentTable}`;
-        document.getElementById('qrTableCodeText').innerText = `TABLE ${currentTable}`;
-        // If scanned via QR on phone, directly enter the menu!
-        enterDineInMenu();
-      } else {
-        showWelcomeKiosk();
       }
+      document.getElementById('headerTableCodeLabel').innerText = `TABLE ${currentTable}`;
+      document.getElementById('menuBannerTable').innerText = `Welcome to Table ${currentTable}`;
     }
 
     window.addEventListener('DOMContentLoaded', () => {
-      checkUrlForTable();
+      parseTableFromUrl();
+      renderTouchMenuCards(MENU_ITEMS);
       initRealtime();
     });
   </script>

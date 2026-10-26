@@ -5,15 +5,22 @@ MatbakhLink digitizes the restaurant dine-in experience and seamlessly synchroni
 
 ---
 
-### 1. Persona Separation & Production-Ready UX (CRITICAL RULE)
-- **NO DEVELOPER/DEMO SHORTCUTS IN USER UI**:
-  - A real public customer dining at a table must NEVER see kitchen order screens, floor plans, developer device pickers, or administrative navigation tabs.
-  - The customer experience must be 100% focused on dining: Welcome/Table Identification ➔ Digital Menu ➔ Dish Customization ➔ Cart/Checkout ➔ Live Order Tracker.
-  - Operations/Staff interfaces (Kitchen Display System `KDS` and Floor Plan) must be separate dedicated portals (e.g. `kds.html` or protected staff view), accessed via a subtle staff link or credentialed portal.
+### 1. First-Principles Product Thinking & Persona Separation (CRITICAL RULE)
+All agents working on this project MUST follow `.agents/skills/first-principles-ux/SKILL.md`:
+- **PHYSICAL REALITY CONTEXT**:
+  - Understand the customer's physical situation: A customer sitting at Table 4 is holding their mobile phone after scanning a physical table QR code, OR looking at a mounted tabletop tablet kiosk.
+  - **Never show a QR code on the mobile app to a user who already opened the app on their phone!**
+  - The physical QR code lives on the acrylic table stand on the real wooden table (`table-stand.html`).
+- **ELIMINATE REDUNDANT QUESTIONS**:
+  - Never ask a customer sitting at Table 4 "How many people are at this table?". Table 4 already has chairs and they are already seated. Party size is a Host/Cashier check-in concern at the restaurant door, never a seated diner's concern.
+  - Never place a mandatory login/account creation gatekeeper screen before showing the menu. Customers are hungry; show the food and prices immediately.
+- **ZERO BACK-OFFICE OR DEVELOPER LEAKS IN CONSUMER UI**:
+  - A real diner at Table 4 must NEVER see kitchen order screens, floor plans, developer device pickers, or administrative navigation tabs.
+  - The customer experience (`index.html`) is 100% focused on dining: Menu ➔ Touchscreen Dish Customization ➔ Cart/Checkout ➔ Live Order Tracker.
+  - Operations/Staff interfaces (Kitchen Display System `KDS` and Floor Plan) must be a separate dedicated portal (`kds.html`).
 - **TOUCHSCREEN & TABLET ERGONOMICS**:
   - The entire card for any menu item must be clickable (touch anywhere on the card to open customization, not just a small button).
-  - Touch targets must be generous (minimum 44x44px, large pills, clear tactile feedback).
-  - Layout must feel native whether opened on a guest's mobile phone (scanned QR) or a mounted tabletop tablet.
+  - Touch targets must be generous (minimum 44x44px, large pills, clear tactile `:active` feedback).
 
 ---
 
