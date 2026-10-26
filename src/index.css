@@ -1,0 +1,42 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --color-ember: #ff4d00;
+    --color-ink: #262626;
+    --color-slate: #727272;
+    --color-hairline: #e5e7eb;
+    --color-vellum: #f9f9f9;
+    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  body {
+    background-color: #ffffff;
+    color: #262626;
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
+    min-height: 100dvh;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+  }
+
+  /* Mono font utility for prices and technical identifiers */
+  .font-mono-num {
+    font-family: var(--font-mono);
+    font-feature-settings: 'tnum' on, 'lnum' on;
+  }
+}
+
+/* Custom ember glow focus / ring utilities */
+.ember-glow {
+  box-shadow: 0 0 0 4px #fcddcc;
+}
+
+.card-hairline {
+  border: 1px solid #e5e7eb;
+  background-color: #f9f9f9;
+}
