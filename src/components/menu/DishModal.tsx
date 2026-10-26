@@ -46,6 +46,7 @@ export const DishModal: React.FC<DishModalProps> = ({ dish, onClose }) => {
       onClick={onClose}
     >
       <div
+        data-ui-radius="16"
         className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[88vh] border border-[#e5e7eb]"
         onClick={(e) => e.stopPropagation()}
       >
@@ -70,32 +71,32 @@ export const DishModal: React.FC<DishModalProps> = ({ dish, onClose }) => {
             </svg>
           </button>
           {dish.badge && (
-            <div className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-[#ff4d00] text-white text-[11px] font-bold uppercase tracking-wider shadow-xs">
+            <div className="absolute top-3 left-3 px-3 py-1 rounded-full bg-[#EA580C] text-white text-[11px] font-bold shadow-xs">
               {dish.badge}
             </div>
           )}
         </div>
 
-        {/* Modal Scrollable Body with No Clipping */}
+        {/* Modal Scrollable Body */}
         <div className="p-6 overflow-y-auto space-y-6 flex-1 overscroll-contain">
           <div>
             <div className="flex items-start justify-between gap-4">
-              <h3 className="text-xl font-bold text-[#262626]">{dish.name}</h3>
-              <div className="text-lg font-bold font-mono-num text-[#ff4d00] shrink-0">
+              <h3 className="text-xl font-bold text-[#262626]" data-ui-balance>{dish.name}</h3>
+              <div className="text-lg font-bold font-mono-num text-[#EA580C] shrink-0" data-ui-number>
                 {dish.basePrice.toFixed(2)} EGP
               </div>
             </div>
             <div className="flex items-center gap-2 mt-1">
-              <span className="text-[12px] font-mono-num text-[#727272]">{dish.calories} kcal</span>
+              <span className="text-[12px] font-mono-num text-[#727272]" data-ui-number>{dish.calories} kcal</span>
               <span className="text-[#d1d5db]">/</span>
               <span className="text-[12px] text-[#727272] capitalize">{dish.category}</span>
             </div>
-            <p className="mt-2.5 text-[14px] text-[#727272] leading-relaxed">
+            <p className="mt-2.5 text-[14px] text-[#727272] leading-relaxed" data-ui-pretty>
               {dish.description}
             </p>
           </div>
 
-          {/* Customize & Add-ons (Full Visibility, Generous Spacing) */}
+          {/* Customize & Add-ons */}
           {dish.modifiers && dish.modifiers.length > 0 && (
             <div className="pt-4 border-t border-[#e5e7eb]">
               <div className="text-[13px] font-bold text-[#262626] uppercase tracking-wider mb-3">
@@ -110,7 +111,7 @@ export const DishModal: React.FC<DishModalProps> = ({ dish, onClose }) => {
                       onClick={() => toggleModifier(mod)}
                       className={`flex items-center justify-between p-3.5 rounded-xl border transition-all cursor-pointer ${
                         isChecked
-                          ? 'border-[#ff4d00] bg-orange-50/50 shadow-xs'
+                          ? 'border-[#EA580C] bg-orange-50/50 shadow-xs'
                           : 'border-[#e5e7eb] bg-[#f9f9f9] hover:bg-white'
                       }`}
                     >
@@ -118,7 +119,7 @@ export const DishModal: React.FC<DishModalProps> = ({ dish, onClose }) => {
                         <div
                           className={`w-4 h-4 rounded flex items-center justify-center border transition-colors ${
                             isChecked
-                              ? 'bg-[#ff4d00] border-[#ff4d00] text-white'
+                              ? 'bg-[#EA580C] border-[#EA580C] text-white'
                               : 'border-[#d1d5db] bg-white'
                           }`}
                         >
@@ -130,7 +131,7 @@ export const DishModal: React.FC<DishModalProps> = ({ dish, onClose }) => {
                         </div>
                         <span className="text-[13px] font-medium text-[#262626]">{mod.name}</span>
                       </div>
-                      <span className="text-[13px] font-mono-num font-semibold text-[#727272]">
+                      <span className="text-[13px] font-mono-num font-semibold text-[#727272]" data-ui-number>
                         +{mod.price.toFixed(2)} EGP
                       </span>
                     </label>
@@ -151,7 +152,7 @@ export const DishModal: React.FC<DishModalProps> = ({ dish, onClose }) => {
               placeholder="e.g. Extra sauce on side, no onions"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-lg border border-[#e5e7eb] text-[13px] text-[#262626] placeholder-[#9ca3af] focus:outline-none focus:border-[#ff4d00] transition-colors"
+              className="w-full px-3.5 py-2.5 rounded-lg border border-[#e5e7eb] text-[13px] text-[#262626] placeholder-[#9ca3af] focus:outline-none focus:border-[#EA580C] transition-colors"
             />
           </div>
         </div>
@@ -168,7 +169,7 @@ export const DishModal: React.FC<DishModalProps> = ({ dish, onClose }) => {
             >
               -
             </button>
-            <span className="w-8 text-center font-mono-num font-bold text-[14px] text-[#262626]">
+            <span className="w-8 text-center font-mono-num font-bold text-[14px] text-[#262626]" data-ui-number>
               {quantity}
             </span>
             <button
@@ -183,7 +184,8 @@ export const DishModal: React.FC<DishModalProps> = ({ dish, onClose }) => {
           {/* Add to Order Button */}
           <button
             onClick={handleAddToCart}
-            className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full bg-[#ff4d00] hover:opacity-95 text-white text-[14px] font-semibold transition-all shadow-sm btn-ember-glow active:scale-95 cursor-pointer"
+            data-ui-radius="999"
+            className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full bg-[#EA580C] hover:opacity-95 text-white text-[14px] font-semibold transition-all shadow-sm btn-flame-glow active:scale-95 cursor-pointer"
           >
             {addedFeedback ? (
               <span>Added to Order!</span>
@@ -191,7 +193,7 @@ export const DishModal: React.FC<DishModalProps> = ({ dish, onClose }) => {
               <>
                 <span>Add to Order</span>
                 <span className="opacity-80">/</span>
-                <span className="font-mono-num font-bold">{itemTotal.toFixed(2)} EGP</span>
+                <span className="font-mono-num font-bold" data-ui-number>{itemTotal.toFixed(2)} EGP</span>
               </>
             )}
           </button>

@@ -19,15 +19,17 @@ export const FloatingCartBar: React.FC = () => {
   return (
     <aside
       aria-label="Active Order Cart Summary"
-      className="fixed bottom-5 inset-x-4 sm:inset-x-auto sm:right-6 sm:w-96 z-40 animate-in slide-in-from-bottom-4 duration-200"
+      data-ui-container="floating-cart"
+      className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-[92%] sm:w-auto min-w-[320px] sm:min-w-[360px] animate-in slide-in-from-bottom-4 duration-200"
     >
       <button
         onClick={() => openCartDrawer()}
-        className="w-full flex items-center justify-between p-3.5 sm:p-4 rounded-full bg-[#262626] text-white shadow-xl hover:bg-black border border-white/10 transition-all active:scale-[0.98] cursor-pointer group"
+        data-ui-radius="999"
+        className="w-full flex items-center justify-between px-5 py-3.5 rounded-full bg-[#1e232d] text-white shadow-2xl hover:bg-[#111827] border border-white/10 transition-all active:scale-[0.98] cursor-pointer group"
       >
         {/* Left: Item Count Badge & Label */}
         <div className="flex items-center gap-3">
-          <div className="w-7 h-7 rounded-full bg-[#ff4d00] text-white flex items-center justify-center font-mono-num font-bold text-[13px] shadow-xs">
+          <div className="w-7 h-7 rounded-full bg-[#EA580C] text-white flex items-center justify-center font-mono-num font-bold text-[13px] shadow-xs">
             {totalItems}
           </div>
           <span className="text-[14px] font-semibold tracking-wide">
@@ -36,8 +38,8 @@ export const FloatingCartBar: React.FC = () => {
         </div>
 
         {/* Right: Subtotal & Arrow */}
-        <div className="flex items-center gap-2">
-          <span className="font-mono-num font-bold text-[15px] text-[#ff4d00]">
+        <div className="flex items-center gap-2.5">
+          <span className="font-mono-num font-bold text-[15px] text-[#EA580C]" data-ui-number>
             {subtotal.toFixed(2)} EGP
           </span>
           <svg

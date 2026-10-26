@@ -39,6 +39,7 @@ export const CartDrawer: React.FC = () => {
       onClick={closeCartDrawer}
     >
       <div
+        data-ui-container="cart-drawer"
         className="w-full max-w-md bg-white h-full shadow-2xl flex flex-col justify-between border-l border-[#e5e7eb] animate-in slide-in-from-right duration-300"
         onClick={(e) => e.stopPropagation()}
       >
@@ -46,7 +47,7 @@ export const CartDrawer: React.FC = () => {
         <div className="p-5 border-b border-[#e5e7eb] flex items-center justify-between bg-white">
           <div className="flex items-center gap-2.5">
             <h2 className="text-lg font-bold text-[#262626]">Your Order Cart</h2>
-            <span className="px-2 py-0.5 rounded-full bg-[#f9f9f9] border border-[#e5e7eb] text-[12px] font-mono-num font-bold text-[#727272]">
+            <span className="px-2 py-0.5 rounded-full bg-[#f9f9f9] border border-[#e5e7eb] text-[12px] font-mono-num font-bold text-[#727272]" data-ui-number>
               {cart.reduce((s, i) => s + i.quantity, 0)} items
             </span>
           </div>
@@ -55,14 +56,14 @@ export const CartDrawer: React.FC = () => {
             {cart.length > 0 && (
               <button
                 onClick={clearCart}
-                className="text-[12px] text-[#727272] hover:text-red-600 px-2 py-1 rounded transition-colors"
+                className="text-[12px] text-[#727272] hover:text-red-600 px-2 py-1 rounded transition-colors cursor-pointer"
               >
                 Clear
               </button>
             )}
             <button
               onClick={closeCartDrawer}
-              className="w-8 h-8 rounded-full bg-[#f9f9f9] hover:bg-[#e5e7eb] flex items-center justify-center text-[#262626] transition-colors"
+              className="w-8 h-8 rounded-full bg-[#f9f9f9] hover:bg-[#e5e7eb] flex items-center justify-center text-[#262626] transition-colors cursor-pointer"
               aria-label="Close cart drawer"
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -76,7 +77,7 @@ export const CartDrawer: React.FC = () => {
         {activeTable ? (
           <div className="px-5 py-2.5 bg-orange-50/70 border-b border-orange-100 flex items-center justify-between text-[12px]">
             <span className="text-[#262626] font-medium">Delivering direct to table:</span>
-            <span className="px-2.5 py-0.5 rounded-full bg-[#ff4d00] text-white font-mono-num font-bold">
+            <span className="px-2.5 py-0.5 rounded-full bg-[#EA580C] text-white font-mono-num font-bold">
               Table {activeTable}
             </span>
           </div>
@@ -103,6 +104,7 @@ export const CartDrawer: React.FC = () => {
               </p>
               <button
                 onClick={closeCartDrawer}
+                data-ui-radius="999"
                 className="mt-5 px-5 py-2 rounded-full bg-[#262626] text-white text-[13px] font-semibold hover:bg-black transition-colors"
               >
                 Browse Menu
@@ -138,7 +140,7 @@ export const CartDrawer: React.FC = () => {
                       </h4>
                       <button
                         onClick={() => removeFromCart(item.cartItemId)}
-                        className="text-[#9ca3af] hover:text-red-500 p-0.5 transition-colors"
+                        className="text-[#9ca3af] hover:text-red-500 p-0.5 transition-colors cursor-pointer"
                         aria-label="Remove item"
                       >
                         <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -153,7 +155,7 @@ export const CartDrawer: React.FC = () => {
                         {item.selectedModifiers.map((mod) => (
                           <div key={mod.id} className="flex justify-between">
                             <span>+ {mod.name}</span>
-                            <span className="font-mono-num">+{mod.price} EGP</span>
+                            <span className="font-mono-num" data-ui-number>+{mod.price} EGP</span>
                           </div>
                         ))}
                       </div>
@@ -171,24 +173,24 @@ export const CartDrawer: React.FC = () => {
                       <div className="inline-flex items-center border border-[#e5e7eb] bg-white rounded-full p-0.5">
                         <button
                           onClick={() => updateCartItemQuantity(item.cartItemId, item.quantity - 1)}
-                          className="w-6 h-6 rounded-full flex items-center justify-center text-[#262626] hover:bg-[#f0f0f0] transition-colors"
+                          className="w-6 h-6 rounded-full flex items-center justify-center text-[#262626] hover:bg-[#f0f0f0] transition-colors cursor-pointer"
                           aria-label="Decrease quantity"
                         >
                           -
                         </button>
-                        <span className="w-6 text-center font-mono-num font-bold text-[12px] text-[#262626]">
+                        <span className="w-6 text-center font-mono-num font-bold text-[12px] text-[#262626]" data-ui-number>
                           {item.quantity}
                         </span>
                         <button
                           onClick={() => updateCartItemQuantity(item.cartItemId, item.quantity + 1)}
-                          className="w-6 h-6 rounded-full flex items-center justify-center text-[#262626] hover:bg-[#f0f0f0] transition-colors"
+                          className="w-6 h-6 rounded-full flex items-center justify-center text-[#262626] hover:bg-[#f0f0f0] transition-colors cursor-pointer"
                           aria-label="Increase quantity"
                         >
                           +
                         </button>
                       </div>
 
-                      <div className="font-mono-num font-bold text-[13px] text-[#262626]">
+                      <div className="font-mono-num font-bold text-[13px] text-[#262626]" data-ui-number>
                         {lineTotal.toFixed(2)} EGP
                       </div>
                     </div>
@@ -205,21 +207,22 @@ export const CartDrawer: React.FC = () => {
             <div className="space-y-1.5 text-[13px]">
               <div className="flex justify-between text-[#727272]">
                 <span>Food & Beverage Subtotal</span>
-                <span className="font-mono-num text-[#262626] font-medium">{subtotal.toFixed(2)} EGP</span>
+                <span className="font-mono-num text-[#262626] font-medium" data-ui-number>{subtotal.toFixed(2)} EGP</span>
               </div>
               <div className="flex justify-between text-[#727272]">
                 <span>ETA Fiscal VAT (14%)</span>
-                <span className="font-mono-num text-[#262626] font-medium">{vatAmount.toFixed(2)} EGP</span>
+                <span className="font-mono-num text-[#262626] font-medium" data-ui-number>{vatAmount.toFixed(2)} EGP</span>
               </div>
               <div className="pt-2 border-t border-[#e5e7eb] flex justify-between text-[16px] font-bold text-[#262626]">
                 <span>Grand Total</span>
-                <span className="font-mono-num text-[#ff4d00]">{total.toFixed(2)} EGP</span>
+                <span className="font-mono-num text-[#EA580C]" data-ui-number>{total.toFixed(2)} EGP</span>
               </div>
             </div>
 
             <button
               onClick={handleCheckout}
-              className="w-full inline-flex items-center justify-center gap-2.5 py-3.5 px-6 rounded-full bg-[#ff4d00] hover:opacity-95 text-white text-[15px] font-semibold transition-all shadow-sm btn-ember-glow active:scale-95 cursor-pointer"
+              data-ui-radius="999"
+              className="w-full inline-flex items-center justify-center gap-2.5 py-3.5 px-6 rounded-full bg-[#EA580C] hover:opacity-95 text-white text-[15px] font-semibold transition-all shadow-sm btn-flame-glow active:scale-95 cursor-pointer"
             >
               <span>Send Order to Kitchen Line</span>
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">

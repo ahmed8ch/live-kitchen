@@ -17,6 +17,10 @@ export interface MenuItem {
   description: string;
   imageUrl: string;
   badge?: string;
+  rating?: number;
+  reviewsCount?: number;
+  prepTime?: string;
+  tags?: string[];
   modifiers: ModifierOption[];
 }
 

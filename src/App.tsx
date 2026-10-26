@@ -35,7 +35,7 @@ export const App: React.FC = () => {
           <footer className="border-t border-[#e5e7eb] bg-[#f9f9f9] py-10 mt-auto">
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-[#ff4d00] flex items-center justify-center text-white shadow-xs shrink-0">
+                <div className="w-8 h-8 rounded-xl bg-[#EA580C] flex items-center justify-center text-white shadow-xs shrink-0">
                   <svg
                     className="w-4 h-4"
                     viewBox="0 0 24 24"
@@ -49,7 +49,7 @@ export const App: React.FC = () => {
                   </svg>
                 </div>
                 <span className="text-[17px] font-extrabold tracking-tight text-[#262626]">
-                  Matbakh<span className="text-[#ff4d00]">Link</span>
+                  Flame<span className="text-[#EA580C]">Link</span>
                 </span>
                 <span className="text-[12px] text-[#727272] hidden sm:inline">
                   / Digital Dine-In & Kitchen Synchronization

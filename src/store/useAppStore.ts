@@ -34,7 +34,7 @@ interface AppState {
 }
 
 const broadcastChannel = typeof window !== 'undefined' && 'BroadcastChannel' in window
-  ? new BroadcastChannel('matbakh_sync')
+  ? new BroadcastChannel('flamelink_sync')
   : null;
 
 // Initial sample order so KDS and Tracker always have rich interactive data
@@ -306,7 +306,7 @@ export const useAppStore = create<AppState>()(
       },
     }),
     {
-      name: 'matbakh_store_v2',
+      name: 'flamelink_store_v2',
       partialize: (state) => ({
         cart: state.cart,
         orders: state.orders,

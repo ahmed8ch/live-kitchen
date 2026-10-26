@@ -28,8 +28,12 @@ export const KdsPage: React.FC = () => {
     return o.status === statusFilter;
   });
 
+  const getElapsedSeconds = (createdAt: number) => {
+    return Math.max(0, Math.floor((currentTime - createdAt) / 1000));
+  };
+
   const formatElapsed = (createdAt: number) => {
-    const elapsedSeconds = Math.max(0, Math.floor((currentTime - createdAt) / 1000));
+    const elapsedSeconds = getElapsedSeconds(createdAt);
     const mins = Math.floor(elapsedSeconds / 60);
     const secs = elapsedSeconds % 60;
     return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
@@ -38,56 +42,64 @@ export const KdsPage: React.FC = () => {
   const getStatusActionText = (status: OrderStatus) => {
     switch (status) {
       case 'received':
-        return 'START COOKING ->';
+        return 'Start Cooking';
       case 'cooking':
-        return 'MARK PLATED & READY ->';
+        return 'Mark Ready for Pass';
       case 'ready':
-        return 'MARK DELIVERED ->';
+        return 'Bump / Served';
       case 'served':
-        return 'COMPLETED';
+        return 'Completed';
     }
   };
 
   // High-contrast color-coded status banners for rapid visual scanning across the kitchen
-  const getStatusBanner = (status: OrderStatus) => {
+  const getStatusBanner = (status: OrderStatus, isDelayed: boolean) => {
+    if (isDelayed && status !== 'served') {
+      return {
+        bannerBg: 'bg-[#DC2626]',
+        textColor: 'text-white',
+        label: 'DELAYED / OVER 10 MIN',
+        buttonBg: 'bg-[#DC2626] hover:bg-[#b91c1c]',
+      };
+    }
     switch (status) {
       case 'received':
         return {
-          bannerBg: 'bg-[#ff4d00]',
+          bannerBg: 'bg-[#EA580C]',
           textColor: 'text-white',
-          label: 'NEW TICKET / RECEIVED',
-          timerBadge: 'bg-black/30 text-white',
+          label: 'NEW / RECEIVED',
+          buttonBg: 'bg-[#EA580C] hover:opacity-95',
         };
       case 'cooking':
         return {
-          bannerBg: 'bg-[#d97706]',
+          bannerBg: 'bg-[#D97706]',
           textColor: 'text-white',
-          label: 'FLAME COOKING / IN LINE',
-          timerBadge: 'bg-black/30 text-white',
+          label: 'COOKING / ON GRILL',
+          buttonBg: 'bg-[#D97706] hover:opacity-95',
         };
       case 'ready':
         return {
-          bannerBg: 'bg-[#059669]',
+          bannerBg: 'bg-[#16A34A]',
           textColor: 'text-white',
-          label: 'PLATED / READY TO SERVE',
-          timerBadge: 'bg-black/30 text-white',
+          label: 'READY / PLATING',
+          buttonBg: 'bg-[#16A34A] hover:opacity-95',
         };
       case 'served':
         return {
           bannerBg: 'bg-[#475569]',
           textColor: 'text-white',
-          label: 'DELIVERED / CLOSED',
-          timerBadge: 'bg-black/30 text-white',
+          label: 'SERVED / CLOSED',
+          buttonBg: 'bg-[#475569] hover:bg-[#334155]',
         };
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#090d16] text-white flex flex-col font-sans select-none overflow-x-hidden">
+    <div className="min-h-screen bg-[#0D0F12] text-white flex flex-col font-sans select-none overflow-x-hidden" data-ui-container="kds-screen">
       {/* High-Contrast Kitchen Top Bar */}
-      <header className="h-18 px-6 sm:px-8 bg-[#161c28] border-b border-slate-800 flex items-center justify-between z-20 shrink-0">
+      <header className="h-18 px-6 sm:px-8 bg-[#151921] border-b border-[#252b36] flex items-center justify-between z-20 shrink-0">
         <div className="flex items-center gap-4">
-          <div className="w-10 h-10 rounded-xl bg-[#ff4d00] flex items-center justify-center text-white font-extrabold text-[15px] shadow-sm">
+          <div className="w-10 h-10 rounded-xl bg-[#EA580C] flex items-center justify-center text-white font-extrabold text-[15px] shadow-sm">
             KDS
           </div>
           <div>
@@ -100,14 +112,14 @@ export const KdsPage: React.FC = () => {
               </span>
             </div>
             <div className="text-[12px] text-slate-400">
-              Big Screen Kitchen Order System / Single-Tap Bump Station
+              FlameLink Big Screen Order Display / Single-Tap Bump Station
             </div>
           </div>
         </div>
 
         {/* Global Summary Counts & Fire Demo Order */}
         <div className="flex items-center gap-3">
-          <div className="hidden lg:flex items-center gap-2.5 font-mono-num text-[13px]">
+          <div className="hidden lg:flex items-center gap-2.5 font-mono-num text-[13px]" data-ui-number>
             <span className="px-3 py-1.5 rounded-lg bg-orange-950/70 border border-orange-700/60 text-orange-200 font-bold">
               {openTickets.length} NEW
             </span>
@@ -121,13 +133,15 @@ export const KdsPage: React.FC = () => {
 
           <button
             onClick={addSampleOrder}
-            className="px-4 py-2 rounded-xl bg-[#ff4d00] hover:opacity-95 text-white text-[13px] font-bold transition-all shadow-md active:scale-95 cursor-pointer btn-ember-glow"
+            data-ui-radius="8"
+            className="px-4 py-2 rounded-xl bg-[#EA580C] hover:opacity-95 text-white text-[13px] font-bold transition-all shadow-md active:scale-95 cursor-pointer btn-flame-glow"
           >
             + Fire Sample Ticket
           </button>
 
           <Link
             to="/"
+            data-ui-radius="8"
             className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-[13px] font-semibold border border-slate-700 transition-colors"
           >
             Exit -&gt;
@@ -135,9 +149,9 @@ export const KdsPage: React.FC = () => {
         </div>
       </header>
 
-      {/* Status Bar / Filter Tabs (Clean, unsectioned single row) */}
-      <div className="bg-[#0e1422] border-b border-slate-800 px-6 sm:px-8 py-3 flex items-center justify-between gap-4 shrink-0">
-        <div className="flex items-center gap-2">
+      {/* Filter Tabs (Clean, unsectioned single row) */}
+      <div className="bg-[#12161f] border-b border-[#252b36] px-6 sm:px-8 py-3 flex items-center justify-between gap-4 shrink-0">
+        <div className="flex items-center gap-2" data-ui-actions="kds-filter">
           {(
             [
               { id: 'active', label: `Active Board (${openTickets.length + cookingTickets.length + readyTickets.length})` },
@@ -150,10 +164,11 @@ export const KdsPage: React.FC = () => {
             <button
               key={tab.id}
               onClick={() => setStatusFilter(tab.id)}
+              data-ui-radius="8"
               className={`px-4 py-2 rounded-xl text-[13px] font-bold transition-all cursor-pointer ${
                 statusFilter === tab.id
-                  ? 'bg-white text-[#262626] shadow-md'
-                  : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+                  ? 'bg-white text-[#111827] shadow-md'
+                  : 'bg-[#181d26] text-slate-400 hover:text-white border border-[#272f3d]'
               }`}
             >
               {tab.label}
@@ -162,11 +177,11 @@ export const KdsPage: React.FC = () => {
         </div>
 
         <div className="text-[12px] font-mono-num text-slate-400 hidden sm:block">
-          Tap anywhere on ticket to inspect or bump
+          Tap anywhere on ticket or giant bump button to advance
         </div>
       </div>
 
-      {/* Main Order Rail: Authentic Kitchen Paper Chit Simulation */}
+      {/* Main Order Rail: Single Unified Auto-Fill Grid (NO Sectioned Columns) */}
       <main className="flex-1 p-6 sm:p-8 overflow-y-auto">
         {filteredOrders.length === 0 ? (
           <div className="h-96 flex flex-col items-center justify-center text-center text-slate-400">
@@ -179,93 +194,104 @@ export const KdsPage: React.FC = () => {
             </div>
             <h2 className="text-xl font-bold text-white">Line Rail is Clear</h2>
             <p className="text-[14px] text-slate-400 mt-1 max-w-sm">
-              No orders are currently waiting. Fire a sample demo ticket to test the real paper ticket simulation.
+              No orders waiting. Fire a sample demo ticket to test real paper ticket simulation.
             </p>
             <div className="mt-5">
               <button
                 onClick={addSampleOrder}
-                className="px-6 py-3 rounded-full bg-[#ff4d00] hover:opacity-95 text-white text-[14px] font-bold transition-all shadow-md active:scale-95 cursor-pointer btn-ember-glow"
+                data-ui-radius="999"
+                className="px-6 py-3 rounded-full bg-[#EA580C] hover:opacity-95 text-white text-[14px] font-bold transition-all shadow-md active:scale-95 cursor-pointer btn-flame-glow"
               >
                 + Fire Sample Demo Ticket
               </button>
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 items-start">
+          <div
+            className="grid gap-6 items-start"
+            style={{
+              gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+            }}
+          >
             {filteredOrders.map((ticket: OrderTicket) => {
-              const banner = getStatusBanner(ticket.status);
+              const elapsedSecs = getElapsedSeconds(ticket.createdAt);
+              const isDelayed = elapsedSecs > 600; // >10 minutes
+              const banner = getStatusBanner(ticket.status, isDelayed);
               const isSelected = selectedTicketId === ticket.id;
 
               return (
                 <div
                   key={ticket.id}
                   onClick={() => setSelectedTicketId(isSelected ? null : ticket.id)}
-                  className={`relative flex flex-col bg-[#ffffff] text-[#111827] rounded-2xl shadow-2xl overflow-hidden transition-all duration-150 cursor-pointer ${
-                    isSelected
-                      ? 'ring-4 ring-[#ff4d00] scale-[1.01]'
-                      : 'hover:shadow-3xl hover:-translate-y-0.5'
+                  data-ui-radius="16"
+                  className={`chit-paper relative flex flex-col rounded-2xl overflow-hidden transition-all duration-150 cursor-pointer ${
+                    isDelayed && ticket.status !== 'served'
+                      ? 'border-2 border-[#DC2626] animate-pulse shadow-red-950/40'
+                      : 'border border-slate-300'
+                  } ${
+                    isSelected ? 'ring-4 ring-[#EA580C] scale-[1.01]' : 'hover:-translate-y-0.5'
                   }`}
                   style={{
-                    backgroundColor: '#ffffff',
-                    backgroundImage: 'linear-gradient(to bottom, #ffffff 0%, #fdfcf9 100%)',
+                    backgroundColor: '#FCFBF7',
+                    color: '#111827',
                   }}
                 >
-                  {/* Top Color-Coded Header Band (Distinct color per status for fast staff scanning) */}
+                  {/* Top Color-Coded Header Band */}
                   <div className={`${banner.bannerBg} px-4 py-2.5 flex items-center justify-between text-white font-black`}>
-                    <div className="text-[12px] tracking-wider uppercase">
+                    <div className="text-[12px] tracking-wider uppercase font-mono-num">
                       {banner.label}
                     </div>
                     {/* Live Stopwatch Clock */}
-                    <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-black/30 font-mono-num text-[12px]">
+                    <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-black/35 font-mono-num text-[12px]" data-ui-number>
                       <span>{formatElapsed(ticket.createdAt)}</span>
                     </div>
                   </div>
 
-                  {/* Paper Receipt Chit Header Area */}
-                  <div className="p-4 sm:p-5 border-b-2 border-dashed border-slate-200">
+                  {/* Thermal Paper Receipt Chit Header Area (Large Screen Legibility 22px-24px) */}
+                  <div className="p-4 sm:p-5 border-b border-dashed border-[#CBD5E1]">
                     <div className="flex items-start justify-between">
                       <div>
-                        {/* Table Number in Huge Print for Big Screen Visibility */}
-                        <div className="text-2xl sm:text-3xl font-black font-mono-num text-[#262626] tracking-tight">
+                        {/* Table Number: 22px-24px Bold Tabular Numerals */}
+                        <div className="text-2xl sm:text-[24px] font-black font-mono-num text-[#111827] tracking-tight leading-none" data-ui-number>
                           {ticket.tableNumber ? `TABLE ${ticket.tableNumber}` : 'COUNTER PICKUP'}
                         </div>
-                        <div className="text-[13px] font-mono-num font-bold text-[#64748b] mt-0.5">
-                          TICKET #{ticket.id}
+                        <div className="text-[13px] font-mono-num font-bold text-[#64748b] mt-1.5" data-ui-number>
+                          #ORD-{ticket.id.replace('ticket-', '').replace('order-', '')}
                         </div>
                       </div>
 
                       <div className="text-right">
-                        <div className="text-[12px] font-mono-num text-[#64748b]">
+                        <div className="text-[12px] font-mono-num text-[#64748b]" data-ui-number>
                           {new Date(ticket.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </div>
-                        <div className="text-[11px] font-mono-num font-bold text-[#ff4d00] uppercase mt-0.5">
+                        <div className="text-[11px] font-mono-num font-bold text-[#EA580C] uppercase mt-1" data-ui-number>
                           {ticket.items.reduce((s, i) => s + i.quantity, 0)} items total
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* Paper Receipt Chit Body: Food Items with Modifiers & Special Notes */}
-                  <div className="p-4 sm:p-5 flex-1 divide-y divide-slate-100 space-y-4">
+                  {/* Chit Body: Food Items with Quantities & 16px Indented Modifiers */}
+                  <div className="p-4 sm:p-5 flex-1 divide-y divide-dashed divide-[#CBD5E1] space-y-4">
                     {ticket.items.map((item) => (
                       <div key={item.cartItemId} className="pt-3 first:pt-0">
-                        {/* Item Title in Bold Large Type */}
-                        <div className="flex items-start gap-2 text-[16px] sm:text-[17px] font-black text-[#262626] leading-tight">
-                          <span className="font-mono-num text-[#ff4d00] shrink-0">
+                        {/* Item Title in Bold Large Type: 18px-20px */}
+                        <div className="flex items-start gap-2.5 text-[18px] sm:text-[19px] font-black text-[#111827] leading-tight">
+                          <span className="font-mono-num text-[#EA580C] shrink-0" data-ui-number>
                             [{item.quantity}x]
                           </span>
                           <span>{item.menuItem.name.toUpperCase()}</span>
                         </div>
 
-                        {/* Modifiers Printed Sub-Bullets */}
+                        {/* Modifiers Printed Sub-Bullets: 16px Bold Callouts */}
                         {item.selectedModifiers.length > 0 && (
                           <div className="mt-2 space-y-1 ml-5">
                             {item.selectedModifiers.map((mod) => (
                               <div
                                 key={mod.id}
-                                className="text-[13px] font-bold text-[#334155] flex items-center gap-1.5"
+                                className="text-[15px] sm:text-[16px] font-bold text-[#b45309] flex items-center gap-1.5"
                               >
-                                <span className="text-[#ff4d00] font-mono-num">-&gt;</span>
+                                <span className="text-[#EA580C] font-mono-num">-&gt;</span>
                                 <span>+ {mod.name.toUpperCase()}</span>
                               </div>
                             ))}
@@ -274,7 +300,7 @@ export const KdsPage: React.FC = () => {
 
                         {/* Special Allergy / Kitchen Note Stamp */}
                         {item.notes && (
-                          <div className="mt-2.5 ml-3 p-2 rounded-lg bg-red-50 border-2 border-dashed border-red-300 text-red-700 text-[12px] font-bold uppercase tracking-wide">
+                          <div className="mt-2.5 ml-4 p-2.5 rounded-lg bg-red-50 border-2 border-dashed border-red-300 text-red-700 text-[13px] sm:text-[14px] font-bold uppercase tracking-wide">
                             <span className="font-black text-red-800 mr-1.5">[NOTE]:</span>
                             {item.notes}
                           </div>
@@ -283,27 +309,22 @@ export const KdsPage: React.FC = () => {
                     ))}
                   </div>
 
-                  {/* Paper Chit Serrated Bottom Perforation Bar */}
-                  <div className="border-t-2 border-dashed border-slate-200 px-4 py-3 bg-[#fcfbf9] flex items-center justify-between text-[11px] font-mono-num text-[#64748b]">
-                    <span>MATBAKHLINK CHIT #{ticket.id}</span>
+                  {/* Thermal Paper Chit Serrated Perforation Line */}
+                  <div className="border-t border-dashed border-[#CBD5E1] px-4 py-2.5 bg-[#f6f5ef] flex items-center justify-between text-[11px] font-mono-num text-[#64748b]">
+                    <span>FLAMELINK CHIT #{ticket.id}</span>
                     <span>14% VAT ETA FISCAL</span>
                   </div>
 
-                  {/* Giant Touchscreen Bump Action Button (Easy to hit on big screen) */}
+                  {/* Giant 56px Touchscreen Bump Action Button (Easy for gloved hand to hit) */}
                   {ticket.status !== 'served' && (
-                    <div className="p-3 bg-white border-t border-slate-200">
+                    <div className="p-3 bg-[#FCFBF7] border-t border-[#CBD5E1]">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           advanceOrderStatus(ticket.id);
                         }}
-                        className={`w-full py-4 px-4 rounded-xl font-black text-[15px] sm:text-[16px] tracking-wide uppercase transition-all shadow-md active:scale-95 cursor-pointer text-center text-white ${
-                          ticket.status === 'received'
-                            ? 'bg-[#ff4d00] hover:opacity-95'
-                            : ticket.status === 'cooking'
-                            ? 'bg-[#059669] hover:bg-[#047857]'
-                            : 'bg-[#262626] hover:bg-black'
-                        }`}
+                        data-ui-radius="8"
+                        className={`w-full h-14 rounded-xl font-black text-[16px] tracking-wider uppercase transition-all shadow-md active:scale-95 cursor-pointer text-center text-white ${banner.buttonBg}`}
                       >
                         {getStatusActionText(ticket.status)}
                       </button>

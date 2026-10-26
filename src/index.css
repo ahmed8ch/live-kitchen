@@ -2,8 +2,8 @@
 
 @layer base {
   :root {
-    --color-ember-orange: #ff4d00;
-    --color-ember-glow: #fcddcc;
+    --color-flame-orange: #EA580C;
+    --color-flame-glow: #fcddcc;
     --color-gridline: #e5e7eb;
     --color-ink: #262626;
     --color-vellum: #f9f9f9;
@@ -27,21 +27,52 @@
   }
 
   /* Monospace font utility for numbers, prices, order IDs, timers */
-  .font-mono-num {
+  .font-mono-num,
+  [data-ui-number] {
     font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
     font-feature-settings: 'tnum' on, 'lnum' on;
+  }
+
+  /* Text wrap balancing per better-typography skill */
+  h1, h2, h3, [data-ui-balance] {
+    text-wrap: balance;
+  }
+
+  p, [data-ui-pretty] {
+    text-wrap: pretty;
   }
 }
 
-/* Warm ember glow halo from DESIGN (3).md */
+/* Warm flame glow halo */
+.btn-flame-glow,
 .btn-ember-glow {
   box-shadow: 0 0 0 6px #fcddcc;
 }
 
-/* Structural graph-paper gridlines (no dots) */
-.bg-grid-blueprint {
-  background-image: 
-    linear-gradient(to right, rgba(229, 231, 235, 0.5) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(229, 231, 235, 0.5) 1px, transparent 1px);
-  background-size: 32px 32px;
+/* Thermal receipt paper chit styling */
+.chit-paper {
+  background-color: #FCFBF7;
+  color: #111827;
+  box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(0, 0, 0, 0.1);
+}
+
+.chit-divider {
+  border-top: 1px dashed #CBD5E1;
+}
+
+/* Subtle serrated paper tear line */
+.chit-serrated-bottom {
+  position: relative;
+}
+
+.chit-serrated-bottom::after {
+  content: "";
+  position: absolute;
+  bottom: -6px;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: radial-gradient(circle, transparent, transparent 50%, #FCFBF7 50%, #FCFBF7 100%);
+  background-size: 12px 12px;
 }
