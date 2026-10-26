@@ -16,7 +16,7 @@ All agents working on this project MUST follow `.agents/skills/first-principles-
   - Never place a mandatory login/account creation gatekeeper screen before showing the menu. Customers are hungry; show the food and prices immediately.
 - **ZERO BACK-OFFICE OR DEVELOPER LEAKS IN CONSUMER UI**:
   - A real diner at Table 4 must NEVER see kitchen order screens, floor plans, developer device pickers, or administrative navigation tabs.
-  - The customer experience (`index.html`) is 100% focused on dining: Menu ➔ Touchscreen Dish Customization ➔ Cart/Checkout ➔ Live Order Tracker.
+  - The customer experience (`index.html`) is 100% focused on dining: Menu -> Touchscreen Dish Customization -> Cart/Checkout -> Live Order Tracker.
   - Operations/Staff interfaces (Kitchen Display System `KDS` and Floor Plan) must be a separate dedicated portal (`kds.html`).
 - **TOUCHSCREEN & TABLET ERGONOMICS**:
   - The entire card for any menu item must be clickable (touch anywhere on the card to open customization, not just a small button).

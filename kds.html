@@ -412,7 +412,7 @@
       </div>
       <a href="index.html" class="btn-customer-portal">
         <span>Customer Menu</span>
-        <span>➔</span>
+        <span>-&gt;</span>
       </a>
     </div>
   </header>
@@ -625,18 +625,18 @@
 
       grid.innerHTML = orders.map(ord => {
         let bandColor = 'band-blue';
-        let actionBtnText = 'Start Cooking ➔';
+        let actionBtnText = 'Start Cooking -&gt;';
         let actionClass = '';
         let nextStatus = 'cooking';
 
         if (ord.status === 'cooking' || ord.status === 'preparing') {
           bandColor = 'band-orange';
-          actionBtnText = 'Mark Ready for Table ➔';
+          actionBtnText = 'Mark Ready for Table -&gt;';
           actionClass = 'ready-step';
           nextStatus = 'ready';
         } else if (ord.status === 'ready') {
           bandColor = 'band-green';
-          actionBtnText = 'Mark Delivered / Served ✓';
+          actionBtnText = 'Mark Delivered / Served';
           nextStatus = 'served';
         }
 
