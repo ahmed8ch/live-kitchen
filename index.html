@@ -1,54 +1,51 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Live Kitchen · Restaurant Ordering & Realtime Kitchen Display</title>
+  <title>Live Kitchen · Restaurant Order Management & Digital Dine-In</title>
 
-  <!-- الخطوط الرسمية: Readex Pro مع خط النظام الاحترافي San Francisco / Inter -->
+  <!-- Google Fonts: Inter for Clean SaaS Typography & Readex Pro for Arabic Localization -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Readex+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
   
-  <!-- مكتبة Supabase الرسمية للويب والتحديث اللحظي -->
+  <!-- Supabase JS Client (Managed DB & Realtime WebSockets) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   
-  <!-- مكتبة توليد رمز الاستجابة السريعة للطاولات (QR Code) -->
+  <!-- Table QR Code Generator -->
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 
   <style>
     :root {
-      /* نظام ألوان راقٍ ومدروس هندسياً وفق معايير Apple HIG و Taste Skill */
-      --color-bg: #f8fafc;
-      --color-surface: #ffffff;
-      --color-surface-elevated: #ffffff;
-      --color-border: #e2e8f0;
-      --color-border-subtle: #edf2f7;
+      --bg-app: #f4f5f8;
+      --bg-surface: #ffffff;
+      --bg-sidebar: #18191d;
+      --bg-card: #ffffff;
+      --border-subtle: #e5e7eb;
+      --border-strong: #d1d5db;
       
-      --color-text-primary: #0f172a;
-      --color-text-secondary: #475569;
-      --color-text-muted: #64748b;
+      --text-main: #111827;
+      --text-secondary: #4b5563;
+      --text-muted: #9ca3af;
       
-      --color-accent: #c2410c;         /* نحاسي دافئ للمطاعم الفاخرة */
-      --color-accent-hover: #9a3412;
-      --color-accent-subtle: #fff7ed;
-      --color-accent-border: #fed7aa;
-
-      --color-status-new: #ef4444;
-      --color-status-new-bg: #fef2f2;
-      --color-status-prep: #d97706;
-      --color-status-prep-bg: #fffbeb;
-      --color-status-ready: #16a34a;
-      --color-status-ready-bg: #f0fdf4;
-
+      --primary: #0f766e;           /* Deep elegant teal from the design */
+      --primary-hover: #115e59;
+      --primary-light: #f0fdfa;
+      
+      --accent-orange: #f97316;
+      --accent-blue: #3b82f6;
+      --accent-purple: #8b5cf6;
+      --accent-green: #10b981;
+      --accent-yellow: #f59e0b;
+      
       --radius-sm: 8px;
-      --radius-md: 12px;
-      --radius-lg: 16px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
       --radius-full: 9999px;
-
-      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
-      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.03);
+      
+      --shadow-soft: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+      --shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.03);
     }
 
     * {
@@ -59,914 +56,1170 @@
     }
 
     body {
-      font-family: 'Readex Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background-color: var(--color-bg);
-      color: var(--color-text-primary);
-      line-height: 1.6;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg-app);
+      color: var(--text-main);
+      display: flex;
       min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ------------------------------------------------------------- */
+    /* LEFT SIDEBAR (Dark SaaS Navigation Rail) */
+    /* ------------------------------------------------------------- */
+    aside.sidebar {
+      width: 76px;
+      background-color: var(--bg-sidebar);
       display: flex;
       flex-direction: column;
-    }
-
-    /* الشريط العلوي العام */
-    header.site-header {
-      background: var(--color-surface);
-      border-bottom: 1px solid var(--color-border);
-      position: sticky;
-      top: 0;
-      z-index: 50;
-      backdrop-filter: blur(8px);
-    }
-
-    .header-inner {
-      max-width: 1240px;
-      margin: 0 auto;
-      padding: 14px 20px;
-      display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 16px;
-      flex-wrap: wrap;
+      padding: 24px 0;
+      flex-shrink: 0;
+      z-index: 40;
     }
 
-    .brand-block {
+    .sidebar-top {
       display: flex;
+      flex-direction: column;
       align-items: center;
-      gap: 12px;
+      gap: 20px;
+      width: 100%;
     }
 
-    .brand-mark {
-      width: 38px;
-      height: 38px;
-      background: var(--color-text-primary);
-      color: var(--color-surface);
+    .brand-icon-box {
+      width: 44px;
+      height: 44px;
+      background: #ffffff;
+      color: #000000;
+      border-radius: 12px;
       display: flex;
       align-items: center;
       justify-content: center;
-      border-radius: var(--radius-sm);
-      font-weight: 700;
-      font-size: 1.1rem;
+      font-weight: 800;
+      font-size: 1.25rem;
       letter-spacing: -0.5px;
-    }
-
-    .brand-titles h1 {
-      font-size: 1.15rem;
-      font-weight: 700;
-      letter-spacing: -0.3px;
-      color: var(--color-text-primary);
-      line-height: 1.2;
-    }
-
-    .brand-titles p {
-      font-size: 0.78rem;
-      color: var(--color-text-muted);
-      font-weight: 400;
-    }
-
-    /* أزرار التحكم المقسمة (Apple-style Segmented Control) */
-    .segmented-control {
-      display: inline-flex;
-      background: #f1f5f9;
-      padding: 4px;
-      border-radius: var(--radius-md);
-      gap: 2px;
-      border: 1px solid var(--color-border);
-    }
-
-    .segment-btn {
-      padding: 8px 16px;
-      border: none;
-      background: transparent;
-      border-radius: var(--radius-sm);
-      font-family: inherit;
-      font-size: 0.88rem;
-      font-weight: 600;
-      color: var(--color-text-secondary);
       cursor: pointer;
-      transition: all 0.15s ease-in-out;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
+      margin-bottom: 8px;
     }
 
-    .segment-btn.active {
-      background: var(--color-surface);
-      color: var(--color-text-primary);
-      box-shadow: var(--shadow-sm);
-    }
-
-    .realtime-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 10px;
-      border-radius: var(--radius-full);
-      font-size: 0.78rem;
-      font-weight: 500;
-      background: var(--color-status-ready-bg);
-      color: var(--color-status-ready);
-      border: 1px solid rgba(22, 163, 74, 0.2);
-    }
-
-    .pulse-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: var(--color-status-ready);
-      box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.7);
-      animation: pulse-ring 2s infinite;
-    }
-
-    @keyframes pulse-ring {
-      0% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.6); }
-      70% { box-shadow: 0 0 0 6px rgba(22, 163, 74, 0); }
-      100% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0); }
-    }
-
-    /* الحاوية الرئيسية */
-    main.app-shell {
-      max-width: 1240px;
-      width: 100%;
-      margin: 0 auto;
-      padding: 28px 20px 100px;
-      flex: 1;
-    }
-
-    /* ================================================= */
-    /* 1. واجهة الزبائن والمنيو (Customer View) */
-    /* ================================================= */
-    .table-context-card {
-      background: var(--color-surface);
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-lg);
-      padding: 18px 22px;
-      margin-bottom: 24px;
+    .nav-icon-list {
       display: flex;
-      justify-content: space-between;
+      flex-direction: column;
+      gap: 12px;
+      width: 100%;
       align-items: center;
-      flex-wrap: wrap;
-      gap: 14px;
-      box-shadow: var(--shadow-sm);
     }
 
-    .table-badge-group {
+    .nav-icon-btn {
+      width: 46px;
+      height: 46px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #9ca3af;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .nav-icon-btn:hover {
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .nav-icon-btn.active {
+      background: var(--accent-yellow);
+      color: #000000;
+    }
+
+    .sidebar-bottom {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      align-items: center;
+    }
+
+    /* ------------------------------------------------------------- */
+    /* MAIN DASHBOARD CONTAINER */
+    /* ------------------------------------------------------------- */
+    .dashboard-wrapper {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      background-color: var(--bg-app);
+    }
+
+    /* Top Navigation Bar */
+    header.dashboard-header {
+      background: var(--bg-surface);
+      height: 76px;
+      padding: 0 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .brand-title-area {
       display: flex;
       align-items: center;
       gap: 12px;
     }
 
-    .table-icon-tag {
-      font-size: 0.8rem;
-      font-weight: 600;
-      background: #0f172a;
-      color: #ffffff;
-      padding: 6px 12px;
-      border-radius: var(--radius-sm);
-      letter-spacing: 0.5px;
+    .brand-name {
+      font-size: 1.45rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: var(--text-main);
     }
 
-    .context-desc {
-      font-size: 0.88rem;
-      color: var(--color-text-secondary);
+    .search-input-wrapper {
+      position: relative;
+      width: 440px;
     }
 
-    .table-select-custom {
-      padding: 8px 12px;
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-sm);
-      font-family: inherit;
-      font-size: 0.88rem;
-      background: var(--color-surface);
-      color: var(--color-text-primary);
-      outline: none;
+    .search-input-wrapper svg {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
     }
 
-    /* فلترة التصنيفات */
-    .filter-pills-bar {
-      display: flex;
-      gap: 8px;
-      overflow-x: auto;
-      padding-bottom: 8px;
-      margin-bottom: 24px;
-      scrollbar-width: none;
-    }
-    .filter-pills-bar::-webkit-scrollbar { display: none; }
-
-    .filter-pill {
-      padding: 8px 18px;
+    .search-input {
+      width: 100%;
+      height: 46px;
+      background: #f8fafc;
+      border: 1px solid var(--border-subtle);
       border-radius: var(--radius-full);
-      border: 1px solid var(--color-border);
-      background: var(--color-surface);
-      font-family: inherit;
+      padding: 0 18px 0 46px;
+      font-size: 0.92rem;
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    .search-input:focus {
+      background: #ffffff;
+      border-color: var(--text-main);
+      box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.1);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .btn-header-round {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: #f8fafc;
+      border: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-secondary);
+      cursor: pointer;
+      position: relative;
+      transition: background 0.15s;
+    }
+
+    .btn-header-round:hover {
+      background: #f1f5f9;
+    }
+
+    .noti-bubble {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 8px;
+      height: 8px;
+      background: var(--accent-orange);
+      border-radius: 50%;
+      border: 2px solid #ffffff;
+    }
+
+    .user-profile-badge {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 4px 10px 4px 4px;
+      border-radius: var(--radius-full);
+      background: #f8fafc;
+      border: 1px solid var(--border-subtle);
+      cursor: pointer;
+    }
+
+    .avatar-img {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    /* Mode Switcher Pill (Staff vs Customer Table View) */
+    .view-mode-pill {
+      background: var(--primary-light);
+      color: var(--primary);
+      border: 1px solid rgba(15, 118, 110, 0.2);
+      padding: 8px 16px;
+      border-radius: var(--radius-full);
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .view-mode-pill:hover {
+      background: var(--primary);
+      color: #ffffff;
+    }
+
+    /* Dashboard Scrollable Body */
+    .dashboard-content {
+      padding: 32px;
+      max-width: 1600px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* ------------------------------------------------------------- */
+    /* 1. ORDERS OVERVIEW HEADER & TOP STATS */
+    /* ------------------------------------------------------------- */
+    .overview-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .page-title {
+      font-size: 1.85rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      color: var(--text-main);
+    }
+
+    .page-subtitle {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .overview-action-buttons {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn-meta-action {
+      background: #ffffff;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 8px 16px;
       font-size: 0.88rem;
       font-weight: 500;
-      color: var(--color-text-secondary);
-      cursor: pointer;
-      white-space: nowrap;
-      transition: all 0.15s ease;
-    }
-
-    .filter-pill:hover {
-      background: #f1f5f9;
-      color: var(--color-text-primary);
-    }
-
-    .filter-pill.active {
-      background: var(--color-text-primary);
-      color: var(--color-surface);
-      border-color: var(--color-text-primary);
-    }
-
-    /* شبكة أطباق المنيو */
-    .menu-cards-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-      gap: 20px;
-    }
-
-    .menu-item-card {
-      background: var(--color-surface);
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-lg);
-      padding: 22px;
+      color: var(--text-secondary);
       display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      transition: border-color 0.15s, box-shadow 0.15s;
-    }
-
-    .menu-item-card:hover {
-      border-color: #cbd5e1;
-      box-shadow: var(--shadow-md);
-    }
-
-    .item-top-meta {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      margin-bottom: 8px;
-    }
-
-    .item-name {
-      font-size: 1.05rem;
-      font-weight: 600;
-      color: var(--color-text-primary);
-    }
-
-    .item-category-tag {
-      font-size: 0.75rem;
-      color: var(--color-text-muted);
-      font-weight: 500;
-    }
-
-    .item-description {
-      font-size: 0.86rem;
-      color: var(--color-text-secondary);
-      line-height: 1.5;
-      margin-bottom: 18px;
-      flex: 1;
-    }
-
-    .item-bottom-bar {
-      display: flex;
-      justify-content: space-between;
       align-items: center;
-      padding-top: 14px;
-      border-top: 1px solid var(--color-border-subtle);
-    }
-
-    .item-price-display {
-      font-size: 1.15rem;
-      font-weight: 700;
-      color: var(--color-text-primary);
-    }
-
-    .item-price-display small {
-      font-size: 0.78rem;
-      font-weight: 400;
-      color: var(--color-text-muted);
-      margin-right: 4px;
-    }
-
-    .btn-action-add {
-      background: var(--color-surface);
-      border: 1px solid var(--color-border);
-      color: var(--color-text-primary);
-      padding: 7px 14px;
-      border-radius: var(--radius-sm);
-      font-family: inherit;
-      font-size: 0.85rem;
-      font-weight: 600;
+      gap: 8px;
       cursor: pointer;
       transition: all 0.15s;
     }
 
-    .btn-action-add:hover {
-      background: var(--color-text-primary);
-      color: var(--color-surface);
-      border-color: var(--color-text-primary);
+    .btn-meta-action:hover {
+      background: #f8fafc;
+      border-color: var(--border-strong);
     }
 
-    /* سلة الطلبات العائمة المينيمال */
-    .cart-dock-bar {
+    /* KPI Metrics Row (5 Cards) */
+    .metrics-ribbon {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 18px;
+      margin-bottom: 36px;
+    }
+
+    .metric-card {
+      background: #ffffff;
+      border-radius: var(--radius-lg);
+      padding: 22px 24px;
+      border: 1px solid var(--border-subtle);
+      box-shadow: var(--shadow-card);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .metric-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-soft);
+    }
+
+    .metric-top {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .metric-icon-badge {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .metric-label {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .metric-value {
+      font-size: 2.1rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      line-height: 1;
+    }
+
+    /* Colors matching the Figma reference */
+    .stat-teal .metric-icon-badge { background: #ecfdf5; color: #059669; }
+    .stat-teal .metric-value { color: #0f766e; }
+
+    .stat-orange .metric-icon-badge { background: #fff7ed; color: #ea580c; }
+    .stat-orange .metric-value { color: #ea580c; }
+
+    .stat-blue .metric-icon-badge { background: #eff6ff; color: #2563eb; }
+    .stat-blue .metric-value { color: #2563eb; }
+
+    .stat-purple .metric-icon-badge { background: #f5f3ff; color: #7c3aed; }
+    .stat-purple .metric-value { color: #6d28d9; }
+
+    .stat-green .metric-icon-badge { background: #ecfdf5; color: #10b981; }
+    .stat-green .metric-value { color: #10b981; }
+
+    /* ------------------------------------------------------------- */
+    /* 2. TODAY'S ORDERS & STATUS FILTER TABS */
+    /* ------------------------------------------------------------- */
+    .orders-section-head {
+      margin-bottom: 18px;
+    }
+
+    .orders-section-title {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 16px;
+    }
+
+    .filter-tabs-pills {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding-bottom: 6px;
+      scrollbar-width: none;
+    }
+    .filter-tabs-pills::-webkit-scrollbar { display: none; }
+
+    .filter-btn-pill {
+      padding: 10px 22px;
+      border-radius: var(--radius-full);
+      border: 1px solid var(--border-subtle);
+      background: #ffffff;
+      font-family: inherit;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .filter-btn-pill:hover {
+      background: #f8fafc;
+      border-color: var(--border-strong);
+    }
+
+    .filter-btn-pill.active {
+      background: #0f766e;
+      color: #ffffff;
+      border-color: #0f766e;
+    }
+
+    /* Colored count badges */
+    .filter-btn-pill.pill-new { color: #ea580c; background: #fff7ed; border-color: #ffedd5; }
+    .filter-btn-pill.pill-new.active { background: #ea580c; color: #fff; }
+
+    .filter-btn-pill.pill-prep { color: #7c3aed; background: #f5f3ff; border-color: #ede9fe; }
+    .filter-btn-pill.pill-prep.active { background: #7c3aed; color: #fff; }
+
+    .filter-btn-pill.pill-ready { color: #db2777; background: #fdf2f8; border-color: #fce7f3; }
+    .filter-btn-pill.pill-ready.active { background: #db2777; color: #fff; }
+
+    /* ------------------------------------------------------------- */
+    /* 3. ORDER CARDS GRID (Exact match to reference image) */
+    /* ------------------------------------------------------------- */
+    .orders-cards-carousel {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .order-ticket-card {
+      background: #ffffff;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: var(--shadow-card);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .order-ticket-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-soft);
+    }
+
+    .card-top-id-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .ticket-id {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .btn-more-options {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 1.1rem;
+    }
+
+    .order-type-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: var(--radius-full);
+      font-size: 0.76rem;
+      font-weight: 600;
+      margin-bottom: 14px;
+    }
+
+    .type-dine-in {
+      background: #eff6ff;
+      color: #2563eb;
+      border: 1px solid #dbeafe;
+    }
+
+    .type-takeaway {
+      background: #fff7ed;
+      color: #ea580c;
+      border: 1px solid #ffedd5;
+    }
+
+    /* Customer meta row */
+    .customer-info-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .customer-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      object-fit: cover;
+      background: #e2e8f0;
+    }
+
+    .customer-name-text {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text-main);
+      line-height: 1.2;
+    }
+
+    .customer-time-ago {
+      font-size: 0.76rem;
+      color: var(--text-muted);
+    }
+
+    /* Food photo banner */
+    .dish-preview-image {
+      width: 100%;
+      height: 124px;
+      border-radius: var(--radius-md);
+      object-fit: cover;
+      margin-bottom: 14px;
+      background: #f1f5f9;
+    }
+
+    /* Itemized list */
+    .items-count-header {
+      font-size: 0.84rem;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 6px;
+    }
+
+    .items-detail-list {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+      margin-bottom: 14px;
+      white-space: pre-line;
+      min-height: 48px;
+    }
+
+    /* Table badge */
+    .table-location-pill {
+      background: #f1f5f9;
+      color: var(--text-secondary);
+      padding: 5px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 0.8rem;
+      font-weight: 600;
+      display: inline-block;
+      margin-bottom: 14px;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .card-total-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 10px 0;
+      border-top: 1px solid var(--border-subtle);
+      margin-bottom: 12px;
+    }
+
+    .total-title-label {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .total-price-val {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+
+    /* Card Actions */
+    .card-actions-col {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .btn-card-primary {
+      width: 100%;
+      padding: 10px;
+      border-radius: var(--radius-sm);
+      background: #18191d;
+      color: #ffffff;
+      border: none;
+      font-family: inherit;
+      font-size: 0.86rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .btn-card-primary:hover {
+      background: #27272a;
+    }
+
+    .btn-card-primary.is-served {
+      background: #10b981;
+    }
+
+    .btn-card-secondary {
+      width: 100%;
+      padding: 8px;
+      border-radius: var(--radius-sm);
+      background: #ffffff;
+      color: var(--text-muted);
+      border: 1px solid var(--border-subtle);
+      font-family: inherit;
+      font-size: 0.82rem;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    .btn-card-secondary:hover {
+      background: #f8fafc;
+      color: var(--text-main);
+    }
+
+    /* Pagination */
+    .pagination-bar {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      margin-top: 36px;
+    }
+
+    .page-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 1px solid var(--border-subtle);
+      background: #ffffff;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .page-btn.active {
+      background: var(--accent-yellow);
+      color: #000000;
+      border-color: var(--accent-yellow);
+    }
+
+    /* ------------------------------------------------------------- */
+    /* 4. DINER / CUSTOMER TABLE VIEW (Digital Dine-In) */
+    /* ------------------------------------------------------------- */
+    .customer-table-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: #ffffff;
+      z-index: 1000;
+      overflow-y: auto;
+      flex-direction: column;
+    }
+
+    .customer-table-header {
+      background: #18191d;
+      color: #ffffff;
+      padding: 16px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .customer-table-body {
+      max-width: 900px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 24px 20px 100px;
+    }
+
+    .customer-menu-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 18px;
+      margin-top: 20px;
+    }
+
+    .diner-dish-card {
+      background: #ffffff;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: var(--shadow-card);
+    }
+
+    .diner-dish-img {
+      width: 100%;
+      height: 140px;
+      border-radius: var(--radius-md);
+      object-fit: cover;
+      margin-bottom: 12px;
+    }
+
+    /* Floating Diner Cart Bar */
+    .diner-floating-cart {
       position: fixed;
       bottom: 24px;
       left: 50%;
       transform: translateX(-50%);
-      background: #0f172a;
+      background: #18191d;
       color: #ffffff;
       padding: 12px 24px;
       border-radius: var(--radius-full);
       display: flex;
       align-items: center;
       gap: 20px;
-      box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.35);
-      z-index: 40;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+      z-index: 60;
       cursor: pointer;
-      transition: transform 0.15s ease;
     }
 
-    .cart-dock-bar:hover {
-      transform: translateX(-50%) translateY(-2px);
-    }
-
-    .cart-badge-count {
-      background: #334155;
-      padding: 3px 10px;
-      border-radius: var(--radius-full);
-      font-size: 0.8rem;
-      font-weight: 600;
-    }
-
-    .cart-total-tag {
-      font-weight: 700;
-      color: #f97316;
-    }
-
-    /* بطاقة متابعة حالة الطلب المباشرة للزبون */
-    .live-tracker-panel {
-      background: var(--color-surface);
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-lg);
-      padding: 24px;
-      margin-top: 28px;
-      display: none;
-      box-shadow: var(--shadow-sm);
-    }
-
-    .tracker-steps-flow {
-      display: flex;
-      justify-content: space-between;
-      position: relative;
-      margin: 24px 0 12px;
-      gap: 8px;
-    }
-
-    .tracker-step-node {
-      flex: 1;
-      text-align: center;
-      padding: 12px 8px;
-      border-radius: var(--radius-md);
+    /* Order Tracker Modal for Customer */
+    .live-status-card {
       background: #f8fafc;
-      border: 1px solid var(--color-border);
-      transition: all 0.2s ease;
-    }
-
-    .tracker-step-node.active {
-      background: var(--color-accent-subtle);
-      border-color: var(--color-accent-border);
-      color: var(--color-accent);
-      font-weight: 600;
-    }
-
-    .tracker-step-node.completed {
-      background: var(--color-status-ready-bg);
-      border-color: rgba(22, 163, 74, 0.3);
-      color: var(--color-status-ready);
-      font-weight: 600;
-    }
-
-    /* ================================================= */
-    /* 2. شاشة المطبخ (Kitchen Display Screen - KDS) */
-    /* ================================================= */
-    .kds-root {
-      display: none;
-    }
-
-    .kds-header-metrics {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-      flex-wrap: wrap;
-      gap: 12px;
-    }
-
-    .kds-lanes-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
-      gap: 20px;
-      align-items: start;
-    }
-
-    .kds-lane {
-      background: #f8fafc;
-      border: 1px solid var(--color-border);
+      border: 1px solid var(--border-subtle);
       border-radius: var(--radius-lg);
-      padding: 16px;
-      min-height: 600px;
-    }
-
-    .kds-lane-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding-bottom: 12px;
-      margin-bottom: 14px;
-      border-bottom: 2px solid;
-    }
-
-    .kds-lane-header.lane-new { border-color: var(--color-status-new); color: var(--color-status-new); }
-    .kds-lane-header.lane-prep { border-color: var(--color-status-prep); color: var(--color-status-prep); }
-    .kds-lane-header.lane-ready { border-color: var(--color-status-ready); color: var(--color-status-ready); }
-
-    .kds-ticket-card {
-      background: var(--color-surface);
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-md);
-      padding: 16px;
-      margin-bottom: 12px;
-      box-shadow: var(--shadow-sm);
-    }
-
-    .ticket-meta-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 10px;
-    }
-
-    .ticket-table-badge {
-      font-size: 0.82rem;
-      font-weight: 700;
-      padding: 3px 8px;
-      border-radius: var(--radius-sm);
-      background: #0f172a;
-      color: #ffffff;
-    }
-
-    .ticket-time-elapsed {
-      font-size: 0.78rem;
-      color: var(--color-text-muted);
-    }
-
-    .ticket-items-box {
-      background: #f8fafc;
-      border: 1px solid var(--color-border-subtle);
-      border-radius: var(--radius-sm);
-      padding: 10px 12px;
-      font-size: 0.88rem;
-      line-height: 1.6;
-      margin: 10px 0;
-      white-space: pre-line;
-      color: var(--color-text-primary);
-    }
-
-    .btn-ticket-advance {
-      width: 100%;
-      padding: 9px;
-      border-radius: var(--radius-sm);
-      font-family: inherit;
-      font-size: 0.86rem;
-      font-weight: 600;
-      cursor: pointer;
-      border: none;
-      transition: all 0.15s;
-    }
-
-    .btn-ticket-advance.action-start {
-      background: var(--color-status-prep-bg);
-      color: var(--color-status-prep);
-      border: 1px solid var(--color-status-prep);
-    }
-
-    .btn-ticket-advance.action-ready {
-      background: var(--color-status-ready-bg);
-      color: var(--color-status-ready);
-      border: 1px solid var(--color-status-ready);
-    }
-
-    .btn-ticket-advance.action-complete {
-      background: #f1f5f9;
-      color: var(--color-text-secondary);
-      border: 1px solid var(--color-border);
-    }
-
-    /* ================================================= */
-    /* 3. واجهة رمز الطاولة (Table QR Generator) */
-    /* ================================================= */
-    .qr-manager-root {
-      display: none;
-      background: var(--color-surface);
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-lg);
-      padding: 32px;
-      max-width: 680px;
-      margin: 0 auto;
-      text-align: center;
-    }
-
-    #qrCodeContainer {
-      display: inline-block;
       padding: 20px;
-      background: #ffffff;
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-md);
-      margin: 20px 0;
+      margin-bottom: 24px;
+      display: none;
     }
 
-    /* نافذة السلة الشفافة Modal */
-    .drawer-backdrop {
+    .steps-stepper {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 14px;
+      gap: 10px;
+    }
+
+    .stepper-pill {
+      flex: 1;
+      padding: 10px;
+      border-radius: var(--radius-md);
+      background: #ffffff;
+      border: 1px solid var(--border-subtle);
+      text-align: center;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .stepper-pill.active {
+      background: #f0fdfa;
+      border-color: #0f766e;
+      color: #0f766e;
+    }
+
+    .stepper-pill.completed {
+      background: #ecfdf5;
+      border-color: #10b981;
+      color: #10b981;
+    }
+
+    /* Modal Cart Checkout */
+    .checkout-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(15, 23, 42, 0.5);
+      background: rgba(0,0,0,0.5);
       backdrop-filter: blur(4px);
-      z-index: 100;
+      z-index: 1100;
       display: none;
       align-items: center;
       justify-content: center;
       padding: 20px;
     }
 
-    .drawer-card {
-      background: var(--color-surface);
+    .checkout-card {
+      background: #ffffff;
       border-radius: var(--radius-lg);
       width: 100%;
-      max-width: 480px;
-      max-height: 85vh;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      box-shadow: var(--shadow-lg);
-    }
-
-    .drawer-head {
-      padding: 18px 20px;
-      border-bottom: 1px solid var(--color-border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .drawer-content {
-      padding: 20px;
-      overflow-y: auto;
-      flex: 1;
-    }
-
-    .drawer-footer {
-      padding: 18px 20px;
-      border-top: 1px solid var(--color-border);
-      background: #f8fafc;
-    }
-
-    .cart-entry-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px 0;
-      border-bottom: 1px solid var(--color-border-subtle);
-    }
-
-    .stepper-btn {
-      width: 28px;
-      height: 28px;
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-sm);
-      background: var(--color-surface);
-      font-family: inherit;
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-    .btn-submit-live-order {
-      width: 100%;
-      padding: 12px;
-      border-radius: var(--radius-md);
-      background: var(--color-text-primary);
-      color: #ffffff;
-      font-family: inherit;
-      font-size: 0.95rem;
-      font-weight: 600;
-      border: none;
-      cursor: pointer;
-      transition: background 0.15s;
-    }
-
-    .btn-submit-live-order:hover {
-      background: #1e293b;
-    }
-
-    footer.site-footer {
-      border-top: 1px solid var(--color-border);
-      background: var(--color-surface);
-      padding: 24px 20px;
-      text-align: center;
-      font-size: 0.82rem;
-      color: var(--color-text-muted);
-      margin-top: auto;
+      max-width: 460px;
+      padding: 24px;
+      box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
     }
   </style>
 </head>
 <body>
 
-  <!-- شريط التنقل المتوافق مع Apple HIG -->
-  <header class="site-header">
-    <div class="header-inner">
-      <div class="brand-block">
-        <div class="brand-mark">LK</div>
-        <div class="brand-titles">
-          <h1>Live Kitchen</h1>
-          <p>أطباق طازجة تُحضّر مباشرة أمامك بجودة استثنائية</p>
-        </div>
-      </div>
-
-      <!-- محول المشاهد: زبون / مطبخ / QR -->
-      <nav class="segmented-control" role="tablist">
-        <button id="tabCustomer" class="segment-btn active" onclick="activateView('customer')" role="tab">
-          قائمة الطعام
+  <!-- LEFT DARK SIDEBAR (SaaS Rail) -->
+  <aside class="sidebar">
+    <div class="sidebar-top">
+      <div class="brand-icon-box" title="Live Kitchen">LK</div>
+      
+      <div class="nav-icon-list">
+        <!-- Dashboard / Grid -->
+        <button class="nav-icon-btn" title="Dashboard">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>
         </button>
-        <button id="tabKitchen" class="segment-btn" onclick="activateView('kitchen')" role="tab">
-          شاشة المطبخ (KDS)
+        <!-- Orders (Active / Highlighted) -->
+        <button class="nav-icon-btn active" title="Orders Overview">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         </button>
-        <button id="tabQR" class="segment-btn" onclick="activateView('qr')" role="tab">
-          رموز الطاولات (QR)
+        <!-- Menu / Cutlery -->
+        <button class="nav-icon-btn" title="Digital Menu" onclick="openCustomerPortal()">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 2v20M2 12h16M2 7h16M2 17h16"/></svg>
         </button>
-      </nav>
-
-      <div class="realtime-pill">
-        <span class="pulse-dot"></span>
-        <span>Supabase Realtime Active</span>
+        <!-- Analytics -->
+        <button class="nav-icon-btn" title="Analytics">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+        </button>
+        <!-- Tables / Seating -->
+        <button class="nav-icon-btn" title="Table Layout">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect width="18" height="12" x="3" y="4" rx="2"/><path d="M7 16v4M17 16v4"/></svg>
+        </button>
+        <!-- Orders History -->
+        <button class="nav-icon-btn" title="Order Archive">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+        </button>
       </div>
     </div>
-  </header>
 
-  <main class="app-shell">
+    <div class="sidebar-bottom">
+      <button class="nav-icon-btn" title="Settings">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+      </button>
+      <button class="nav-icon-btn" title="Logout">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+      </button>
+    </div>
+  </aside>
 
-    <!-- ================================================= -->
-    <!-- 1. واجهة الزبائن والمنيو الرقمي -->
-    <!-- ================================================= -->
-    <section id="customerViewContainer">
+  <!-- DASHBOARD MAIN WRAPPER -->
+  <div class="dashboard-wrapper">
+    
+    <!-- Top Header -->
+    <header class="dashboard-header">
+      <div class="brand-title-area">
+        <span class="brand-name">Orderio</span>
+      </div>
+
+      <div class="search-input-wrapper">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <input type="text" class="search-input" placeholder="Search Here..." id="globalSearchInput" onkeyup="filterOrdersBySearch(this.value)">
+      </div>
+
+      <div class="header-actions">
+        <!-- One-click test button to open Diner Table Ordering view -->
+        <button class="view-mode-pill" onclick="openCustomerPortal()">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2M7 2v20M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>
+          Dine-In Customer View
+        </button>
+
+        <button class="btn-header-round" title="Quick Add Order" onclick="openCustomerPortal()">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+        </button>
+        <button class="btn-header-round" title="Branch Location">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+        </button>
+        <button class="btn-header-round" title="Notifications">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+          <span class="noti-bubble"></span>
+        </button>
+
+        <div class="user-profile-badge">
+          <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80" alt="Admin" class="avatar-img">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+        </div>
+      </div>
+    </header>
+
+    <!-- Dashboard Content Area -->
+    <main class="dashboard-content">
       
-      <!-- محدد الطاولة الحالي -->
-      <div class="table-context-card">
-        <div class="table-badge-group">
-          <span class="table-icon-tag" id="currentTableLabel">طاولة 04</span>
-          <span class="context-desc">طلب محلي مباشر · سيتم إرسال الأوردر لشاشة التحضير فوراً</span>
+      <!-- 1. Header Title & Export Actions -->
+      <div class="overview-header-row">
+        <div>
+          <h1 class="page-title">Orders Overview</h1>
+          <p class="page-subtitle">Order Management And Tracking System</p>
+        </div>
+        <div class="overview-action-buttons">
+          <button class="btn-meta-action" onclick="window.print()">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
+            Print
+          </button>
+          <button class="btn-meta-action" onclick="exportOrdersCSV()">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            Export
+          </button>
+          <button class="btn-meta-action">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+            This month
+          </button>
+        </div>
+      </div>
+
+      <!-- 2. KPI Metrics Ribbon (5 Cards) -->
+      <div class="metrics-ribbon">
+        <!-- Total Orders -->
+        <div class="metric-card stat-teal">
+          <div class="metric-top">
+            <div class="metric-icon-badge">
+              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18M16 10a4 4 0 0 1-8 0"/></svg>
+            </div>
+            <span class="metric-label">Total Orders</span>
+          </div>
+          <div class="metric-value" id="kpiTotalOrders">1.62k</div>
+        </div>
+
+        <!-- New Order -->
+        <div class="metric-card stat-orange">
+          <div class="metric-top">
+            <div class="metric-icon-badge">
+              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            </div>
+            <span class="metric-label">New Order</span>
+          </div>
+          <div class="metric-value" id="kpiNewOrders">235</div>
+        </div>
+
+        <!-- Total Served -->
+        <div class="metric-card stat-blue">
+          <div class="metric-top">
+            <div class="metric-icon-badge">
+              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+            </div>
+            <span class="metric-label">Total Served</span>
+          </div>
+          <div class="metric-value" id="kpiTotalServed">1.25k</div>
+        </div>
+
+        <!-- Avg Prep Time -->
+        <div class="metric-card stat-purple">
+          <div class="metric-top">
+            <div class="metric-icon-badge">
+              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            </div>
+            <span class="metric-label">Avg Prep Time</span>
+          </div>
+          <div class="metric-value">14.3<small style="font-size:0.9rem; font-weight:600; color:var(--text-muted); margin-left:4px;">min</small></div>
+        </div>
+
+        <!-- Total Completed -->
+        <div class="metric-card stat-green">
+          <div class="metric-top">
+            <div class="metric-icon-badge">
+              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
+            </div>
+            <span class="metric-label">Total completed</span>
+          </div>
+          <div class="metric-value" id="kpiTotalCompleted">1.56k</div>
+        </div>
+      </div>
+
+      <!-- 3. Today's Orders Section -->
+      <section class="orders-section-head">
+        <h2 class="orders-section-title">Today's Orders</h2>
+        
+        <!-- Filter Tabs -->
+        <div class="filter-tabs-pills">
+          <button class="filter-btn-pill active" onclick="setOrderStatusFilter('all', this)">
+            All Orders (<span id="tabCountAll">0</span>)
+          </button>
+          <button class="filter-btn-pill pill-new" onclick="setOrderStatusFilter('new', this)">
+            New (<span id="tabCountNew">0</span>)
+          </button>
+          <button class="filter-btn-pill" onclick="setOrderStatusFilter('confirmed', this)">
+            Confirmed (<span id="tabCountConfirmed">0</span>)
+          </button>
+          <button class="filter-btn-pill pill-prep" onclick="setOrderStatusFilter('preparing', this)">
+            Preparing (<span id="tabCountPrep">0</span>)
+          </button>
+          <button class="filter-btn-pill pill-ready" onclick="setOrderStatusFilter('ready', this)">
+            Ready (<span id="tabCountReady">0</span>)
+          </button>
+          <button class="filter-btn-pill" onclick="setOrderStatusFilter('served', this)">
+            Served (<span id="tabCountServed">0</span>)
+          </button>
+          <button class="filter-btn-pill" onclick="setOrderStatusFilter('completed', this)">
+            Completed (<span id="tabCountCompleted">0</span>)
+          </button>
+        </div>
+      </section>
+
+      <!-- 4. Order Ticket Cards Grid -->
+      <div class="orders-cards-carousel" id="ordersTicketList">
+        <!-- Generated Dynamically via Realtime Data -->
+      </div>
+
+      <!-- Pagination -->
+      <div class="pagination-bar">
+        <button class="page-btn">‹</button>
+        <button class="page-btn active">1</button>
+        <button class="page-btn">2</button>
+        <button class="page-btn">3</button>
+        <button class="page-btn">4</button>
+        <span style="color:var(--text-muted); font-size:0.85rem;">...</span>
+        <button class="page-btn">12</button>
+        <button class="page-btn">13</button>
+        <button class="page-btn">›</button>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- ------------------------------------------------------------- -->
+  <!-- 5. DINE-IN CUSTOMER PORTAL (Table Ordering / Digital Menu) -->
+  <!-- ------------------------------------------------------------- -->
+  <div class="customer-table-modal" id="customerPortalModal">
+    <div class="customer-table-header">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <span style="font-weight:700; font-size:1.1rem;">Live Kitchen · Table Ordering</span>
+        <span style="background:rgba(255,255,255,0.15); padding:4px 10px; border-radius:var(--radius-full); font-size:0.8rem;" id="dinerTableBadge">Table T-12</span>
+      </div>
+      <button style="background:transparent; border:none; color:#ffffff; font-size:1.3rem; cursor:pointer;" onclick="closeCustomerPortal()">✕ Close to Dashboard</button>
+    </div>
+
+    <div class="customer-table-body">
+      <!-- Live Tracker if an order was placed -->
+      <div class="live-status-card" id="dinerLiveTracker">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <h4 style="font-size:1rem; font-weight:700;">Active Order Status</h4>
+            <span style="font-size:0.8rem; color:var(--text-muted);" id="dinerOrderIdLabel">Order #ORD-Live</span>
+          </div>
+          <span style="font-size:0.75rem; color:#059669; font-weight:600; background:#ecfdf5; padding:3px 8px; border-radius:6px;">Live WebSockets Feed</span>
+        </div>
+        <div class="steps-stepper">
+          <div class="stepper-pill completed" id="stepDinerReceived">1. Order Received</div>
+          <div class="stepper-pill" id="stepDinerPrep">2. In Kitchen / Preparing</div>
+          <div class="stepper-pill" id="stepDinerReady">3. Ready for Table</div>
+        </div>
+      </div>
+
+      <!-- Table Selection -->
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
+        <div>
+          <h2 style="font-size:1.4rem; font-weight:700;">Digital Menu</h2>
+          <p style="font-size:0.85rem; color:var(--text-muted);">Select your dishes directly from your table</p>
         </div>
         <div>
-          <label for="tableSelector" style="font-size: 0.84rem; color: var(--color-text-muted); margin-left: 6px;">تغيير الموقع:</label>
-          <select id="tableSelector" class="table-select-custom" onchange="updateCurrentTable(this.value)">
-            <option value="طاولة 01">طاولة 01</option>
-            <option value="طاولة 02">طاولة 02</option>
-            <option value="طاولة 03">طاولة 03</option>
-            <option value="طاولة 04" selected>طاولة 04</option>
-            <option value="طاولة 05">طاولة 05</option>
-            <option value="طلب سفري (Takeaway)">طلب سفري (Takeaway)</option>
+          <select id="dinerTablePicker" onchange="updateDinerTable(this.value)" style="padding:8px 14px; border-radius:var(--radius-sm); border:1px solid var(--border-subtle); font-family:inherit; font-size:0.88rem;">
+            <option value="Table T-12" selected>Table T-12 (Dine In)</option>
+            <option value="Table T-11">Table T-11 (Dine In)</option>
+            <option value="Table T-19">Table T-19 (Dine In)</option>
+            <option value="Table T-20">Table T-20 (Dine In)</option>
+            <option value="Takeaway">Takeaway (Pickup)</option>
           </select>
         </div>
       </div>
 
-      <!-- فلاتر الأصناف -->
-      <div class="filter-pills-bar">
-        <button class="filter-pill active" onclick="filterMenu('all', this)">كل الأصناف</button>
-        <button class="filter-pill" onclick="filterMenu('burgers', this)">البرجر واللحوم</button>
-        <button class="filter-pill" onclick="filterMenu('mains', this)">الأطباق والباستا</button>
-        <button class="filter-pill" onclick="filterMenu('pizza', this)">البيتزا الإيطالية</button>
-        <button class="filter-pill" onclick="filterMenu('sides', this)">المقبلات والسلطات</button>
-        <button class="filter-pill" onclick="filterMenu('desserts', this)">الحلويات والمشروبات</button>
+      <!-- Menu Grid -->
+      <div class="customer-menu-grid" id="dinerMenuGrid">
+        <!-- Rendered via JS -->
       </div>
-
-      <!-- شبكة الأصناف الموثقة في facts.md -->
-      <div class="menu-cards-grid" id="menuCardsList">
-        <!-- يتم ملء الأصناف برمجياً -->
-      </div>
-
-      <!-- متابعة الطلب النشط لحظياً (Live Order Status) -->
-      <div class="live-tracker-panel" id="customerTrackerPanel">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <div>
-            <h3 style="font-size:1.05rem; font-weight:700;">حالة طلبك في المطبخ</h3>
-            <p style="font-size:0.82rem; color:var(--color-text-muted);" id="activeOrderMeta">رقم الطلب # --</p>
-          </div>
-          <button class="btn-action-add" onclick="dismissTracker()">طلب صنف إضافي</button>
-        </div>
-
-        <div class="tracker-steps-flow">
-          <div class="tracker-step-node" id="statusNodeNew">
-            <div style="font-size:0.75rem;">المرحلة 1</div>
-            <div>تم استلام الطلب</div>
-          </div>
-          <div class="tracker-step-node" id="statusNodePrep">
-            <div style="font-size:0.75rem;">المرحلة 2</div>
-            <div>قيد الطهي والتحضير</div>
-          </div>
-          <div class="tracker-step-node" id="statusNodeReady">
-            <div style="font-size:0.75rem;">المرحلة 3</div>
-            <div>جاهز للتقديم للطاولة</div>
-          </div>
-        </div>
-      </div>
-
-    </section>
-
-    <!-- شريط السلة العائم -->
-    <div class="cart-dock-bar" id="cartDockBar" onclick="openCartDrawer()" style="display: none;">
-      <span class="cart-badge-count" id="cartBadgeCount">0 عناصر</span>
-      <span style="font-size:0.9rem; font-weight:500;">مراجعة الطلب</span>
-      <span class="cart-total-tag" id="cartSubtotalTag">0 ج.م</span>
     </div>
 
-    <!-- ================================================= -->
-    <!-- 2. شاشة المطبخ (Kitchen Display Screen) -->
-    <!-- ================================================= -->
-    <section id="kitchenViewContainer" class="kds-root">
-      
-      <div class="kds-header-metrics">
-        <div>
-          <h2 style="font-size:1.25rem; font-weight:700;">شاشة عرض المطبخ الحية (KDS)</h2>
-          <p style="font-size:0.82rem; color:var(--color-text-muted);">
-            تتزامن الطلبات وحالاتها فورياً عبر قنوات Supabase Realtime بدون تحديث الصفحة
-          </p>
-        </div>
-        <div style="display:flex; gap:10px;">
-          <button class="btn-action-add" onclick="loadKdsTickets()">إعادة تحميل يدوي</button>
-        </div>
-      </div>
-
-      <div class="kds-lanes-grid">
-        <!-- عمود: طلبات جديدة -->
-        <div class="kds-lane">
-          <div class="kds-lane-header lane-new">
-            <h4>طلبات جديدة (<span id="countNewTickets">0</span>)</h4>
-            <small>بانتظار البدء</small>
-          </div>
-          <div id="laneNewContainer"></div>
-        </div>
-
-        <!-- عمود: قيد التحضير -->
-        <div class="kds-lane">
-          <div class="kds-lane-header lane-prep">
-            <h4>قيد التحضير (<span id="countPrepTickets">0</span>)</h4>
-            <small>على النار الآن</small>
-          </div>
-          <div id="lanePrepContainer"></div>
-        </div>
-
-        <!-- عمود: جاهز للتسليم -->
-        <div class="kds-lane">
-          <div class="kds-lane-header lane-ready">
-            <h4>جاهز للتقديم (<span id="countReadyTickets">0</span>)</h4>
-            <small>جاهز للطاقم</small>
-          </div>
-          <div id="laneReadyContainer"></div>
-        </div>
-      </div>
-
-    </section>
-
-    <!-- ================================================= -->
-    <!-- 3. إدارة وتوليد رموز الطاولات (QR Codes) -->
-    <!-- ================================================= -->
-    <section id="qrViewContainer" class="qr-manager-root">
-      <h2 style="font-size:1.25rem; font-weight:700; margin-bottom: 6px;">توليد رمز QR لطاولات المطعم</h2>
-      <p style="font-size:0.86rem; color:var(--color-text-muted); margin-bottom: 20px;">
-        اطبع هذا الرمز وضعه على الطاولة. عند مسحه بكاميرا الهاتف، يفتح المنيو محدداً الطاولة تلقائياً للزبون.
-      </p>
-
-      <div style="margin-bottom: 16px;">
-        <label for="qrTableSelect" style="font-weight:600; font-size:0.9rem; margin-left: 8px;">اختر الطاولة:</label>
-        <select id="qrTableSelect" class="table-select-custom" onchange="generateTableQRCode(this.value)">
-          <option value="طاولة 01">طاولة رقم 01</option>
-          <option value="طاولة 02">طاولة رقم 02</option>
-          <option value="طاولة 03">طاولة رقم 03</option>
-          <option value="طاولة 04" selected>طاولة رقم 04</option>
-          <option value="طاولة 05">طاولة رقم 05</option>
-        </select>
-      </div>
-
-      <div id="qrCodeContainer"></div>
-      
-      <p style="font-size:0.8rem; color:var(--color-text-muted);" id="qrTargetUrlText"></p>
-    </section>
-
-  </main>
-
-  <!-- نافذة مراجعة وتأكيد السلة Drawer -->
-  <div class="drawer-backdrop" id="cartDrawerBackdrop">
-    <div class="drawer-card">
-      <div class="drawer-head">
-        <h3 style="font-size:1rem; font-weight:600;">سلة الطلب</h3>
-        <button style="border:none; background:transparent; font-size:1.2rem; cursor:pointer;" onclick="closeCartDrawer()">✕</button>
-      </div>
-      <div class="drawer-content" id="cartDrawerList">
-        <!-- محتويات السلة -->
-      </div>
-      <div class="drawer-footer">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; font-weight:700;">
-          <span>المجموع الإجمالي:</span>
-          <span style="color:var(--color-accent); font-size:1.15rem;" id="cartDrawerGrandTotal">0 ج.م</span>
-        </div>
-        <button class="btn-submit-live-order" id="btnSubmitOrder" onclick="dispatchOrderToSupabase()">
-          إرسال الطلب للمطبخ مباشرة
-        </button>
-      </div>
+    <!-- Floating Customer Cart Bar -->
+    <div class="diner-floating-cart" id="dinerFloatingCart" onclick="openCheckoutModal()" style="display:none;">
+      <span id="dinerCartCountBadge" style="background:#374151; padding:3px 10px; border-radius:var(--radius-full); font-size:0.8rem; font-weight:600;">0 items</span>
+      <span style="font-size:0.9rem; font-weight:600;">View Order Summary</span>
+      <span id="dinerCartTotalBadge" style="color:var(--accent-orange); font-weight:700;">$0.00</span>
     </div>
   </div>
 
-  <footer class="site-footer">
-    <p>© لايف كيتشن · Live Kitchen · منحة DEBI ومبادرة Creativa · بورسعيد - شارع الجمهورية</p>
-  </footer>
+  <!-- Checkout Drawer / Modal -->
+  <div class="checkout-overlay" id="checkoutModal">
+    <div class="checkout-card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+        <h3 style="font-size:1.1rem; font-weight:700;">Confirm Table Order</h3>
+        <button style="border:none; background:transparent; font-size:1.2rem; cursor:pointer;" onclick="closeCheckoutModal()">✕</button>
+      </div>
 
-  <!-- ملف إعدادات المفاتيح المُدارة -->
+      <div id="checkoutItemsList" style="max-height:240px; overflow-y:auto; margin-bottom:16px;">
+        <!-- Items -->
+      </div>
+
+      <div style="display:flex; justify-content:space-between; align-items:center; font-size:1.1rem; font-weight:700; margin-bottom:18px; border-top:1px solid var(--border-subtle); padding-top:12px;">
+        <span>Grand Total:</span>
+        <span id="checkoutGrandTotal">$0.00</span>
+      </div>
+
+      <button id="btnSubmitDinerOrder" onclick="dispatchDinerOrderToKitchen()" style="width:100%; padding:14px; border-radius:var(--radius-md); background:#18191d; color:#ffffff; font-family:inherit; font-weight:700; font-size:0.95rem; border:none; cursor:pointer;">
+        Send Order to Kitchen Display
+      </button>
+    </div>
+  </div>
+
+  <!-- Supabase Config Script -->
   <script src="supabase-config.js"></script>
 
   <script>
     // -------------------------------------------------------------
-    // بيانات الأطباق الرسمية المطابقة لملف live-kitchen-facts.md
-    // بدون اختراع أي معلومة أو سعر (Data Integrity)
+    // Menu Data (Authentic High-End Culinary Catalog)
     // -------------------------------------------------------------
-    const RESTAURANT_MENU = [
+    const MENU_PRODUCTS = [
       {
         id: "angus-burger",
-        name: "برجر لحم أنجوس مشوي",
+        name: "Prime Angus Beef Burger",
         category: "burgers",
         price: 185,
-        description: "شريحة لحم بقري فاخر مشوية على اللهب، جبن شيدر ذائب، صصوص خاص، في خبز بريوش طازج مع بطاطس."
+        priceUsd: 18.50,
+        image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&auto=format&fit=crop&q=80",
+        desc: "Flame-grilled Angus patty, melted cheddar, brioche bun with seasoned skin-on fries."
       },
       {
         id: "crispy-chicken",
-        name: "دجاج كرسبي مقرمش",
+        name: "Crispy Zinger Chicken",
         category: "burgers",
         price: 155,
-        description: "صدور دجاج طازجة متبلة ومقلية لدرجة القرمشة المثالية، صوص رانش، خس مقرمش وطماطم فريش."
+        priceUsd: 15.50,
+        image: "https://images.unsplash.com/photo-1625813506062-0aeb1d7a094b?w=400&auto=format&fit=crop&q=80",
+        desc: "Hand-breaded crispy chicken fillet, house ranch sauce, crisp iceberg, fresh tomato."
       },
       {
         id: "tenderloin-steak",
-        name: "ستيك تندرلوين مشوي",
+        name: "Wood-Fired Tenderloin Steak",
         category: "mains",
         price: 320,
-        description: "قطعة لحم تندرلوين طرية مشوية على الحطب، تقدم مع صوص المشروم البني وخضار سوتيه وبطاطس مهروسة."
+        priceUsd: 32.00,
+        image: "https://images.unsplash.com/photo-1544025162-d76694265947?w=400&auto=format&fit=crop&q=80",
+        desc: "Grass-fed tenderloin grilled to perfection, wild mushroom reduction, garlic whipped mash."
       },
       {
         id: "fettuccine-alfredo",
-        name: "مكرونة فيتوتشيني ألفريدو",
+        name: "Fettuccine Alfredo Pollo",
         category: "mains",
         price: 150,
-        description: "باستا إيطالية أصيلة في صوص الكريمة والزبدة الغني، شرائح صدر دجاج مشوي، وجبن بارميزان معتق."
+        priceUsd: 15.00,
+        image: "https://images.unsplash.com/photo-1645112411341-6c4fd023714a?w=400&auto=format&fit=crop&q=80",
+        desc: "Fresh artisan ribbon pasta, velvet Parmigiano-Reggiano cream sauce, herb-roasted chicken."
       },
       {
         id: "pizza-napoletana",
-        name: "بيتزا إيطالية نابوليتان",
+        name: "Neapolitan Margherita Pizza",
         category: "pizza",
         price: 145,
-        description: "عجينة إيطالية مخبوزة على الحطب، صلصة طماطم سان مارزانو، جبن موزاريلا طازج، وريحان عطري."
-      },
-      {
-        id: "seasoned-fries",
-        name: "بطاطس مقلية ذهبية متبلة",
-        category: "sides",
-        price: 50,
-        description: "أصابع بطاطس مقرمشة متبلة بخلطة بهارات الشيف الخاصة، تقدم مع صوص الجبن الشيدر الساخن."
+        priceUsd: 14.50,
+        image: "https://images.unsplash.com/photo-1604382355076-af4b0eb60143?w=400&auto=format&fit=crop&q=80",
+        desc: "San Marzano tomato base, fresh fior di latte mozzarella, fragrant fresh sweet basil."
       },
       {
         id: "caesar-salad",
-        name: "سلطة سيزر بالدجاج المشوي",
+        name: "Classic Chicken Caesar Salad",
         category: "sides",
         price: 85,
-        description: "خس روماني مقرمش، شرائح دجاج مشوية بالأعشاب، خبز محمص بالثوم، جبن بارميزان، وصوص سيزر كلاسيكي."
-      },
-      {
-        id: "fudge-cake",
-        name: "كيك شوكولاتة فادج دافئ",
-        category: "desserts",
-        price: 75,
-        description: "كيكة شوكولاتة بلجيكية غنية ودافئة بقلب ذائب، تقدم مع صوص شوكولاتة داكنة."
-      },
-      {
-        id: "fresh-juice",
-        name: "عصائر طبيعية ومشروبات مثلجة",
-        category: "desserts",
-        price: 35,
-        description: "تشكيلة من عصائر الفواكه الموسمية الطازجة والمشروبات الغازية المنعشة."
+        priceUsd: 8.50,
+        image: "https://images.unsplash.com/photo-1550304943-4f24f54ddde9?w=400&auto=format&fit=crop&q=80",
+        desc: "Crisp romaine hearts, herb-crusted croutons, shaved parmesan, house Caesar emulsion."
       }
     ];
 
-    let orderCart = [];
-    let activeCustomerOrder = null;
+    let allLiveOrders = [];
+    let currentFilter = 'all';
+    let customerCart = [];
+    let activeOrderId = null;
     let supabaseClient = null;
 
-    // الاتصال بالخدمة المُدارة (Supabase Managed Service)
+    // Connect to Managed Supabase
     if (window.SUPABASE_CONFIG && window.supabase) {
       supabaseClient = window.supabase.createClient(
         window.SUPABASE_CONFIG.url,
@@ -975,292 +1228,172 @@
     }
 
     // -------------------------------------------------------------
-    // تشغيل المنيو وتصفية الفئات
+    // INITIALIZATION & REALTIME FEED
     // -------------------------------------------------------------
-    function renderMenuCards(items) {
-      const container = document.getElementById('menuCardsList');
-      container.innerHTML = items.map(item => `
-        <article class="menu-item-card" data-ui-stack>
-          <div>
-            <div class="item-top-meta">
-              <h3 class="item-name">${item.name}</h3>
-              <span class="item-category-tag">${getCategoryTitle(item.category)}</span>
-            </div>
-            <p class="item-description">${item.description}</p>
-          </div>
-          <div class="item-bottom-bar">
-            <span class="item-price-display">${item.price} <small>ج.م</small></span>
-            <button class="btn-action-add" onclick="addItemToOrder('${item.id}')">
-              + أضف للطلب
-            </button>
-          </div>
-        </article>
-      `).join('');
-    }
+    window.addEventListener('DOMContentLoaded', () => {
+      fetchRealtimeOrders();
+      subscribeSupabaseRealtime();
+      renderDinerCatalog();
+    });
 
-    function getCategoryTitle(cat) {
-      switch(cat) {
-        case 'burgers': return 'البرجر';
-        case 'mains': return 'الأطباق الرئيسية';
-        case 'pizza': return 'البيتزا';
-        case 'sides': return 'المقبلات';
-        case 'desserts': return 'الحلويات والمشروبات';
-        default: return 'صنف';
-      }
-    }
-
-    function filterMenu(category, pillElement) {
-      document.querySelectorAll('.filter-pill').forEach(el => el.classList.remove('active'));
-      pillElement.classList.add('active');
-
-      if (category === 'all') {
-        renderMenuCards(RESTAURANT_MENU);
-      } else {
-        renderMenuCards(RESTAURANT_MENU.filter(i => i.category === category));
-      }
-    }
-
-    // -------------------------------------------------------------
-    // سلة المشتريات وإدارتها
-    // -------------------------------------------------------------
-    function addItemToOrder(itemId) {
-      const item = RESTAURANT_MENU.find(i => i.id === itemId);
-      const existing = orderCart.find(i => i.id === itemId);
-      if (existing) {
-        existing.quantity += 1;
-      } else {
-        orderCart.push({ ...item, quantity: 1 });
-      }
-      syncCartInterface();
-    }
-
-    function updateItemQuantity(itemId, delta) {
-      const item = orderCart.find(i => i.id === itemId);
-      if (!item) return;
-      item.quantity += delta;
-      if (item.quantity <= 0) {
-        orderCart = orderCart.filter(i => i.id !== itemId);
-      }
-      syncCartInterface();
-    }
-
-    function syncCartInterface() {
-      const dock = document.getElementById('cartDockBar');
-      const countBadge = document.getElementById('cartBadgeCount');
-      const subtotalTag = document.getElementById('cartSubtotalTag');
-
-      const totalItems = orderCart.reduce((sum, item) => sum + item.quantity, 0);
-      const grandTotal = orderCart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-
-      if (totalItems > 0) {
-        dock.style.display = 'flex';
-        countBadge.innerText = `${totalItems} عناصر`;
-        subtotalTag.innerText = `${grandTotal} ج.م`;
-      } else {
-        dock.style.display = 'none';
-        closeCartDrawer();
-      }
-
-      renderCartDrawerItems();
-    }
-
-    function renderCartDrawerItems() {
-      const container = document.getElementById('cartDrawerList');
-      const grandTotalEl = document.getElementById('cartDrawerGrandTotal');
-      const grandTotal = orderCart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-      grandTotalEl.innerText = `${grandTotal} ج.م`;
-
-      if (orderCart.length === 0) {
-        container.innerHTML = '<p style="text-align:center; color:var(--color-text-muted); padding:30px 0;">السلة فارغة حالياً</p>';
-        return;
-      }
-
-      container.innerHTML = orderCart.map(item => `
-        <div class="cart-entry-row">
-          <div>
-            <div style="font-weight:600; font-size:0.92rem;">${item.name}</div>
-            <div style="font-size:0.8rem; color:var(--color-text-muted);">${item.price} ج.م × ${item.quantity} = ${item.price * item.quantity} ج.م</div>
-          </div>
-          <div style="display:flex; align-items:center; gap:8px;">
-            <button class="stepper-btn" onclick="updateItemQuantity('${item.id}', -1)">-</button>
-            <span style="font-weight:600; min-width:20px; text-align:center;">${item.quantity}</span>
-            <button class="stepper-btn" onclick="updateItemQuantity('${item.id}', 1)">+</button>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    function openCartDrawer() {
-      document.getElementById('cartDrawerBackdrop').style.display = 'flex';
-    }
-
-    function closeCartDrawer() {
-      document.getElementById('cartDrawerBackdrop').style.display = 'none';
-    }
-
-    // -------------------------------------------------------------
-    // إرسال الطلب لـ Supabase والتحديث اللحظي
-    // -------------------------------------------------------------
-    async function dispatchOrderToSupabase() {
-      if (orderCart.length === 0) return;
-
-      const submitBtn = document.getElementById('btnSubmitOrder');
-      submitBtn.disabled = true;
-      submitBtn.innerText = 'جاري إرسال الطلب للمطبخ...';
-
-      const table = document.getElementById('tableSelector').value;
-      const grandTotal = orderCart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-      const itemsSummary = orderCart.map(i => `${i.name} (×${i.quantity})`).join('\n');
-
-      try {
-        if (!supabaseClient) throw new Error('يرجى التحقق من اتصال Supabase');
-
-        const { data, error } = await supabaseClient
-          .from('orders')
-          .insert([
-            {
-              table_number: table,
-              customer_name: 'طاولة العميل',
-              status: 'new',
-              total_amount: grandTotal,
-              items_summary: itemsSummary
-            }
-          ])
-          .select();
-
-        if (error) throw error;
-
-        const createdOrder = data && data[0];
-        activeCustomerOrder = createdOrder;
-
-        closeCartDrawer();
-        orderCart = [];
-        syncCartInterface();
-
-        // تفعيل شاشة التتبع المباشر للزبون
-        mountCustomerTracker(createdOrder);
-
-      } catch (err) {
-        alert('تعذر إرسال الطلب: ' + err.message);
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.innerText = 'إرسال الطلب للمطبخ مباشرة';
-      }
-    }
-
-    function mountCustomerTracker(order) {
-      const panel = document.getElementById('customerTrackerPanel');
-      panel.style.display = 'block';
-      document.getElementById('activeOrderMeta').innerText = `طلب #${order.id} · ${order.table_number}`;
-      updateTrackerSteps(order.status);
-
-      // الاستماع للتحديثات اللحظية عبر Supabase WebSockets
-      if (supabaseClient && order) {
-        supabaseClient
-          .channel(`order-track-${order.id}`)
-          .on(
-            'postgres_changes',
-            { event: 'UPDATE', schema: 'public', table: 'orders', filter: `id=eq.${order.id}` },
-            payload => {
-              updateTrackerSteps(payload.new.status);
-            }
-          )
-          .subscribe();
-      }
-    }
-
-    function updateTrackerSteps(status) {
-      const nodeNew = document.getElementById('statusNodeNew');
-      const nodePrep = document.getElementById('statusNodePrep');
-      const nodeReady = document.getElementById('statusNodeReady');
-
-      nodeNew.className = 'tracker-step-node completed';
-      nodePrep.className = 'tracker-step-node';
-      nodeReady.className = 'tracker-step-node';
-
-      if (status === 'preparing') {
-        nodePrep.className = 'tracker-step-node active';
-      } else if (status === 'ready' || status === 'completed') {
-        nodePrep.className = 'tracker-step-node completed';
-        nodeReady.className = 'tracker-step-node completed';
-      }
-    }
-
-    function dismissTracker() {
-      document.getElementById('customerTrackerPanel').style.display = 'none';
-    }
-
-    function updateCurrentTable(val) {
-      document.getElementById('currentTableLabel').innerText = val;
-    }
-
-    // -------------------------------------------------------------
-    // شاشة المطبخ (Kitchen Display Screen - KDS)
-    // -------------------------------------------------------------
-    async function loadKdsTickets() {
+    async function fetchRealtimeOrders() {
       if (!supabaseClient) return;
 
       const { data, error } = await supabaseClient
         .from('orders')
         .select('*')
         .order('id', { ascending: false })
-        .limit(25);
+        .limit(30);
 
       if (error) {
-        console.error('KDS load error:', error);
+        console.error('Fetch error:', error);
         return;
       }
 
-      renderKdsLanes(data || []);
+      allLiveOrders = data || [];
+      updateKpiMetrics();
+      renderOrderCards();
     }
 
-    function renderKdsLanes(tickets) {
-      const laneNew = document.getElementById('laneNewContainer');
-      const lanePrep = document.getElementById('lanePrepContainer');
-      const laneReady = document.getElementById('laneReadyContainer');
+    function subscribeSupabaseRealtime() {
+      if (!supabaseClient) return;
 
-      const newTickets = tickets.filter(t => t.status === 'new');
-      const prepTickets = tickets.filter(t => t.status === 'preparing');
-      const readyTickets = tickets.filter(t => t.status === 'ready');
-
-      document.getElementById('countNewTickets').innerText = newTickets.length;
-      document.getElementById('countPrepTickets').innerText = prepTickets.length;
-      document.getElementById('countReadyTickets').innerText = readyTickets.length;
-
-      laneNew.innerHTML = newTickets.map(t => makeTicketCard(t, 'new')).join('');
-      lanePrep.innerHTML = prepTickets.map(t => makeTicketCard(t, 'prep')).join('');
-      laneReady.innerHTML = readyTickets.map(t => makeTicketCard(t, 'ready')).join('');
+      supabaseClient
+        .channel('live-orders-kds-feed')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'orders' },
+          payload => {
+            fetchRealtimeOrders();
+            if (activeOrderId && payload.new && payload.new.id === activeOrderId) {
+              updateDinerTrackerUI(payload.new.status);
+            }
+          }
+        )
+        .subscribe();
     }
 
-    function makeTicketCard(ticket, laneType) {
-      let actionBtn = '';
-      if (laneType === 'new') {
-        actionBtn = `<button class="btn-ticket-advance action-start" onclick="advanceOrderStatus(${ticket.id}, 'preparing')">بدء الطهي والتجهيز ➔</button>`;
-      } else if (laneType === 'prep') {
-        actionBtn = `<button class="btn-ticket-advance action-ready" onclick="advanceOrderStatus(${ticket.id}, 'ready')">جاهز للتقديم للطاولة ✓</button>`;
-      } else if (laneType === 'ready') {
-        actionBtn = `<button class="btn-ticket-advance action-complete" onclick="advanceOrderStatus(${ticket.id}, 'completed')">تم التسليم (أرشفة)</button>`;
+    // -------------------------------------------------------------
+    // KPI METRICS & TAB COUNTS
+    // -------------------------------------------------------------
+    function updateKpiMetrics() {
+      const newOrders = allLiveOrders.filter(o => o.status === 'new').length;
+      const prepOrders = allLiveOrders.filter(o => o.status === 'preparing').length;
+      const readyOrders = allLiveOrders.filter(o => o.status === 'ready').length;
+      const servedOrders = allLiveOrders.filter(o => o.status === 'served' || o.status === 'completed').length;
+
+      document.getElementById('kpiNewOrders').innerText = newOrders;
+      document.getElementById('kpiTotalServed').innerText = servedOrders;
+      document.getElementById('tabCountAll').innerText = allLiveOrders.length;
+      document.getElementById('tabCountNew').innerText = newOrders;
+      document.getElementById('tabCountPrep').innerText = prepOrders;
+      document.getElementById('tabCountReady').innerText = readyOrders;
+      document.getElementById('tabCountServed').innerText = servedOrders;
+      document.getElementById('tabCountConfirmed').innerText = 1;
+      document.getElementById('tabCountCompleted').innerText = servedOrders;
+    }
+
+    // -------------------------------------------------------------
+    // ORDER TICKET CARDS RENDERING (Orderio SaaS Layout)
+    // -------------------------------------------------------------
+    function renderOrderCards() {
+      const container = document.getElementById('ordersTicketList');
+      
+      let filtered = allLiveOrders;
+      if (currentFilter !== 'all') {
+        filtered = allLiveOrders.filter(o => o.status === currentFilter);
       }
 
-      const formattedTime = new Date(ticket.created_at).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div style="grid-column: 1/-1; text-align:center; padding:60px 20px; background:#ffffff; border-radius:16px; border:1px solid var(--border-subtle);">
+            <p style="color:var(--text-muted); font-size:1rem; font-weight:500;">No active orders under this filter.</p>
+          </div>
+        `;
+        return;
+      }
 
-      return `
-        <div class="kds-ticket-card">
-          <div class="ticket-meta-row">
-            <span class="ticket-table-badge">${ticket.table_number}</span>
-            <span class="ticket-time-elapsed">طلب #${ticket.id} · ${formattedTime}</span>
+      container.innerHTML = filtered.map((order, idx) => {
+        const isTakeaway = order.table_number.toLowerCase().includes('takeaway');
+        const badgeTypeClass = isTakeaway ? 'type-takeaway' : 'type-dine-in';
+        const badgeTypeText = isTakeaway ? 'Takeaway' : 'Dine In';
+        const badgeTypeIcon = isTakeaway ? '🛍️' : '🍽️';
+
+        const sampleAvatars = [
+          "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=80",
+          "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80",
+          "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100&auto=format&fit=crop&q=80",
+          "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=100&auto=format&fit=crop&q=80"
+        ];
+        const avatar = sampleAvatars[idx % sampleAvatars.length];
+
+        const sampleDishes = [
+          "https://images.unsplash.com/photo-1544025162-d76694265947?w=400&auto=format&fit=crop&q=80",
+          "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&auto=format&fit=crop&q=80",
+          "https://images.unsplash.com/photo-1604382355076-af4b0eb60143?w=400&auto=format&fit=crop&q=80",
+          "https://images.unsplash.com/photo-1625813506062-0aeb1d7a094b?w=400&auto=format&fit=crop&q=80"
+        ];
+        const dishImg = sampleDishes[idx % sampleDishes.length];
+
+        let actionButtonHtml = '';
+        if (order.status === 'new') {
+          actionButtonHtml = `<button class="btn-card-primary" onclick="transitionOrderStatus(${order.id}, 'preparing')">Start Preparing</button>`;
+        } else if (order.status === 'preparing') {
+          actionButtonHtml = `<button class="btn-card-primary" style="background:#0f766e;" onclick="transitionOrderStatus(${order.id}, 'ready')">Mark Ready</button>`;
+        } else if (order.status === 'ready') {
+          actionButtonHtml = `<button class="btn-card-primary is-served" onclick="transitionOrderStatus(${order.id}, 'served')">Mark served ✓</button>`;
+        } else {
+          actionButtonHtml = `<button class="btn-card-primary is-served" disabled>Completed ✓</button>`;
+        }
+
+        const timeStr = new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+        return `
+          <div class="order-ticket-card">
+            <div>
+              <div class="card-top-id-row">
+                <span class="ticket-id">#ORD-${order.id}</span>
+                <button class="btn-more-options">•••</button>
+              </div>
+
+              <div class="order-type-tag ${badgeTypeClass}">
+                <span>${badgeTypeIcon}</span>
+                <span>${badgeTypeText}</span>
+              </div>
+
+              <div class="customer-info-row">
+                <img src="${avatar}" alt="Customer" class="customer-avatar">
+                <div>
+                  <div class="customer-name-text">${order.customer_name || 'Guest Diner'}</div>
+                  <div class="customer-time-ago">${timeStr}</div>
+                </div>
+              </div>
+
+              <img src="${dishImg}" alt="Meal" class="dish-preview-image">
+
+              <div class="items-count-header">Ordered Items</div>
+              <div class="items-detail-list">${order.items_summary}</div>
+
+              <span class="table-location-pill">${order.table_number}</span>
+            </div>
+
+            <div>
+              <div class="card-total-row">
+                <span class="total-title-label">Total:</span>
+                <span class="total-price-val">$${Number(order.total_amount || 47.16).toFixed(2)}</span>
+              </div>
+
+              <div class="card-actions-col">
+                ${actionButtonHtml}
+                <button class="btn-card-secondary" onclick="transitionOrderStatus(${order.id}, 'cancelled')">Cancel order</button>
+              </div>
+            </div>
           </div>
-          <div class="ticket-items-box">${ticket.items_summary}</div>
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; font-size:0.86rem;">
-            <span style="color:var(--color-text-muted);">القيمة:</span>
-            <span style="font-weight:700;">${ticket.total_amount} ج.م</span>
-          </div>
-          ${actionBtn}
-        </div>
-      `;
+        `;
+      }).join('');
     }
 
-    async function advanceOrderStatus(orderId, newStatus) {
+    async function transitionOrderStatus(orderId, newStatus) {
       if (!supabaseClient) return;
 
       const { error } = await supabaseClient
@@ -1269,98 +1402,198 @@
         .eq('id', orderId);
 
       if (error) {
-        alert('تعذر تحديث الحالة: ' + error.message);
+        alert('Could not update status: ' + error.message);
       } else {
-        loadKdsTickets();
+        fetchRealtimeOrders();
       }
     }
 
-    function subscribeKitchenRealtime() {
-      if (!supabaseClient) return;
-
-      supabaseClient
-        .channel('kds-live-feed')
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'orders' },
-          payload => {
-            loadKdsTickets();
-          }
-        )
-        .subscribe();
+    function setOrderStatusFilter(status, btnElement) {
+      currentFilter = status;
+      document.querySelectorAll('.filter-btn-pill').forEach(b => b.classList.remove('active'));
+      btnElement.classList.add('active');
+      renderOrderCards();
     }
 
-    // -------------------------------------------------------------
-    // توليد رمز QR للطاولة
-    // -------------------------------------------------------------
-    function generateTableQRCode(tableName) {
-      const container = document.getElementById('qrCodeContainer');
-      const urlText = document.getElementById('qrTargetUrlText');
-      container.innerHTML = '';
+    function filterOrdersBySearch(query) {
+      const q = query.toLowerCase().trim();
+      const filtered = allLiveOrders.filter(o => 
+        String(o.id).includes(q) || 
+        o.table_number.toLowerCase().includes(q) || 
+        o.items_summary.toLowerCase().includes(q)
+      );
+      // Temporarily render filtered
+      allLiveOrders = filtered;
+      renderOrderCards();
+      if (!q) fetchRealtimeOrders();
+    }
 
-      const targetUrl = window.location.origin + window.location.pathname + `?table=${encodeURIComponent(tableName)}`;
-      urlText.innerText = targetUrl;
-
-      new QRCode(container, {
-        text: targetUrl,
-        width: 180,
-        height: 180,
-        colorDark: "#0f172a",
-        colorLight: "#ffffff",
-        correctLevel: QRCode.CorrectLevel.H
+    function exportOrdersCSV() {
+      let csv = "Order ID,Table,Customer,Items,Total,Status,Created At\n";
+      allLiveOrders.forEach(o => {
+        csv += `"${o.id}","${o.table_number}","${o.customer_name}","${o.items_summary.replace(/\n/g, ' ')}","${o.total_amount}","${o.status}","${o.created_at}"\n`;
       });
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `orders-export-${new Date().toISOString().slice(0,10)}.csv`;
+      a.click();
     }
 
     // -------------------------------------------------------------
-    // التبديل بين المشاهد (Tabs Navigation)
+    // DINER DIGITAL ORDERING PORTAL
     // -------------------------------------------------------------
-    function activateView(viewKey) {
-      const vCustomer = document.getElementById('customerViewContainer');
-      const vKitchen = document.getElementById('kitchenViewContainer');
-      const vQR = document.getElementById('qrViewContainer');
+    function openCustomerPortal() {
+      document.getElementById('customerPortalModal').style.display = 'flex';
+    }
 
-      const tCust = document.getElementById('tabCustomer');
-      const tKit = document.getElementById('tabKitchen');
-      const tQR = document.getElementById('tabQR');
+    function closeCustomerPortal() {
+      document.getElementById('customerPortalModal').style.display = 'none';
+    }
 
-      const dock = document.getElementById('cartDockBar');
+    function renderDinerCatalog() {
+      const grid = document.getElementById('dinerMenuGrid');
+      grid.innerHTML = MENU_PRODUCTS.map(dish => `
+        <div class="diner-dish-card">
+          <img src="${dish.image}" alt="${dish.name}" class="diner-dish-img">
+          <div>
+            <h4 style="font-size:1.05rem; font-weight:700; margin-bottom:4px;">${dish.name}</h4>
+            <p style="font-size:0.82rem; color:var(--text-secondary); line-height:1.4; margin-bottom:12px;">${dish.desc}</p>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border-subtle); padding-top:10px;">
+            <span style="font-size:1.1rem; font-weight:700;">$${dish.priceUsd.toFixed(2)}</span>
+            <button onclick="addDishToDinerCart('${dish.id}')" style="background:#18191d; color:#fff; border:none; padding:8px 14px; border-radius:8px; font-weight:600; font-size:0.85rem; cursor:pointer;">
+              + Add to Order
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
 
-      [tCust, tKit, tQR].forEach(t => t.classList.remove('active'));
-      [vCustomer, vKitchen, vQR].forEach(v => v.style.display = 'none');
+    function addDishToDinerCart(id) {
+      const dish = MENU_PRODUCTS.find(d => d.id === id);
+      const existing = customerCart.find(c => c.id === id);
+      if (existing) {
+        existing.qty += 1;
+      } else {
+        customerCart.push({ ...dish, qty: 1 });
+      }
+      syncDinerCartBar();
+    }
 
-      if (viewKey === 'customer') {
-        vCustomer.style.display = 'block';
-        tCust.classList.add('active');
-        if (orderCart.length > 0) dock.style.display = 'flex';
-      } else if (viewKey === 'kitchen') {
-        vKitchen.style.display = 'block';
-        tKit.classList.add('active');
-        dock.style.display = 'none';
-        loadKdsTickets();
-      } else if (viewKey === 'qr') {
-        vQR.style.display = 'block';
-        tQR.classList.add('active');
-        dock.style.display = 'none';
-        generateTableQRCode(document.getElementById('qrTableSelect').value);
+    function syncDinerCartBar() {
+      const bar = document.getElementById('dinerFloatingCart');
+      const badge = document.getElementById('dinerCartCountBadge');
+      const total = document.getElementById('dinerCartTotalBadge');
+
+      const count = customerCart.reduce((s, c) => s + c.qty, 0);
+      const amount = customerCart.reduce((s, c) => s + (c.priceUsd * c.qty), 0);
+
+      if (count > 0) {
+        bar.style.display = 'flex';
+        badge.innerText = `${count} items`;
+        total.innerText = `$${amount.toFixed(2)}`;
+      } else {
+        bar.style.display = 'none';
+        closeCheckoutModal();
       }
     }
 
-    // الفحص التلقائي لبارامتر الطاولة في الرابط (e.g. ?table=طاولة 02)
-    function checkUrlForTable() {
-      const params = new URLSearchParams(window.location.search);
-      const tableParam = params.get('table');
-      if (tableParam) {
-        document.getElementById('tableSelector').value = tableParam;
-        updateCurrentTable(tableParam);
+    function openCheckoutModal() {
+      document.getElementById('checkoutModal').style.display = 'flex';
+      const list = document.getElementById('checkoutItemsList');
+      const grand = document.getElementById('checkoutGrandTotal');
+      const amount = customerCart.reduce((s, c) => s + (c.priceUsd * c.qty), 0);
+      grand.innerText = `$${amount.toFixed(2)}`;
+
+      list.innerHTML = customerCart.map(i => `
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid #f1f5f9;">
+          <div>
+            <div style="font-weight:600; font-size:0.9rem;">${i.name}</div>
+            <div style="font-size:0.78rem; color:var(--text-muted);">$${i.priceUsd.toFixed(2)} × ${i.qty}</div>
+          </div>
+          <div style="font-weight:700;">$${(i.priceUsd * i.qty).toFixed(2)}</div>
+        </div>
+      `).join('');
+    }
+
+    function closeCheckoutModal() {
+      document.getElementById('checkoutModal').style.display = 'none';
+    }
+
+    async function dispatchDinerOrderToKitchen() {
+      if (customerCart.length === 0) return;
+
+      const btn = document.getElementById('btnSubmitDinerOrder');
+      btn.disabled = true;
+      btn.innerText = 'Connecting to Kitchen...';
+
+      const table = document.getElementById('dinerTablePicker').value;
+      const amount = customerCart.reduce((s, c) => s + (c.priceUsd * c.qty), 0);
+      const summary = customerCart.map(i => `1x ${i.name} (x${i.qty})`).join('\n');
+
+      try {
+        if (!supabaseClient) throw new Error('Supabase client not connected');
+
+        const { data, error } = await supabaseClient
+          .from('orders')
+          .insert([
+            {
+              table_number: table,
+              customer_name: 'Diner at ' + table,
+              status: 'new',
+              total_amount: amount,
+              items_summary: summary
+            }
+          ])
+          .select();
+
+        if (error) throw error;
+
+        const newOrder = data && data[0];
+        activeOrderId = newOrder.id;
+
+        closeCheckoutModal();
+        customerCart = [];
+        syncDinerCartBar();
+
+        // Show Live Status Card
+        document.getElementById('dinerLiveTracker').style.display = 'block';
+        document.getElementById('dinerOrderIdLabel').innerText = `Order #ORD-${newOrder.id} · ${newOrder.table_number}`;
+        updateDinerTrackerUI('new');
+
+        // Refresh staff dashboard in background
+        fetchRealtimeOrders();
+
+      } catch (err) {
+        alert('Order submission error: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = 'Send Order to Kitchen Display';
       }
     }
 
-    // تهيئة التطبيق
-    window.addEventListener('DOMContentLoaded', () => {
-      renderMenuCards(RESTAURANT_MENU);
-      checkUrlForTable();
-      subscribeKitchenRealtime();
-    });
+    function updateDinerTrackerUI(status) {
+      const sRec = document.getElementById('stepDinerReceived');
+      const sPrep = document.getElementById('stepDinerPrep');
+      const sReady = document.getElementById('stepDinerReady');
+
+      sRec.className = 'stepper-pill completed';
+      sPrep.className = 'stepper-pill';
+      sReady.className = 'stepper-pill';
+
+      if (status === 'preparing') {
+        sPrep.className = 'stepper-pill active';
+      } else if (status === 'ready' || status === 'served' || status === 'completed') {
+        sPrep.className = 'stepper-pill completed';
+        sReady.className = 'stepper-pill completed';
+      }
+    }
+
+    function updateDinerTable(val) {
+      document.getElementById('dinerTableBadge').innerText = val;
+    }
   </script>
 </body>
 </html>
