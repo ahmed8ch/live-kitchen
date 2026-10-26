@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppStore } from '../store/useAppStore';
+import { FlameLinkLogo } from '../components/ui/FlameLinkLogo';
 
-const QUICK_TABLES = ['T-01', 'T-02', 'T-04', 'T-08', 'T-12', 'T-16', 'T-20'];
+const QUICK_TABLES = ['T-01', 'T-02', 'T-04', 'T-08', 'T-12', 'T-16'];
 
 export const TableStandPage: React.FC = () => {
   const [tableId, setTableId] = useState('T-04');
@@ -14,7 +15,7 @@ export const TableStandPage: React.FC = () => {
     ? `${window.location.origin}/menu?table=${cleanTable}`
     : `https://live-kitchen.pages.dev/menu?table=${cleanTable}`;
 
-  const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(
+  const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(
     targetUrl
   )}&margin=2`;
 
@@ -24,31 +25,31 @@ export const TableStandPage: React.FC = () => {
   };
 
   return (
-    <div className="flex-1 w-full bg-[#fafafa] py-10 sm:py-16" data-ui-container="stand-studio">
+    <div className="flex-1 w-full bg-[#f9f9f9] py-10 sm:py-16 pb-32" data-ui-container="stand-studio">
       <div className="max-w-4xl mx-auto px-4 sm:px-6">
         {/* Studio Header */}
         <div className="text-center max-w-xl mx-auto mb-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-[#e5e7eb] text-[12px] font-bold text-[#EA580C] uppercase tracking-wider mb-3 shadow-xs">
-            Hardware & Tabletop Studio
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-[#e5e7eb] text-[11px] font-mono-num font-medium text-[#ff4d00] uppercase mb-3 shadow-xs">
+            Physical Hardware Studio
           </div>
-          <h1 className="text-3xl font-extrabold text-[#262626]" data-ui-balance>
+          <h1 className="text-3xl font-medium text-[#262626]" data-ui-balance>
             Acrylic Table Stand Studio
           </h1>
-          <p className="mt-2 text-[14px] text-[#727272]" data-ui-pretty>
-            Generate authentic scannable QR stands. When scanned, diners are instantly anchored to their table number without app downloads.
+          <p className="mt-2 text-[14px] text-[#616161]" data-ui-pretty>
+            Generate authentic 4×6" acrylic tent table stands. Diners scan with standard camera to bind directly to their table number.
           </p>
 
           {/* Table Selector & Custom Input */}
           <div className="mt-6 flex flex-wrap items-center justify-center gap-2" data-ui-actions="table-picker">
-            <span className="text-[13px] font-semibold text-[#262626] mr-1">Table:</span>
+            <span className="text-[13px] font-medium text-[#262626] mr-1">Table:</span>
             {QUICK_TABLES.map((id) => (
               <button
                 key={id}
                 onClick={() => setTableId(id)}
                 data-ui-radius="8"
-                className={`px-3 py-1 rounded-lg text-[13px] font-mono-num font-bold transition-all cursor-pointer ${
+                className={`px-3 py-1 rounded-lg text-[13px] font-mono-num transition-all cursor-pointer ${
                   cleanTable === id
-                    ? 'bg-[#EA580C] text-white shadow-xs'
+                    ? 'bg-[#ff4d00] text-white font-medium shadow-xs'
                     : 'bg-white hover:bg-[#f0f0f0] text-[#727272] border border-[#e5e7eb]'
                 }`}
               >
@@ -62,17 +63,17 @@ export const TableStandPage: React.FC = () => {
                 value={tableId}
                 onChange={(e) => setTableId(e.target.value)}
                 placeholder="Custom"
-                className="w-24 px-2.5 py-1 text-[13px] font-mono-num font-bold rounded-lg border border-[#e5e7eb] bg-white text-[#262626] focus:outline-none focus:border-[#EA580C]"
+                className="w-24 px-2.5 py-1 text-[13px] font-mono-num rounded-lg border border-[#e5e7eb] bg-white text-[#262626] focus:outline-none focus:border-[#ff4d00]"
               />
             </div>
           </div>
 
-          {/* Quick Action Buttons */}
-          <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
+          {/* Action CTAs */}
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
             <button
               onClick={() => window.print()}
               data-ui-radius="999"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white hover:bg-[#f9f9f9] border border-[#e5e7eb] text-[#262626] text-[13px] font-semibold shadow-xs transition-all active:scale-95 cursor-pointer"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white hover:bg-[#f9f9f9] border border-[#e5e7eb] text-[#262626] text-[13px] font-medium shadow-xs transition-all active:scale-95 cursor-pointer"
             >
               <svg className="w-4 h-4 text-[#727272]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <polyline points="6 9 6 2 18 2 18 9" />
@@ -85,81 +86,52 @@ export const TableStandPage: React.FC = () => {
             <button
               onClick={handleSimulateScan}
               data-ui-radius="999"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#EA580C] hover:opacity-95 text-white text-[13px] font-semibold shadow-xs transition-all btn-flame-glow active:scale-95 cursor-pointer"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#ff4d00] hover:opacity-95 text-white text-[13px] font-medium shadow-xs transition-all btn-ember-glow active:scale-95 cursor-pointer"
             >
-              <span>Simulate Scanning {cleanTable} -&gt;</span>
+              <span>Simulate Table Scan ({cleanTable}) -&gt;</span>
             </button>
           </div>
         </div>
 
-        {/* 3D Realistic Acrylic Tent Card Container */}
-        <div data-ui-radius="24" className="print:m-0 print:p-0 print:shadow-none bg-white p-8 sm:p-12 rounded-3xl border border-[#e5e7eb] shadow-xl max-w-sm mx-auto text-center relative ring-1 ring-black/5">
-          {/* Acrylic Badge */}
-          <div className="absolute top-4 right-4">
-            <span className="px-2.5 py-1 rounded-full bg-orange-50 border border-orange-200 text-[#EA580C] text-[11px] font-mono-num font-bold">
-              Acrylic Stand
-            </span>
-          </div>
-
-          {/* Unified Brand Mark: Flame + Single Line FlameLink */}
-          <div className="inline-flex items-center gap-2 mb-6">
-            <div className="w-8 h-8 rounded-xl bg-[#EA580C] flex items-center justify-center text-white shrink-0 shadow-xs">
-              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 3z" />
-              </svg>
-            </div>
-            <span className="text-[17px] font-extrabold tracking-tight text-[#262626]">
-              Flame<span className="text-[#EA580C]">Link</span>
-            </span>
-          </div>
-
-          <div className="text-[12px] font-bold uppercase tracking-wider text-[#727272]">
-            Dine-In Table
-          </div>
-          <div className="text-4xl font-extrabold font-mono-num text-[#262626] mt-1 mb-6">
-            Table {cleanTable}
-          </div>
-
-          {/* Real High-Density Scannable QR Code */}
-          <div className="w-56 h-56 mx-auto bg-white p-3 rounded-2xl border-2 border-[#262626] flex items-center justify-center shadow-md overflow-hidden">
-            <img
-              src={qrImageUrl}
-              alt={`Real Scannable QR Code for Table ${cleanTable}`}
-              className="w-full h-full object-contain"
-              onError={(e) => {
-                // High density fallback
-                (e.currentTarget as HTMLImageElement).src =
-                  'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 33 33" fill="%23262626"><rect x="0" y="0" width="33" height="33" fill="white"/><rect x="3" y="3" width="7" height="7"/><rect x="4" y="4" width="5" height="5" fill="white"/><rect x="5" y="5" width="3" height="3"/><rect x="23" y="3" width="7" height="7"/><rect x="24" y="4" width="5" height="5" fill="white"/><rect x="25" y="5" width="3" height="3"/><rect x="3" y="23" width="7" height="7"/><rect x="4" y="24" width="5" height="5" fill="white"/><rect x="5" y="25" width="3" height="3"/><rect x="12" y="4" width="2" height="4"/><rect x="16" y="3" width="3" height="2"/><rect x="15" y="7" width="4" height="2"/><rect x="12" y="12" width="9" height="9"/><rect x="14" y="14" width="5" height="5" fill="white"/><rect x="15" y="15" width="3" height="3"/><rect x="4" y="12" width="2" height="7"/><rect x="8" y="14" width="2" height="5"/><rect x="23" y="12" width="7" height="2"/><rect x="25" y="16" width="5" height="3"/><rect x="12" y="23" width="3" height="6"/><rect x="18" y="25" width="4" height="4"/><rect x="24" y="24" width="6" height="6"/></svg>';
-              }}
-            />
-          </div>
-
-          <div className="mt-6 space-y-1">
-            <div className="text-[14px] font-bold text-[#262626]">
-              Point Camera to Order
-            </div>
-            <div className="text-[11px] font-mono-num text-[#727272] truncate px-2">
-              {targetUrl}
-            </div>
-          </div>
-
-          <div className="mt-6 pt-5 border-t border-[#e5e7eb] text-[11px] text-[#727272] leading-relaxed">
-            No app download required. Instant table synchronization with kitchen line cooks.
-          </div>
-        </div>
-
-        {/* Bottom Action */}
-        <div className="mt-10 text-center">
-          <button
-            onClick={handleSimulateScan}
-            data-ui-radius="999"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#262626] hover:bg-black text-white text-[14px] font-semibold shadow-md transition-all active:scale-95 cursor-pointer"
+        {/* 3D Realistic Acrylic Tent Card Container with Perspective Physics (DESIGN.md §4.3) */}
+        <div className="max-w-xs mx-auto py-4">
+          <div
+            data-ui-radius="16"
+            className="acrylic-stand-3d bg-white p-7 sm:p-9 rounded-2xl border border-[#e5e7eb] text-center relative select-none"
           >
-            <span>Simulate Seated Diner on Table {cleanTable}</span>
-            <svg className="w-4 h-4 text-orange-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <path d="M5 12h14M12 5l7 7-7 7" />
-            </svg>
-          </button>
+            {/* Double-Walled Acrylic Edge Sheen */}
+            <div className="absolute inset-1.5 rounded-xl border border-[#e5e7eb]/60 pointer-events-none" />
+
+            {/* Stand Brand Header */}
+            <div className="flex items-center justify-between border-b border-[#e5e7eb] pb-3 mb-5">
+              <FlameLinkLogo size="sm" />
+              <span className="px-2 py-0.5 rounded-full bg-[#fff8f5] border border-[#fcddcc] text-[#ff4d00] text-[11px] font-mono-num font-medium">
+                {cleanTable}
+              </span>
+            </div>
+
+            {/* Scannable Real QR Code Container */}
+            <div className="w-48 h-48 mx-auto bg-white p-3 rounded-xl border border-[#e5e7eb] flex items-center justify-center shadow-xs">
+              <img
+                src={qrImageUrl}
+                alt={`Real Scannable QR Code for Table ${cleanTable}`}
+                className="w-full h-full object-contain"
+              />
+            </div>
+
+            {/* Instruction Callout */}
+            <div className="mt-5 text-center">
+              <div className="text-[14px] font-medium text-[#262626]">
+                Point Camera to Order
+              </div>
+              <div className="text-[11px] text-[#727272] mt-0.5">
+                Instant self-ordering • No app required
+              </div>
+              <div className="text-[10px] font-mono-num text-[#949494] mt-2 pt-2 border-t border-[#f0f0f0] truncate">
+                {targetUrl}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

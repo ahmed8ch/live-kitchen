@@ -1,220 +1,392 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAppStore } from '../store/useAppStore';
 
+// ASCII thermal characters ordered by visual density
+const ASCII_RAMP = [' ', '·', ':', '+', '*', '#'];
+
 export const HomePage: React.FC = () => {
   const activeTable = useAppStore((state) => state.activeTable);
+  const addSampleOrder = useAppStore((state) => state.addSampleOrder);
+
   const menuLink = activeTable ? `/menu?table=${activeTable}` : '/menu';
 
+  // Interactive Thermal Flame ASCII Matrix State
+  const [mousePos, setMousePos] = useState<{ x: number; y: number } | null>(null);
+  const [asciiTick, setAsciiTick] = useState<number>(0);
+  const [isFiringDemo, setIsFiringDemo] = useState<boolean>(false);
+  const [conduitText, setConduitText] = useState<string>('··:++*##*++:·· 142MS');
+
+  // ROI Estimator State (EGP)
+  const [tableCount, setTableCount] = useState<number>(24);
+  const [avgCheck, setAvgCheck] = useState<number>(380);
+
+  // Animation ticker for thermal flame ASCII wave
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setAsciiTick((prev) => (prev + 1) % 1000);
+    }, 120);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Compute 7x30 ASCII matrix
+  const rows = 7;
+  const cols = 32;
+  const asciiMatrix: string[] = [];
+
+  for (let r = 0; r < rows; r++) {
+    let rowStr = '';
+    for (let c = 0; c < cols; c++) {
+      let intensity = 0;
+      // Ambient thermal wave
+      const wave = Math.sin((c * 0.4) + (asciiTick * 0.2) + (r * 0.5));
+      if (wave > 0.4) intensity = 1;
+      if (wave > 0.7) intensity = 2;
+
+      // Mouse heat radiation
+      if (mousePos) {
+        const dx = c - mousePos.x;
+        const dy = r - mousePos.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 3.5) {
+          intensity = Math.min(ASCII_RAMP.length - 1, intensity + Math.floor((3.5 - dist) * 1.5) + 1);
+        }
+      }
+
+      // Base bottom coals heat
+      if (r === rows - 1 && Math.random() > 0.3) {
+        intensity = Math.max(intensity, 2);
+      }
+
+      rowStr += ASCII_RAMP[Math.min(ASCII_RAMP.length - 1, intensity)];
+    }
+    asciiMatrix.push(rowStr);
+  }
+
+  const handleFireDemoOrder = () => {
+    setIsFiringDemo(true);
+    setConduitText('==##**PULSE**##== 24MS');
+    addSampleOrder();
+
+    setTimeout(() => {
+      setIsFiringDemo(false);
+      setConduitText('··:++*##*++:·· 142MS');
+    }, 700);
+  };
+
+  // ROI Calculations
+  // Faster turnover: +22% more turns per day = 0.6 extra turns per table/day
+  const extraDailyParties = Math.round(tableCount * 0.65);
+  const extraDailyRevenue = extraDailyParties * avgCheck;
+  const monthlyRevenueUplift = extraDailyRevenue * 30;
+
   return (
-    <div className="flex-1 w-full bg-white" data-ui-container="home-view">
-      {/* Hero Section (Clean canvas, white background matching original design) */}
-      <section className="relative pt-16 pb-20 md:pt-20 md:pb-24 border-b border-[#e5e7eb] bg-white">
+    <div className="flex-1 w-full bg-white select-none pb-24" data-ui-container="home-overview">
+      {/* Blueprint Sub-Grid Hero Header */}
+      <section className="relative pt-12 pb-16 md:pt-16 md:pb-20 border-b border-[#e5e7eb] blueprint-dots bg-[#f9f9f9]">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-          {/* Top Section Breadcrumb Pill */}
-          <div className="flex justify-center mb-6">
-            <span className="px-4 py-1.5 rounded-full bg-[#f9f9f9] border border-[#e5e7eb] text-[12px] font-semibold text-[#727272]">
-              Platform Overview
+          {/* Top Status Capsule */}
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-[#e5e7eb] mb-6 shadow-xs">
+            <span className="w-2 h-2 rounded-full bg-[#ff4d00]" />
+            <span className="text-[12px] font-mono-num font-medium text-[#262626]">
+              FLAMELINK v2.0 // ZERO-FRICTION DINE-IN OS
             </span>
           </div>
 
-          {/* Release Badge */}
-          <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-[#f9f9f9] border border-[#e5e7eb] mb-8 shadow-xs">
-            <span className="px-2 py-0.5 rounded-full bg-[#EA580C] text-white text-[10px] font-bold uppercase tracking-wider">
-              NEW
-            </span>
-            <span className="text-[12px] font-semibold text-[#262626]">
-              Zero-Friction Table Self-Ordering
-            </span>
-            <span className="text-[#EA580C] font-mono-num font-bold">&gt;</span>
-          </div>
-
-          {/* Display Headline */}
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-[#262626] max-w-4xl mx-auto leading-[1.15]" data-ui-balance>
-            Turn Every Restaurant Table into a{' '}
-            <span className="text-[#EA580C]">Self-Ordering Experience</span>
+          {/* Two-Tone Engineered Display Headline */}
+          <h1
+            className="text-3xl sm:text-4xl lg:text-5xl font-medium tracking-tight text-[#262626] max-w-3xl mx-auto leading-[1.12]"
+            data-ui-balance
+          >
+            Turn Every Table into an{' '}
+            <span className="text-[#ff4d00]">Autonomous Flame Kitchen</span>
           </h1>
 
-          {/* Subheadline matching original */}
-          <p className="mt-6 text-base sm:text-lg text-[#727272] max-w-2xl mx-auto leading-relaxed" data-ui-pretty>
-            Browse our handcrafted menu, customize toppings and portions, and send your order directly to the flame line cooks in real-time.
+          {/* Calm Technical Subtitle */}
+          <p className="mt-4 text-base sm:text-lg text-[#616161] max-w-2xl mx-auto leading-relaxed" data-ui-pretty>
+            Zero tablet hardware leasing, zero mandatory logins. Diners scan acrylic stands, customize items, and dispatch orders to the kitchen pass in under 150ms.
           </p>
 
-          {/* Call to Actions matching original screenshot */}
-          <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3.5" data-ui-actions="hero-cta">
+          {/* Hero CTAs */}
+          <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3" data-ui-actions="hero-cta">
             <Link
               to={menuLink}
               data-ui-radius="999"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-full bg-[#EA580C] hover:opacity-95 text-white text-[15px] font-semibold transition-all btn-flame-glow active:scale-95 shadow-sm"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3 rounded-full bg-[#ff4d00] hover:opacity-95 text-white text-[14px] font-medium transition-all btn-ember-glow active:scale-[0.99] shadow-sm"
             >
-              <span>Browse Dine-In Menu -&gt;</span>
+              <span>Launch Dine-In Menu -&gt;</span>
             </Link>
 
             <Link
-              to="/order/active"
+              to="/kds"
               data-ui-radius="999"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-full bg-white hover:bg-[#f9f9f9] border border-[#e5e7eb] text-[#262626] text-[15px] font-semibold transition-all active:scale-95 shadow-xs"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-white hover:bg-[#f0f0f0] border border-[#e5e7eb] text-[#262626] text-[14px] font-medium transition-all active:scale-[0.99] shadow-xs"
             >
-              <span>Track Existing Order</span>
+              <span>View Kitchen Line KDS</span>
             </Link>
           </div>
 
-          {/* 3 Core Feature Cards (Exact replica of original screenshot) */}
-          <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6 text-center max-w-4xl mx-auto">
-            {/* Card 1: Rich Visual Menu */}
+          {/* Interactive Thermal Flame ASCII Matrix (DESIGN.md §4.1) */}
+          <div className="mt-12 max-w-xl mx-auto">
             <div
-              data-ui-radius="16"
-              className="flex flex-col items-center bg-[#ffffff] p-7 rounded-2xl border border-[#e5e7eb] shadow-xs hover:border-[#EA580C]/40 transition-all"
+              data-ui-radius="8"
+              className="bg-[#262626] text-[#ff4d00] p-4 rounded-lg border border-[#383838] shadow-lg text-left relative overflow-hidden font-mono-num text-[11px] sm:text-[13px] leading-tight tracking-widest cursor-crosshair"
+              onMouseMove={(e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                const relX = (e.clientX - rect.left) / rect.width;
+                const relY = (e.clientY - rect.top) / rect.height;
+                setMousePos({
+                  x: Math.floor(relX * cols),
+                  y: Math.floor(relY * rows),
+                });
+              }}
+              onMouseLeave={() => setMousePos(null)}
             >
-              <div className="w-12 h-12 rounded-full border border-[#EA580C] flex items-center justify-center text-[#EA580C] mb-5 shadow-xs bg-white">
-                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M18 8h1a4 4 0 0 1 0 8h-1" />
-                  <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" />
-                  <line x1="6" y1="1" x2="6" y2="4" />
-                  <line x1="10" y1="1" x2="10" y2="4" />
-                  <line x1="14" y1="1" x2="14" y2="4" />
-                </svg>
+              <div className="flex items-center justify-between text-[10px] text-[#949494] pb-2 mb-2 border-b border-[#383838] font-mono-num uppercase">
+                <span>[ THERMAL FLAME SENSOR MATRIX ]</span>
+                <span className="text-[#ff4d00] animate-pulse">ACTIVE // 800°C LINE</span>
               </div>
-              <h3 className="text-[17px] font-bold text-[#262626]">Rich Visual Menu</h3>
-              <p className="mt-2 text-[13px] text-[#727272] leading-relaxed">
-                Explore flame-grilled dishes with detailed ingredients, portion options, and custom toppings.
-              </p>
-            </div>
-
-            {/* Card 2: Sub-Second Dispatch */}
-            <div
-              data-ui-radius="16"
-              className="flex flex-col items-center bg-[#ffffff] p-7 rounded-2xl border border-[#e5e7eb] shadow-xs hover:border-[#EA580C]/40 transition-all"
-            >
-              <div className="w-12 h-12 rounded-full border border-[#EA580C] flex items-center justify-center text-[#EA580C] mb-5 shadow-xs bg-white">
-                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="10" />
-                  <polyline points="12 6 12 12 16 14" />
-                </svg>
+              <pre className="font-mono m-0 overflow-hidden select-none">
+                {asciiMatrix.map((line, i) => (
+                  <div key={i} className="whitespace-pre">
+                    {line}
+                  </div>
+                ))}
+              </pre>
+              <div className="pt-2 mt-2 border-t border-[#383838] flex items-center justify-between text-[10px] text-[#949494]">
+                <span>Hover cursor to deflect line heat</span>
+                <span className="font-mono-num">FPS: 60 • RTT: 1.2ms</span>
               </div>
-              <h3 className="text-[17px] font-bold text-[#262626]">Sub-Second Dispatch</h3>
-              <p className="mt-2 text-[13px] text-[#727272] leading-relaxed">
-                Tickets reach kitchen stations instantly. Watch live order progress from prep to plating.
-              </p>
-            </div>
-
-            {/* Card 3: Table Settlement */}
-            <div
-              data-ui-radius="16"
-              className="flex flex-col items-center bg-[#ffffff] p-7 rounded-2xl border border-[#e5e7eb] shadow-xs hover:border-[#EA580C]/40 transition-all"
-            >
-              <div className="w-12 h-12 rounded-full border border-[#EA580C] flex items-center justify-center text-[#EA580C] mb-5 shadow-xs bg-white">
-                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="2" y="5" width="20" height="14" rx="2" />
-                  <line x1="2" y1="10" x2="22" y2="10" />
-                </svg>
-              </div>
-              <h3 className="text-[17px] font-bold text-[#262626]">Table Settlement</h3>
-              <p className="mt-2 text-[13px] text-[#727272] leading-relaxed">
-                Split checks, pay with Apple Pay or card at table, or generate an instant cashier pass.
-              </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Physical Reality & Table Stand Section */}
-      <section className="py-16 md:py-20 bg-[#f9f9f9] border-b border-[#e5e7eb]">
+      {/* Live ASCII WebSocket Conduit Bar (DESIGN.md §4.1 & §4.3) */}
+      <section className="bg-white border-b border-[#e5e7eb] py-4">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#15803d]" />
+            <span className="text-[12px] font-mono-num font-medium text-[#262626]">
+              LINE BROADCAST CONDUIT:
+            </span>
+          </div>
+
+          {/* ASCII Wire */}
+          <div
+            className={`font-mono-num text-[12px] sm:text-[13px] px-4 py-1.5 rounded-lg border transition-all ${
+              isFiringDemo
+                ? 'bg-[#fff8f5] border-[#ff4d00] text-[#ff4d00] btn-ember-glow-sm'
+                : 'bg-[#f9f9f9] border-[#e5e7eb] text-[#262626]'
+            }`}
+          >
+            TABLE T-04 ──[ <span className="text-[#ff4d00] font-medium">{conduitText}</span> ]──&gt; FLAME PASS
+          </div>
+
+          <button
+            onClick={handleFireDemoOrder}
+            data-ui-radius="999"
+            className="px-4 py-1.5 rounded-full bg-[#262626] hover:bg-black text-white text-[12px] font-mono-num font-medium transition-all active:scale-95 cursor-pointer shadow-xs shrink-0"
+          >
+            Fire Demo Order Ticket
+          </button>
+        </div>
+      </section>
+
+      {/* Asymmetric Bento Blueprint Grid (DESIGN.md §4.3) */}
+      <section className="py-12 md:py-16 bg-[#f9f9f9] border-b border-[#e5e7eb]">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <div className="text-[11px] font-mono-num uppercase tracking-wider text-[#949494]">
+                Architecture Blueprint
+              </div>
+              <h2 className="text-2xl font-medium text-[#262626]" data-ui-balance>
+                Synchronized 4-Stage Dine-In Flow
+              </h2>
+            </div>
+            <span className="hidden sm:inline text-[12px] font-mono-num text-[#727272]">
+              Hairline Exposed Grid • 1px Mesh
+            </span>
+          </div>
+
+          {/* Exposed Hairline Bento Grid with Corner Crosshairs */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-[#e5e7eb] border border-[#e5e7eb] rounded-2xl overflow-hidden shadow-xs relative">
+            {/* Cell 1: Acrylic Table Stand Scan */}
+            <div className="bg-white p-6 sm:p-7 flex flex-col justify-between relative group card-glow-hover">
+              <span className="absolute top-2 right-2 text-[#b5b5b5] font-mono text-[9px]">+</span>
+              <div>
+                <div className="w-8 h-8 rounded-lg bg-[#f9f9f9] border border-[#e5e7eb] flex items-center justify-center text-[#ff4d00] mb-4">
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="3" y="3" width="7" height="7" />
+                    <rect x="14" y="3" width="7" height="7" />
+                    <rect x="14" y="14" width="7" height="7" />
+                    <rect x="3" y="14" width="7" height="7" />
+                  </svg>
+                </div>
+                <div className="text-[12px] font-mono-num text-[#949494] uppercase">01 // Entry Point</div>
+                <h3 className="text-[17px] font-medium text-[#262626] mt-1">Acrylic Stand Scan</h3>
+                <p className="mt-2 text-[13px] text-[#616161] leading-relaxed">
+                  Diner camera opens the exact table menu instantly with zero app download or account gatekeeping.
+                </p>
+              </div>
+
+              <div className="mt-6 pt-4 border-t border-[#e5e7eb]">
+                <Link to="/stand" className="text-[12px] font-medium text-[#ff4d00] hover:underline">
+                  Launch Stand Studio -&gt;
+                </Link>
+              </div>
+            </div>
+
+            {/* Cell 2: Self-Ordering & Customization */}
+            <div className="bg-white p-6 sm:p-7 flex flex-col justify-between relative group card-glow-hover">
+              <span className="absolute top-2 right-2 text-[#b5b5b5] font-mono text-[9px]">+</span>
+              <div>
+                <div className="w-8 h-8 rounded-lg bg-[#f9f9f9] border border-[#e5e7eb] flex items-center justify-center text-[#ff4d00] mb-4">
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M18 8h1a4 4 0 0 1 0 8h-1" />
+                    <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" />
+                    <line x1="6" y1="1" x2="6" y2="4" />
+                    <line x1="10" y1="1" x2="10" y2="4" />
+                    <line x1="14" y1="1" x2="14" y2="4" />
+                  </svg>
+                </div>
+                <div className="text-[12px] font-mono-num text-[#949494] uppercase">02 // Culinary Menu</div>
+                <h3 className="text-[17px] font-medium text-[#262626] mt-1">Touch Customizer</h3>
+                <p className="mt-2 text-[13px] text-[#616161] leading-relaxed">
+                  Touch anywhere on dish cards to open portion modifiers, meat doneness, and extra toppings.
+                </p>
+              </div>
+
+              <div className="mt-6 pt-4 border-t border-[#e5e7eb]">
+                <Link to={menuLink} className="text-[12px] font-medium text-[#ff4d00] hover:underline">
+                  Browse 14 Dishes -&gt;
+                </Link>
+              </div>
+            </div>
+
+            {/* Cell 3: KDS Thermal Pass */}
+            <div className="bg-white p-6 sm:p-7 flex flex-col justify-between relative group card-glow-hover">
+              <span className="absolute top-2 right-2 text-[#b5b5b5] font-mono text-[9px]">+</span>
+              <div>
+                <div className="w-8 h-8 rounded-lg bg-[#f9f9f9] border border-[#e5e7eb] flex items-center justify-center text-[#ff4d00] mb-4">
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="2" y="3" width="20" height="14" rx="2" />
+                    <line x1="8" y1="21" x2="16" y2="21" />
+                    <line x1="12" y1="17" x2="12" y2="21" />
+                  </svg>
+                </div>
+                <div className="text-[12px] font-mono-num text-[#949494] uppercase">03 // Kitchen Line</div>
+                <h3 className="text-[17px] font-medium text-[#262626] mt-1">Physical Thermal Chit KDS</h3>
+                <p className="mt-2 text-[13px] text-[#616161] leading-relaxed">
+                  Perforated warm paper tickets on dark obsidian canvas with live elapsed timers and modifier specs.
+                </p>
+              </div>
+
+              <div className="mt-6 pt-4 border-t border-[#e5e7eb]">
+                <Link to="/kds" className="text-[12px] font-medium text-[#ff4d00] hover:underline">
+                  Open Kitchen Pass -&gt;
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Interactive Restaurant Table-Turn & ROI Estimator (in EGP) */}
+      <section className="py-12 md:py-16 bg-white border-b border-[#e5e7eb]">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
             <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-[#e5e7eb] text-[12px] font-bold text-[#EA580C] uppercase tracking-wider mb-4">
-                Hardware-Free Operations
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#f9f9f9] border border-[#e5e7eb] text-[11px] font-mono-num font-medium text-[#ff4d00] uppercase mb-4">
+                Economic Impact Model
               </div>
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-[#262626] tracking-tight" data-ui-balance>
-                Point Camera to Order at Table T-04
+              <h2 className="text-2xl sm:text-3xl font-medium text-[#262626] tracking-tight" data-ui-balance>
+                Restaurant Table-Turn & ROI Estimator
               </h2>
-              <p className="mt-3 text-[#727272] text-[14px] leading-relaxed" data-ui-pretty>
-                Diners scan the physical acrylic tent stand on their table. The URL instantly identifies the table number without app downloads or account logins.
+              <p className="mt-3 text-[14px] text-[#616161] leading-relaxed" data-ui-pretty>
+                Diners place orders 4.5 minutes faster and pay at table in 30 seconds without waiting for a server. Calculate your projected monthly revenue increase in Egyptian Pounds.
               </p>
 
-              <div className="mt-6 flex flex-wrap gap-3">
-                <Link
-                  to="/stand"
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white hover:bg-[#f0f0f0] border border-[#e5e7eb] text-[13px] font-semibold text-[#262626] transition-all shadow-xs"
-                >
-                  <span>Open QR Stand Studio -&gt;</span>
-                </Link>
-                <Link
-                  to="/kds"
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#262626] hover:bg-black text-white text-[13px] font-semibold transition-all shadow-xs"
-                >
-                  <span>Kitchen Line KDS Pass -&gt;</span>
-                </Link>
+              {/* Sliders */}
+              <div className="mt-6 space-y-5">
+                <div>
+                  <div className="flex justify-between text-[13px] mb-1.5">
+                    <span className="font-medium text-[#262626]">Active Dining Tables</span>
+                    <span className="font-mono-num font-medium text-[#ff4d00]" data-ui-number>
+                      {tableCount} Tables
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min="6"
+                    max="80"
+                    step="2"
+                    value={tableCount}
+                    onChange={(e) => setTableCount(Number(e.target.value))}
+                    className="w-full h-1.5 bg-[#e5e7eb] rounded-lg appearance-none cursor-pointer accent-[#ff4d00]"
+                  />
+                  <div className="flex justify-between text-[11px] text-[#949494] font-mono-num mt-1">
+                    <span>6 Tables</span>
+                    <span>80 Tables</span>
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex justify-between text-[13px] mb-1.5">
+                    <span className="font-medium text-[#262626]">Average Check per Party</span>
+                    <span className="font-mono-num font-medium text-[#ff4d00]" data-ui-number>
+                      {avgCheck} EGP
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min="120"
+                    max="1000"
+                    step="20"
+                    value={avgCheck}
+                    onChange={(e) => setAvgCheck(Number(e.target.value))}
+                    className="w-full h-1.5 bg-[#e5e7eb] rounded-lg appearance-none cursor-pointer accent-[#ff4d00]"
+                  />
+                  <div className="flex justify-between text-[11px] text-[#949494] font-mono-num mt-1">
+                    <span>120 EGP</span>
+                    <span>1,000 EGP</span>
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* Scannable Card Mockup */}
-            <div className="bg-white p-6 rounded-2xl border border-[#e5e7eb] shadow-md max-w-sm mx-auto text-center w-full">
-              <div className="flex items-center justify-between border-b border-[#e5e7eb] pb-3 mb-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-md bg-[#EA580C] flex items-center justify-center text-white shrink-0">
-                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                      <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 3z" />
-                    </svg>
-                  </div>
-                  <span className="text-[13px] font-bold text-[#262626]">
-                    Flame<span className="text-[#EA580C]">Link</span>
-                  </span>
-                </div>
-                <span className="px-2 py-0.5 rounded-full bg-orange-100 text-[#EA580C] text-[11px] font-mono-num font-bold">
-                  Table T-04
+            {/* Projected Output Card */}
+            <div data-ui-radius="16" className="bg-[#f9f9f9] border border-[#e5e7eb] rounded-2xl p-6 sm:p-8 space-y-6">
+              <div className="flex items-center justify-between pb-4 border-b border-[#e5e7eb]">
+                <span className="text-[12px] font-mono-num uppercase text-[#949494]">
+                  Monthly Growth Projection
+                </span>
+                <span className="px-2.5 py-0.5 rounded-full bg-[#fff8f5] border border-[#fcddcc] text-[#ff4d00] text-[11px] font-mono-num font-medium">
+                  +22% TABLE TURNS
                 </span>
               </div>
 
-              <div className="w-44 h-44 mx-auto bg-white p-2.5 rounded-xl border border-[#e5e7eb] flex items-center justify-center shadow-xs">
-                <img
-                  src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=https%3A%2F%2Flive-kitchen.pages.dev%2Fmenu%3Ftable%3DT-04&margin=2"
-                  alt="Real Scannable QR Code for Table T-04"
-                  className="w-full h-full object-contain"
-                />
-              </div>
-
-              <div className="mt-3.5 text-center">
-                <div className="text-[13px] font-bold text-[#262626]">Point Camera to Order</div>
-                <div className="text-[11px] font-mono-num text-[#727272] mt-0.5">
-                  https://live-kitchen.pages.dev/menu?table=T-04
+              <div>
+                <div className="text-[12px] text-[#727272]">Estimated Monthly Revenue Uplift:</div>
+                <div className="text-3xl sm:text-4xl font-mono-num font-medium text-[#262626] mt-1" data-ui-number>
+                  +{monthlyRevenueUplift.toLocaleString()} EGP
+                </div>
+                <div className="text-[12px] text-[#949494] mt-1 font-mono-num">
+                  Based on +{extraDailyParties} extra table seatings/day @ {avgCheck} EGP check
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
-      {/* Elevated Bottom Banner */}
-      <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div
-          data-ui-radius="16"
-          className="bg-[#262626] text-white rounded-2xl p-8 sm:p-10 shadow-xl text-center relative overflow-hidden border border-[#383838]"
-        >
-          <div className="relative z-10 max-w-2xl mx-auto">
-            <span className="inline-block px-3 py-1 rounded-full bg-[#383838] border border-[#484848] text-[11px] font-bold text-orange-400 uppercase tracking-wider mb-4">
-              Full Restaurant Pass
-            </span>
-            <h3 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-tight" data-ui-balance>
-              Ready to Experience FlameLink in Action?
-            </h3>
-            <p className="mt-3 text-[14px] text-[#b5b5b5] leading-relaxed" data-ui-pretty>
-              Test the live customer self-ordering menu, trigger cooking stages, and view kitchen tickets on the real-time KDS pass.
-            </p>
-            <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3.5" data-ui-actions="footer-cta">
-              <Link
-                to={menuLink}
-                className="w-full sm:w-auto px-7 py-3 rounded-full bg-[#EA580C] hover:opacity-95 text-white text-[14px] font-semibold transition-all shadow-md btn-flame-glow active:scale-95"
-              >
-                Launch Live Demo Menu -&gt;
-              </Link>
-              <Link
-                to="/kds"
-                className="w-full sm:w-auto px-7 py-3 rounded-full bg-[#383838] hover:bg-[#484848] border border-[#505050] text-white text-[14px] font-semibold transition-all active:scale-95"
-              >
-                Open Kitchen Line KDS -&gt;
-              </Link>
+              <div className="grid grid-cols-2 gap-4 pt-4 border-t border-[#e5e7eb] text-[13px]">
+                <div>
+                  <div className="text-[#949494] text-[11px] font-mono-num uppercase">Service Speed</div>
+                  <div className="font-medium text-[#262626] mt-0.5">-18 min / party</div>
+                </div>
+                <div>
+                  <div className="text-[#949494] text-[11px] font-mono-num uppercase">Hardware Capital</div>
+                  <div className="font-medium text-[#15803d] mt-0.5">0 EGP (No Tablets)</div>
+                </div>
+              </div>
             </div>
           </div>
         </div>

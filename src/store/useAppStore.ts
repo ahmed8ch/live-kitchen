@@ -24,7 +24,7 @@ interface AppState {
   // Order actions
   createOrder: (paymentMethod?: PaymentMethod) => OrderTicket;
   advanceOrderStatus: (orderId: string) => void;
-  payOrder: (orderId: string, method: PaymentMethod, splitCount?: number) => void;
+  payOrder: (orderId: string, method: PaymentMethod, splitCount?: number, tipAmount?: number) => void;
   syncOrders: (orders: OrderTicket[]) => void;
   addSampleOrder: () => void;
 
@@ -231,7 +231,7 @@ export const useAppStore = create<AppState>()(
         get().showToast(`Ticket #${orderId} bumped to next stage`);
       },
 
-      payOrder: (orderId, method, splitCount = 1) => {
+      payOrder: (orderId, method, splitCount = 1, tipAmount = 0) => {
         set((state) => {
           const updated = state.orders.map((ticket) => {
             if (ticket.id !== orderId) return ticket;
@@ -240,6 +240,7 @@ export const useAppStore = create<AppState>()(
               isPaid: true,
               paymentMethod: method,
               splitCount,
+              tipAmount,
             };
           });
 
@@ -250,7 +251,7 @@ export const useAppStore = create<AppState>()(
           return { orders: updated };
         });
 
-        get().showToast(`Invoice #${orderId} settled in full`);
+        get().showToast(`Invoice #${orderId} settled in full via ${method.replace('_', ' ').toUpperCase()}`);
       },
 
       addSampleOrder: () => {

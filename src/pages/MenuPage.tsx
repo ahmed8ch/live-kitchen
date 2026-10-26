@@ -27,46 +27,46 @@ export const MenuPage: React.FC = () => {
       : MENU_ITEMS.filter((item) => item.category === activeCategory);
 
   return (
-    <div className="flex-1 w-full bg-white pb-32" data-ui-container="menu-view">
-      {/* Menu Header Card (Matching original screenshot) */}
+    <div className="flex-1 w-full bg-white pb-36" data-ui-container="menu-view">
+      {/* Menu Header Card */}
       <section className="bg-white border-b border-[#e5e7eb] pt-8 pb-6 sm:pt-10 sm:pb-8">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Top Pill Bar */}
           <div className="flex justify-center mb-6">
-            <span className="px-4 py-1.5 rounded-full bg-[#f9f9f9] border border-[#e5e7eb] text-[12px] font-semibold text-[#727272]">
-              Dine-In Menu
+            <span className="px-4 py-1.5 rounded-full bg-[#f9f9f9] border border-[#e5e7eb] text-[12px] font-mono-num font-medium text-[#727272]">
+              DINE-IN CULINARY MENU
             </span>
           </div>
 
           {/* Dine-In Menu Notice Box */}
           <div
             data-ui-radius="16"
-            className="p-5 sm:p-6 rounded-2xl bg-[#fcfcfc] border border-[#e5e7eb] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 shadow-xs mb-8"
+            className="p-5 sm:p-6 rounded-2xl bg-[#f9f9f9] border border-[#e5e7eb] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 shadow-xs mb-8"
           >
             <div>
               <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#EA580C]" />
-                <h1 className="text-xl sm:text-2xl font-extrabold text-[#262626] tracking-tight">
-                  Dine-In Menu
+                <span className="w-2.5 h-2.5 rounded-full bg-[#ff4d00]" />
+                <h1 className="text-xl sm:text-2xl font-medium text-[#262626] tracking-tight">
+                  Handcrafted Kitchen Menu
                 </h1>
               </div>
-              <p className="mt-1 text-[14px] text-[#727272]">
-                Flame-Grilled Fresh / Handcrafted Kitchen Orders
+              <p className="mt-1 text-[13px] text-[#727272]">
+                Cooked fresh over flame coals upon order dispatch. Touch any dish card to customize.
               </p>
             </div>
 
             {activeTable ? (
               <div className="sm:text-right bg-white p-3 rounded-xl border border-[#e5e7eb] shadow-xs shrink-0">
-                <div className="text-[11px] font-semibold text-[#727272] uppercase tracking-wider">
+                <div className="text-[11px] font-medium text-[#727272] uppercase tracking-wider">
                   Assigned Seating
                 </div>
-                <div className="text-lg font-bold font-mono-num text-[#EA580C]">
+                <div className="text-lg font-medium font-mono-num text-[#ff4d00]" data-ui-number>
                   Table {activeTable}
                 </div>
               </div>
             ) : (
               <div className="sm:text-right bg-white p-3 rounded-xl border border-[#e5e7eb] shadow-xs shrink-0">
-                <div className="text-[11px] font-semibold text-[#727272] uppercase tracking-wider">
+                <div className="text-[11px] font-medium text-[#727272] uppercase tracking-wider">
                   Browsing Online
                 </div>
                 <div className="text-[13px] font-medium text-[#262626]">
@@ -76,14 +76,14 @@ export const MenuPage: React.FC = () => {
             )}
           </div>
 
-          {/* Category Filter Pills (Exact original styling) */}
+          {/* Category Filter Pills */}
           <div className="flex items-center gap-2.5 overflow-x-auto pb-2 scrollbar-none" data-ui-actions="category-filters">
             {CATEGORIES.map((cat) => (
               <button
                 key={cat.id}
                 onClick={() => setActiveCategory(cat.id)}
                 data-ui-radius="999"
-                className={`px-5 py-2.5 rounded-full text-[13px] font-semibold transition-all shrink-0 cursor-pointer ${
+                className={`px-5 py-2 rounded-full text-[13px] font-medium transition-all shrink-0 cursor-pointer ${
                   activeCategory === cat.id
                     ? 'bg-[#262626] text-white shadow-xs'
                     : 'bg-white hover:bg-[#f0f0f0] text-[#727272] border border-[#e5e7eb]'
@@ -96,13 +96,13 @@ export const MenuPage: React.FC = () => {
         </div>
       </section>
 
-      {/* Dish Grid Section (Exact 3-column replica with ratings, tags & Customize+ button) */}
+      {/* Dish Grid Section (3-column, tactile cards) */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-10">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-[#262626]" data-ui-balance>
+          <h2 className="text-xl font-medium text-[#262626]" data-ui-balance>
             {CATEGORIES.find((c) => c.id === activeCategory)?.label}
           </h2>
-          <span className="text-[13px] font-mono-num text-[#727272]" data-ui-number>
+          <span className="text-[12px] font-mono-num text-[#949494]" data-ui-number>
             {filteredDishes.length} dishes available
           </span>
         </div>
@@ -113,9 +113,9 @@ export const MenuPage: React.FC = () => {
               key={dish.id}
               onClick={() => setSelectedDish(dish)}
               data-ui-radius="16"
-              className="group bg-white rounded-2xl border border-[#e5e7eb] overflow-hidden shadow-xs hover:border-[#EA580C]/50 hover:shadow-md transition-all cursor-pointer flex flex-col active:scale-[0.99]"
+              className="group bg-white rounded-2xl border border-[#e5e7eb] overflow-hidden shadow-xs card-glow-hover cursor-pointer flex flex-col active:scale-[0.99] select-none"
             >
-              {/* Dish Image with Floating Badges */}
+              {/* Dish Image with Badges */}
               <div className="relative h-48 sm:h-52 w-full bg-[#f9f9f9] overflow-hidden">
                 <img
                   src={dish.imageUrl}
@@ -124,78 +124,62 @@ export const MenuPage: React.FC = () => {
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   onError={(e) => {
                     (e.currentTarget as HTMLImageElement).src =
-                      'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80';
+                      'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80';
                   }}
                 />
-
-                {/* Left Badge: Chef Signature / Crispy / etc. (White pill with crisp dark text) */}
                 {dish.badge && (
-                  <div className="absolute top-3 left-3 px-3 py-1 rounded-full bg-white/95 text-[#262626] text-[11px] font-bold shadow-xs">
+                  <div className="absolute top-3 left-3 px-2.5 py-0.5 rounded-full bg-[#ff4d00] text-white text-[11px] font-mono-num font-medium shadow-xs">
                     {dish.badge}
                   </div>
                 )}
-
-                {/* Right Badge: 540 kcal (Dark pill with white mono text) */}
-                <div className="absolute top-3 right-3 px-2.5 py-0.5 rounded-full bg-black/75 text-white text-[11px] font-mono-num" data-ui-number>
-                  {dish.calories} kcal
-                </div>
+                {dish.rating && (
+                  <div className="absolute top-3 right-3 px-2 py-0.5 rounded-full bg-white/95 text-[#262626] text-[11px] font-mono-num font-medium shadow-xs flex items-center gap-1">
+                    <span className="text-[#ff4d00]">•</span>
+                    <span>{dish.rating}</span>
+                  </div>
+                )}
               </div>
 
-              {/* Dish Information Area */}
+              {/* Dish Card Content */}
               <div className="p-5 flex-1 flex flex-col justify-between">
                 <div>
-                  {/* Title and Rating Line */}
-                  <div className="flex items-start justify-between gap-2">
-                    <h3 className="text-[16px] font-bold text-[#262626] group-hover:text-[#EA580C] transition-colors leading-snug">
+                  <div className="flex items-start justify-between gap-3">
+                    <h3 className="text-[16px] font-medium text-[#262626] group-hover:text-[#ff4d00] transition-colors leading-snug">
                       {dish.name}
                     </h3>
-                    {dish.rating && (
-                      <span className="text-[12px] font-bold text-[#EA580C] shrink-0 font-mono-num">
-                        {dish.rating.toFixed(1)} {dish.reviewsCount && `(${dish.reviewsCount} reviews)`}
-                      </span>
+                  </div>
+
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-[11px] font-mono-num text-[#949494]" data-ui-number>
+                      {dish.calories} KCAL
+                    </span>
+                    {dish.prepTime && (
+                      <>
+                        <span className="text-[#e5e7eb]">/</span>
+                        <span className="text-[11px] font-mono-num text-[#727272]">
+                          {dish.prepTime}
+                        </span>
+                      </>
                     )}
                   </div>
 
-                  {/* Description */}
-                  <p className="mt-2 text-[13px] text-[#727272] line-clamp-2 leading-relaxed" data-ui-pretty>
+                  <p className="mt-2 text-[13px] text-[#616161] line-clamp-2 leading-relaxed">
                     {dish.description}
                   </p>
-
-                  {/* Tag Pills (High-Protein, Prep time) */}
-                  <div className="mt-3.5 flex flex-wrap items-center gap-2">
-                    {dish.tags?.map((tag) => (
-                      <span
-                        key={tag}
-                        className="px-2.5 py-0.5 rounded-md bg-[#f9f9f9] border border-[#e5e7eb] text-[11px] font-medium text-[#727272]"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                    {dish.prepTime && (
-                      <span className="px-2.5 py-0.5 rounded-md bg-orange-50 border border-orange-200 text-[11px] font-semibold text-[#EA580C]">
-                        Prep: {dish.prepTime}
-                      </span>
-                    )}
-                  </div>
                 </div>
 
-                {/* Price and Prominent Customize+ Orange Pill Button */}
-                <div className="mt-5 pt-4 border-t border-[#e5e7eb] flex items-center justify-between">
-                  <div className="font-mono-num font-bold text-[17px] text-[#262626]" data-ui-number>
-                    {dish.basePrice.toFixed(2)}{' '}
-                    <span className="text-[12px] font-sans font-normal text-[#727272]">EGP</span>
+                {/* Bottom Price & Customize Button */}
+                <div className="mt-5 pt-3.5 border-t border-[#f0f0f0] flex items-center justify-between">
+                  <div className="text-[16px] font-mono-num font-medium text-[#262626]" data-ui-number>
+                    {dish.basePrice.toFixed(2)} EGP
                   </div>
 
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedDish(dish);
-                    }}
+                  <span
                     data-ui-radius="999"
-                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#EA580C] hover:opacity-95 text-white text-[13px] font-bold shadow-xs active:scale-95 cursor-pointer transition-all"
+                    className="px-3.5 py-1.5 rounded-full bg-[#f9f9f9] group-hover:bg-[#ff4d00] text-[#262626] group-hover:text-white text-[12px] font-medium transition-all border border-[#e5e7eb] group-hover:border-[#ff4d00]"
                   >
-                    <span>Customize +</span>
-                  </button>
+                    Customize +
+                  </span>
                 </div>
               </div>
             </div>
@@ -203,10 +187,14 @@ export const MenuPage: React.FC = () => {
         </div>
       </section>
 
-      {/* Modals & Cart Controls */}
-      <DishModal dish={selectedDish} onClose={() => setSelectedDish(null)} />
+      {/* Floating Cart Pill at Bottom Center (DESIGN.md §5.3) */}
       <FloatingCartBar />
+
+      {/* Slide-In Cart Drawer */}
       <CartDrawer />
+
+      {/* Dish Customizer Modal */}
+      <DishModal dish={selectedDish} onClose={() => setSelectedDish(null)} />
     </div>
   );
 };

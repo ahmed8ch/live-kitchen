@@ -1,29 +1,45 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Sidebar } from './components/layout/Sidebar';
 import { ToastContainer } from './components/ui/ToastContainer';
 import { HomePage } from './pages/HomePage';
 import { MenuPage } from './pages/MenuPage';
 import { OrderTrackerPage } from './pages/OrderTrackerPage';
+import { SettlementPage } from './pages/SettlementPage';
 import { KdsPage } from './pages/KdsPage';
 import { TableStandPage } from './pages/TableStandPage';
+import { useAppStore } from './store/useAppStore';
+import { FlameLinkLogo } from './components/ui/FlameLinkLogo';
 
 export const App: React.FC = () => {
   const location = useLocation();
+  const setActiveTable = useAppStore((state) => state.setActiveTable);
   const isKds = location.pathname === '/kds';
+
+  // Ingest ?table=XX from URL on mount (Agent 01 - Systems Architect)
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const tableParam = searchParams.get('table');
+    if (tableParam) {
+      setActiveTable(tableParam.trim().toUpperCase());
+    }
+  }, [location.search, setActiveTable]);
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-white text-[#262626]">
-      {/* Sole Primary Navigation (No duplicate top navbar) */}
+      {/* Sole Primary Navigation Rail (No duplicate top navbar) */}
       {!isKds && <Sidebar />}
 
-      {/* Main Content Area */}
+      {/* Main Content Viewport */}
       <div className="flex-1 flex flex-col min-w-0 min-h-screen">
         <main className="flex-1 flex flex-col">
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/menu" element={<MenuPage />} />
+            <Route path="/tracker" element={<OrderTrackerPage />} />
             <Route path="/order/:id" element={<OrderTrackerPage />} />
+            <Route path="/settlement" element={<SettlementPage />} />
+            <Route path="/settlement/:id" element={<SettlementPage />} />
             <Route path="/kds" element={<KdsPage />} />
             <Route path="/stand" element={<TableStandPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
@@ -32,41 +48,26 @@ export const App: React.FC = () => {
 
         {/* Global Footer (Consumer & SaaS views only) */}
         {!isKds && (
-          <footer className="border-t border-[#e5e7eb] bg-[#f9f9f9] py-10 mt-auto">
+          <footer className="border-t border-[#e5e7eb] bg-[#f9f9f9] py-8 mt-auto">
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-[#EA580C] flex items-center justify-center text-white shadow-xs shrink-0">
-                  <svg
-                    className="w-4 h-4"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 3z" />
-                  </svg>
-                </div>
-                <span className="text-[17px] font-extrabold tracking-tight text-[#262626]">
-                  Flame<span className="text-[#EA580C]">Link</span>
-                </span>
+              <div className="flex items-center gap-3">
+                <FlameLinkLogo size="sm" />
                 <span className="text-[12px] text-[#727272] hidden sm:inline">
                   / Digital Dine-In & Kitchen Synchronization
                 </span>
               </div>
 
-              <div className="text-[12px] text-[#727272] flex items-center gap-4">
-                <span>Egyptian Tax Authority (ETA) 14% VAT Engine</span>
-                <span className="text-[#d1d5db]">/</span>
-                <span>Zero-Friction Table Ordering</span>
+              <div className="text-[12px] font-mono-num text-[#727272] flex items-center gap-4">
+                <span>ETA 14% VAT Engine</span>
+                <span className="text-[#e5e7eb]">/</span>
+                <span>Sub-150ms Pass Synchronization</span>
               </div>
             </div>
           </footer>
         )}
       </div>
 
-      {/* Floating Toast Notification */}
+      {/* Floating Toast Notification strictly at Top-Right */}
       <ToastContainer />
     </div>
   );

@@ -37,17 +37,17 @@ export const DishModal: React.FC<DishModalProps> = ({ dish, onClose }) => {
     setTimeout(() => {
       setAddedFeedback(false);
       onClose();
-    }, 350);
+    }, 280);
   };
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/55 backdrop-blur-xs animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/50 backdrop-blur-xs animate-in fade-in duration-200"
       onClick={onClose}
     >
       <div
         data-ui-radius="16"
-        className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[88vh] border border-[#e5e7eb]"
+        className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] border border-[#e5e7eb]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header & Dish Image */}
@@ -66,12 +66,12 @@ export const DishModal: React.FC<DishModalProps> = ({ dish, onClose }) => {
             className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/95 hover:bg-white text-[#262626] flex items-center justify-center shadow-md transition-transform active:scale-90 cursor-pointer"
             aria-label="Close modal"
           >
-            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <path d="M18 6L6 18M6 6l12 12" />
             </svg>
           </button>
           {dish.badge && (
-            <div className="absolute top-3 left-3 px-3 py-1 rounded-full bg-[#EA580C] text-white text-[11px] font-bold shadow-xs">
+            <div className="absolute top-3 left-3 px-3 py-1 rounded-full bg-[#ff4d00] text-white text-[11px] font-mono-num font-medium shadow-xs">
               {dish.badge}
             </div>
           )}
@@ -81,99 +81,114 @@ export const DishModal: React.FC<DishModalProps> = ({ dish, onClose }) => {
         <div className="p-6 overflow-y-auto space-y-6 flex-1 overscroll-contain">
           <div>
             <div className="flex items-start justify-between gap-4">
-              <h3 className="text-xl font-bold text-[#262626]" data-ui-balance>{dish.name}</h3>
-              <div className="text-lg font-bold font-mono-num text-[#EA580C] shrink-0" data-ui-number>
+              <h3 className="text-xl font-medium text-[#262626]" data-ui-balance>{dish.name}</h3>
+              <div className="text-lg font-mono-num font-medium text-[#ff4d00] shrink-0" data-ui-number>
                 {dish.basePrice.toFixed(2)} EGP
               </div>
             </div>
             <div className="flex items-center gap-2 mt-1">
-              <span className="text-[12px] font-mono-num text-[#727272]" data-ui-number>{dish.calories} kcal</span>
-              <span className="text-[#d1d5db]">/</span>
+              <span className="text-[12px] font-mono-num text-[#949494]" data-ui-number>{dish.calories} KCAL</span>
+              <span className="text-[#e5e7eb]">/</span>
               <span className="text-[12px] text-[#727272] capitalize">{dish.category}</span>
+              {dish.prepTime && (
+                <>
+                  <span className="text-[#e5e7eb]">/</span>
+                  <span className="text-[12px] font-mono-num text-[#727272]">{dish.prepTime}</span>
+                </>
+              )}
             </div>
-            <p className="mt-2.5 text-[14px] text-[#727272] leading-relaxed" data-ui-pretty>
+            <p className="mt-2.5 text-[14px] text-[#616161] leading-relaxed" data-ui-pretty>
               {dish.description}
             </p>
           </div>
 
-          {/* Customize & Add-ons */}
+          {/* Modifiers & Customizations */}
           {dish.modifiers && dish.modifiers.length > 0 && (
-            <div className="pt-4 border-t border-[#e5e7eb]">
-              <div className="text-[13px] font-bold text-[#262626] uppercase tracking-wider mb-3">
-                Customize & Add-ons
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-[13px] font-medium text-[#262626]">
+                  Optional Customizations
+                </span>
+                <span className="text-[11px] font-mono-num text-[#949494]">
+                  Select any additions
+                </span>
               </div>
-              <div className="space-y-2.5 pb-2">
+
+              <div className="space-y-2">
                 {dish.modifiers.map((mod) => {
-                  const isChecked = selectedModifiers.some((m) => m.id === mod.id);
+                  const isSelected = selectedModifiers.some((m) => m.id === mod.id);
                   return (
-                    <label
+                    <button
                       key={mod.id}
+                      type="button"
                       onClick={() => toggleModifier(mod)}
-                      className={`flex items-center justify-between p-3.5 rounded-xl border transition-all cursor-pointer ${
-                        isChecked
-                          ? 'border-[#EA580C] bg-orange-50/50 shadow-xs'
-                          : 'border-[#e5e7eb] bg-[#f9f9f9] hover:bg-white'
+                      data-ui-radius="8"
+                      className={`w-full flex items-center justify-between p-3 rounded-lg border text-left transition-all cursor-pointer ${
+                        isSelected
+                          ? 'border-[#ff4d00] bg-[#fff8f5] shadow-xs'
+                          : 'border-[#e5e7eb] bg-white hover:bg-[#f9f9f9]'
                       }`}
                     >
                       <div className="flex items-center gap-3">
                         <div
-                          className={`w-4 h-4 rounded flex items-center justify-center border transition-colors ${
-                            isChecked
-                              ? 'bg-[#EA580C] border-[#EA580C] text-white'
-                              : 'border-[#d1d5db] bg-white'
+                          className={`w-4 h-4 rounded-sm border flex items-center justify-center transition-colors ${
+                            isSelected
+                              ? 'bg-[#ff4d00] border-[#ff4d00] text-white'
+                              : 'border-[#c7c7c7] bg-white'
                           }`}
                         >
-                          {isChecked && (
-                            <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                          {isSelected && (
+                            <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
                               <polyline points="20 6 9 17 4 12" />
                             </svg>
                           )}
                         </div>
                         <span className="text-[13px] font-medium text-[#262626]">{mod.name}</span>
                       </div>
-                      <span className="text-[13px] font-mono-num font-semibold text-[#727272]" data-ui-number>
+                      <span className="font-mono-num text-[13px] text-[#ff4d00]" data-ui-number>
                         +{mod.price.toFixed(2)} EGP
                       </span>
-                    </label>
+                    </button>
                   );
                 })}
               </div>
             </div>
           )}
 
-          {/* Kitchen / Allergy Notes */}
-          <div className="pt-4 border-t border-[#e5e7eb]">
-            <label htmlFor="dish-notes" className="block text-[13px] font-bold text-[#262626] uppercase tracking-wider mb-2">
-              Kitchen Instructions / Allergies
+          {/* Kitchen Special Instructions */}
+          <div>
+            <label htmlFor="dish-notes" className="block text-[13px] font-medium text-[#262626] mb-1.5">
+              Kitchen Special Instructions
             </label>
-            <input
+            <textarea
               id="dish-notes"
-              type="text"
-              placeholder="e.g. Extra sauce on side, no onions"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-lg border border-[#e5e7eb] text-[13px] text-[#262626] placeholder-[#9ca3af] focus:outline-none focus:border-[#EA580C] transition-colors"
+              placeholder="e.g. Extra hot honey glaze, sauce on the side, well-done"
+              rows={2}
+              data-ui-radius="8"
+              className="w-full px-3 py-2 text-[13px] rounded-lg border border-[#e5e7eb] bg-white text-[#262626] placeholder-[#949494] focus:outline-none focus:border-[#ff4d00]"
             />
           </div>
         </div>
 
-        {/* Modal Footer */}
-        <div className="p-4 sm:p-5 bg-[#f9f9f9] border-t border-[#e5e7eb] flex items-center justify-between gap-4 shrink-0">
+        {/* Modal Sticky Footer Action Bar */}
+        <div className="p-4 sm:p-5 border-t border-[#e5e7eb] bg-[#f9f9f9] flex items-center justify-between gap-4 shrink-0">
           {/* Quantity Stepper */}
-          <div className="inline-flex items-center border border-[#e5e7eb] bg-white rounded-full p-1 shadow-xs">
+          <div className="flex items-center border border-[#e5e7eb] rounded-full bg-white shadow-xs p-1">
             <button
-              onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+              onClick={() => setQuantity(Math.max(1, quantity - 1))}
               disabled={quantity <= 1}
-              className="w-8 h-8 rounded-full flex items-center justify-center text-[#262626] hover:bg-[#f0f0f0] disabled:opacity-30 disabled:hover:bg-transparent transition-colors cursor-pointer"
+              className="w-8 h-8 rounded-full flex items-center justify-center text-[#262626] disabled:opacity-30 hover:bg-[#f0f0f0] transition-colors cursor-pointer"
               aria-label="Decrease quantity"
             >
               -
             </button>
-            <span className="w-8 text-center font-mono-num font-bold text-[14px] text-[#262626]" data-ui-number>
+            <span className="w-8 text-center font-mono-num font-medium text-[14px]" data-ui-number>
               {quantity}
             </span>
             <button
-              onClick={() => setQuantity((q) => q + 1)}
+              onClick={() => setQuantity(quantity + 1)}
               className="w-8 h-8 rounded-full flex items-center justify-center text-[#262626] hover:bg-[#f0f0f0] transition-colors cursor-pointer"
               aria-label="Increase quantity"
             >
@@ -181,21 +196,16 @@ export const DishModal: React.FC<DishModalProps> = ({ dish, onClose }) => {
             </button>
           </div>
 
-          {/* Add to Order Button */}
+          {/* Add to Order CTA */}
           <button
             onClick={handleAddToCart}
             data-ui-radius="999"
-            className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full bg-[#EA580C] hover:opacity-95 text-white text-[14px] font-semibold transition-all shadow-sm btn-flame-glow active:scale-95 cursor-pointer"
+            className="flex-1 py-3 px-6 rounded-full bg-[#ff4d00] hover:opacity-95 text-white text-[14px] font-medium transition-all btn-ember-glow active:scale-[0.99] flex items-center justify-between cursor-pointer shadow-xs"
           >
-            {addedFeedback ? (
-              <span>Added to Order!</span>
-            ) : (
-              <>
-                <span>Add to Order</span>
-                <span className="opacity-80">/</span>
-                <span className="font-mono-num font-bold" data-ui-number>{itemTotal.toFixed(2)} EGP</span>
-              </>
-            )}
+            <span>{addedFeedback ? 'Added to Order!' : 'Add to Order'}</span>
+            <span className="font-mono-num font-medium text-[14px]" data-ui-number>
+              {itemTotal.toFixed(2)} EGP
+            </span>
           </button>
         </div>
       </div>
