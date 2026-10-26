@@ -35,6 +35,10 @@
     --shadow-float-elevated: 0px 24px 32px -12px rgba(0, 0, 0, 0.06), 0px 0px 0px 1px #e5e7eb;
   }
 
+  html {
+    background-color: #ffffff;
+  }
+
   body {
     background-color: #ffffff;
     color: #262626;

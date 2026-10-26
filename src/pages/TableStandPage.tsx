@@ -63,6 +63,7 @@ export const TableStandPage: React.FC = () => {
                 value={tableId}
                 onChange={(e) => setTableId(e.target.value)}
                 placeholder="Custom"
+                aria-label="Custom Table Code"
                 className="w-24 px-2.5 py-1 text-[13px] font-mono-num rounded-lg border border-[#e5e7eb] bg-white text-[#262626] focus:outline-none focus:border-[#ff4d00]"
               />
             </div>

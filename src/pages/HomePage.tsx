@@ -111,7 +111,6 @@ export const HomePage: React.FC = () => {
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3" data-ui-actions="hero-cta">
             <Link
               to={menuLink}
-              data-ui-radius="999"
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3 rounded-full bg-[#ff4d00] hover:opacity-95 text-white text-[14px] font-medium transition-all btn-ember-glow active:scale-[0.99] shadow-sm"
             >
               <span>Launch Dine-In Menu -&gt;</span>
@@ -119,7 +118,6 @@ export const HomePage: React.FC = () => {
 
             <Link
               to="/kds"
-              data-ui-radius="999"
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-white hover:bg-[#f0f0f0] border border-[#e5e7eb] text-[#262626] text-[14px] font-medium transition-all active:scale-[0.99] shadow-xs"
             >
               <span>View Kitchen Line KDS</span>
@@ -129,8 +127,7 @@ export const HomePage: React.FC = () => {
           {/* Interactive Thermal Flame ASCII Matrix (DESIGN.md §4.1) */}
           <div className="mt-12 max-w-xl mx-auto">
             <div
-              data-ui-radius="8"
-              className="bg-[#262626] text-[#ff4d00] p-4 rounded-lg border border-[#383838] shadow-lg text-left relative overflow-hidden font-mono-num text-[11px] sm:text-[13px] leading-tight tracking-widest cursor-crosshair"
+              className="bg-[#262626] text-[#ffa06d] p-4 rounded-lg border border-[#383838] shadow-lg text-left relative overflow-hidden font-mono-num text-[11px] sm:text-[13px] leading-tight tracking-widest cursor-crosshair"
               onMouseMove={(e) => {
                 const rect = e.currentTarget.getBoundingClientRect();
                 const relX = (e.clientX - rect.left) / rect.width;
@@ -144,7 +141,7 @@ export const HomePage: React.FC = () => {
             >
               <div className="flex items-center justify-between text-[10px] text-[#949494] pb-2 mb-2 border-b border-[#383838] font-mono-num uppercase">
                 <span>[ THERMAL FLAME SENSOR MATRIX ]</span>
-                <span className="text-[#ff4d00] animate-pulse">ACTIVE // 800°C LINE</span>
+                <span className="text-[#ffa06d] animate-pulse">ACTIVE // 800°C LINE</span>
               </div>
               <pre className="font-mono m-0 overflow-hidden select-none">
                 {asciiMatrix.map((line, i) => (
@@ -185,7 +182,6 @@ export const HomePage: React.FC = () => {
 
           <button
             onClick={handleFireDemoOrder}
-            data-ui-radius="999"
             className="px-4 py-1.5 rounded-full bg-[#262626] hover:bg-black text-white text-[12px] font-mono-num font-medium transition-all active:scale-95 cursor-pointer shadow-xs shrink-0"
           >
             Fire Demo Order Ticket
@@ -214,7 +210,7 @@ export const HomePage: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-[#e5e7eb] border border-[#e5e7eb] rounded-2xl overflow-hidden shadow-xs relative">
             {/* Cell 1: Acrylic Table Stand Scan */}
             <div className="bg-white p-6 sm:p-7 flex flex-col justify-between relative group card-glow-hover">
-              <span className="absolute top-2 right-2 text-[#b5b5b5] font-mono text-[9px]">+</span>
+              <span className="absolute top-2 right-2 text-[#b5b5b5] font-mono text-[10px]">+</span>
               <div>
                 <div className="w-8 h-8 rounded-lg bg-[#f9f9f9] border border-[#e5e7eb] flex items-center justify-center text-[#ff4d00] mb-4">
                   <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -240,7 +236,7 @@ export const HomePage: React.FC = () => {
 
             {/* Cell 2: Self-Ordering & Customization */}
             <div className="bg-white p-6 sm:p-7 flex flex-col justify-between relative group card-glow-hover">
-              <span className="absolute top-2 right-2 text-[#b5b5b5] font-mono text-[9px]">+</span>
+              <span className="absolute top-2 right-2 text-[#b5b5b5] font-mono text-[10px]">+</span>
               <div>
                 <div className="w-8 h-8 rounded-lg bg-[#f9f9f9] border border-[#e5e7eb] flex items-center justify-center text-[#ff4d00] mb-4">
                   <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -267,7 +263,7 @@ export const HomePage: React.FC = () => {
 
             {/* Cell 3: KDS Thermal Pass */}
             <div className="bg-white p-6 sm:p-7 flex flex-col justify-between relative group card-glow-hover">
-              <span className="absolute top-2 right-2 text-[#b5b5b5] font-mono text-[9px]">+</span>
+              <span className="absolute top-2 right-2 text-[#b5b5b5] font-mono text-[10px]">+</span>
               <div>
                 <div className="w-8 h-8 rounded-lg bg-[#f9f9f9] border border-[#e5e7eb] flex items-center justify-center text-[#ff4d00] mb-4">
                   <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -323,6 +319,7 @@ export const HomePage: React.FC = () => {
                     max="80"
                     step="2"
                     value={tableCount}
+                    aria-label="Active Dining Tables Count"
                     onChange={(e) => setTableCount(Number(e.target.value))}
                     className="w-full h-1.5 bg-[#e5e7eb] rounded-lg appearance-none cursor-pointer accent-[#ff4d00]"
                   />
@@ -345,6 +342,7 @@ export const HomePage: React.FC = () => {
                     max="1000"
                     step="20"
                     value={avgCheck}
+                    aria-label="Average Check per Party in EGP"
                     onChange={(e) => setAvgCheck(Number(e.target.value))}
                     className="w-full h-1.5 bg-[#e5e7eb] rounded-lg appearance-none cursor-pointer accent-[#ff4d00]"
                   />
@@ -357,7 +355,7 @@ export const HomePage: React.FC = () => {
             </div>
 
             {/* Projected Output Card */}
-            <div data-ui-radius="16" className="bg-[#f9f9f9] border border-[#e5e7eb] rounded-2xl p-6 sm:p-8 space-y-6">
+            <div className="bg-[#f9f9f9] border border-[#e5e7eb] rounded-2xl p-6 sm:p-8 space-y-6">
               <div className="flex items-center justify-between pb-4 border-b border-[#e5e7eb]">
                 <span className="text-[12px] font-mono-num uppercase text-[#949494]">
                   Monthly Growth Projection

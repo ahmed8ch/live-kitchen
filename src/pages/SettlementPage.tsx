@@ -326,7 +326,7 @@ export const SettlementPage: React.FC = () => {
         <div className="mt-6 text-center">
           <button
             onClick={() => window.print()}
-            className="inline-flex items-center gap-2 text-[13px] text-[#727272] hover:text-[#262626] transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#e5e7eb] bg-white text-[13px] text-[#727272] hover:text-[#262626] transition-colors shadow-xs"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <polyline points="6 9 6 2 18 2 18 9" />
