@@ -55,7 +55,7 @@ export const KdsPage: React.FC = () => {
     }
   };
 
-  // Status-Driven Color Coding for Instant 10-Foot Fast Browsing
+  // Status-Driven Color Coding for Kitchen Pass Browsing
   const getTicketStatusTheme = (status: OrderStatus, elapsedSeconds: number) => {
     const isRush = elapsedSeconds > 600 && status !== 'served'; // >10 min rush condition
 
@@ -177,7 +177,7 @@ export const KdsPage: React.FC = () => {
             onClick={() => setStatusFilter('received')}
             className={`px-3.5 py-1 rounded-full text-[12px] transition-all cursor-pointer ${
               statusFilter === 'received'
-                ? 'bg-[#FF0055] text-white font-semibold'
+                ? 'bg-[#0284c7] text-white font-semibold shadow-xs'
                 : 'bg-[#1a202c] text-[#94a3b8] hover:text-white'
             }`}
           >

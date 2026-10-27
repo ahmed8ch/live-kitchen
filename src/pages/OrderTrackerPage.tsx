@@ -228,20 +228,48 @@ export const OrderTrackerPage: React.FC = () => {
               Dishes in Preparation ({ticket.items.reduce((s, i) => s + i.quantity, 0)} Items)
             </div>
 
-            <div className="space-y-2">
-              {ticket.items.map((item) => (
-                <div key={item.cartItemId} className="flex items-center justify-between text-[13px]">
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono-num font-medium text-[#262626]" data-ui-number>
-                      {item.quantity}x
-                    </span>
-                    <span className="text-[#262626]">{item.menuItem.name}</span>
+            <div className="space-y-2.5">
+              {ticket.items.map((item) => {
+                const modTotal = (item.selectedModifiers || []).reduce((sum, m) => sum + m.price, 0);
+                const itemTotal = (item.menuItem.basePrice + modTotal) * item.quantity;
+
+                return (
+                  <div key={item.cartItemId} className="text-[13px] pb-2 border-b border-[#f0f0f0] last:border-b-0">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono-num font-bold text-[#262626]" data-ui-number>
+                          {item.quantity}x
+                        </span>
+                        <span className="text-[#262626] font-medium">{item.menuItem.name}</span>
+                        {item.addedBy && (
+                          <span className="text-[11px] text-[#727272]">({item.addedBy.name})</span>
+                        )}
+                      </div>
+                      <span className="text-[13px] font-mono-num font-medium text-[#262626]">
+                        {itemTotal.toFixed(2)} EGP
+                      </span>
+                    </div>
+
+                    {/* Modifiers List */}
+                    {item.selectedModifiers && item.selectedModifiers.length > 0 && (
+                      <div className="pl-6 text-[11px] text-[#727272] space-y-0.5 mt-0.5">
+                        {item.selectedModifiers.map((m) => (
+                          <div key={m.id}>
+                            + {m.name} {m.price > 0 && `(+${m.price.toFixed(2)} EGP)`}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Kitchen Notes */}
+                    {item.notes && (
+                      <div className="pl-6 text-[11px] text-[#FF0055] italic mt-0.5">
+                        &quot;{item.notes}&quot;
+                      </div>
+                    )}
                   </div>
-                  <span className="text-[12px] font-mono-num text-[#727272]">
-                    {(item.menuItem.basePrice * item.quantity).toFixed(2)} EGP
-                  </span>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 

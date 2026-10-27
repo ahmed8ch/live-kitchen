@@ -18,7 +18,6 @@ export const CartDrawer: React.FC = () => {
   const createOrder = useAppStore((state) => state.createOrder);
   const setMemberReadyToPay = useAppStore((state) => state.setMemberReadyToPay);
   const leaveTableSession = useAppStore((state) => state.leaveTableSession);
-  const resetTableSession = useAppStore((state) => state.resetTableSession);
 
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>('apple_pay');
   const [showPaymentChoice, setShowPaymentChoice] = useState(false);
@@ -128,22 +127,13 @@ export const CartDrawer: React.FC = () => {
               </span>
             </div>
             <div className="flex items-center gap-2">
-              {isHost && members.length > 1 && (
-                <button
-                  onClick={() => resetTableSession(activeTable)}
-                  className="text-[10px] font-mono-num text-[#727272] hover:text-[#FF0055] px-2 py-0.5 rounded bg-white border border-[#ffd1dc] cursor-pointer"
-                  title="Reset table to clean solo Host state"
-                >
-                  Reset Diners
-                </button>
-              )}
               {!isHost && currentMember && (
                 <button
                   onClick={() => {
                     leaveTableSession(activeTable, currentMember.id);
                     closeCartDrawer();
                   }}
-                  className="text-[10px] font-mono-num text-red-600 hover:underline cursor-pointer"
+                  className="text-[11px] font-mono-num text-red-600 hover:underline cursor-pointer"
                 >
                   Leave Table
                 </button>
@@ -299,7 +289,7 @@ export const CartDrawer: React.FC = () => {
             {showPaymentChoice ? (
               <div className="p-4 rounded-xl bg-white border border-[#e5e7eb] space-y-3 animate-in fade-in duration-150">
                 <div className="text-[12px] font-medium text-[#262626]">
-                  Select Checkout Verification Gate:
+                  Select Payment Method:
                 </div>
 
                 <div className="grid grid-cols-2 gap-2">

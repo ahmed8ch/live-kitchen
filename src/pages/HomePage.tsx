@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAppStore } from '../store/useAppStore';
 import { AsciiBackground } from '../components/ui/AsciiBackground';
+import { FlameLinkLogo } from '../components/ui/FlameLinkLogo';
 
 export const HomePage: React.FC = () => {
   const activeTable = useAppStore((state) => state.activeTable);
@@ -9,6 +10,42 @@ export const HomePage: React.FC = () => {
   const showToast = useAppStore((state) => state.showToast);
 
   const menuLink = activeTable ? `/menu?table=${activeTable}` : '/menu';
+
+  // Section Tracking for Navigation Bar Spy
+  const [activeSection, setActiveSection] = useState<'hero' | 'flow' | 'roi' | 'support'>('hero');
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollY = window.scrollY;
+      const flowEl = document.getElementById('flow');
+      const roiEl = document.getElementById('roi');
+      const supportEl = document.getElementById('support');
+
+      const flowTop = (flowEl?.offsetTop || 500) - 120;
+      const roiTop = (roiEl?.offsetTop || 1000) - 120;
+      const supportTop = (supportEl?.offsetTop || 1600) - 120;
+
+      if (scrollY >= supportTop) {
+        setActiveSection('support');
+      } else if (scrollY >= roiTop) {
+        setActiveSection('roi');
+      } else if (scrollY >= flowTop) {
+        setActiveSection('flow');
+      } else {
+        setActiveSection('hero');
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollTo = (id: string) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
   // ROI Estimator State (EGP)
   const [tableCount, setTableCount] = useState<number>(24);
@@ -50,8 +87,110 @@ export const HomePage: React.FC = () => {
 
   return (
     <div className="flex-1 w-full bg-white select-none" data-ui-container="home-overview">
-      {/* Sculpted Floating Hero Card with Rounded Edges and Ambient ASCII Matrix */}
-      <section className="p-4 sm:p-6 lg:p-8">
+      {/* Top Navigation Bar with Logo, In-Page Section Anchor Links, and Quick Actions */}
+      <nav
+        aria-label="Home page navigation"
+        className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-[#e5e7eb] px-4 sm:px-8 py-3 flex items-center justify-between"
+      >
+        {/* Brand Logo with Smooth Scroll to Hero */}
+        <button
+          onClick={() => scrollTo('hero')}
+          className="flex items-center gap-2 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF0055] rounded-lg text-left"
+          aria-label="FlameLink Home"
+        >
+          <FlameLinkLogo size="md" />
+        </button>
+
+        {/* Section Navigation Links */}
+        <div className="hidden md:flex items-center gap-1 sm:gap-2">
+          <button
+            onClick={() => scrollTo('flow')}
+            className={`px-3.5 py-1.5 rounded-full text-[13px] font-medium transition-all cursor-pointer ${
+              activeSection === 'flow'
+                ? 'bg-[#fff0f3] text-[#FF0055] border border-[#ffd1dc]'
+                : 'text-[#616161] hover:text-[#262626] hover:bg-[#f9f9f9]'
+            }`}
+          >
+            4-Stage Flow
+          </button>
+
+          <button
+            onClick={() => scrollTo('roi')}
+            className={`px-3.5 py-1.5 rounded-full text-[13px] font-medium transition-all cursor-pointer ${
+              activeSection === 'roi'
+                ? 'bg-[#fff0f3] text-[#FF0055] border border-[#ffd1dc]'
+                : 'text-[#616161] hover:text-[#262626] hover:bg-[#f9f9f9]'
+            }`}
+          >
+            Table Economics
+          </button>
+
+          <button
+            onClick={() => scrollTo('support')}
+            className={`px-3.5 py-1.5 rounded-full text-[13px] font-medium transition-all cursor-pointer ${
+              activeSection === 'support'
+                ? 'bg-[#fff0f3] text-[#FF0055] border border-[#ffd1dc]'
+                : 'text-[#616161] hover:text-[#262626] hover:bg-[#f9f9f9]'
+            }`}
+          >
+            Direct Platform Desk
+          </button>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex items-center gap-2 sm:gap-3">
+          <Link
+            to="/kds"
+            className="hidden sm:inline-flex items-center justify-center px-4 py-2 rounded-full bg-[#f9f9f9] hover:bg-[#f0f0f0] border border-[#e5e7eb] text-[#262626] text-[13px] font-medium transition-all active:scale-95 cursor-pointer"
+          >
+            Kitchen Pass
+          </Link>
+
+          <Link
+            to={menuLink}
+            className="inline-flex items-center justify-center gap-1.5 px-4 sm:px-5 py-2 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[13px] font-bold btn-crimson-glow transition-all active:scale-95 cursor-pointer shadow-xs"
+          >
+            <span>Dine-In Menu -&gt;</span>
+          </Link>
+        </div>
+      </nav>
+
+      {/* Mobile Horizontal Sub-Navigation for In-Page Section Anchor Jumping */}
+      <div className="md:hidden flex items-center gap-2 px-4 py-2.5 bg-[#f9f9f9] border-b border-[#e5e7eb] overflow-x-auto no-scrollbar text-[12px]">
+        <button
+          onClick={() => scrollTo('flow')}
+          className={`px-3 py-1 rounded-full whitespace-nowrap cursor-pointer transition-colors ${
+            activeSection === 'flow'
+              ? 'bg-[#fff0f3] text-[#FF0055] font-semibold border border-[#ffd1dc]'
+              : 'text-[#727272] bg-white border border-[#e5e7eb]'
+          }`}
+        >
+          4-Stage Flow
+        </button>
+        <button
+          onClick={() => scrollTo('roi')}
+          className={`px-3 py-1 rounded-full whitespace-nowrap cursor-pointer transition-colors ${
+            activeSection === 'roi'
+              ? 'bg-[#fff0f3] text-[#FF0055] font-semibold border border-[#ffd1dc]'
+              : 'text-[#727272] bg-white border border-[#e5e7eb]'
+          }`}
+        >
+          Table Economics
+        </button>
+        <button
+          onClick={() => scrollTo('support')}
+          className={`px-3 py-1 rounded-full whitespace-nowrap cursor-pointer transition-colors ${
+            activeSection === 'support'
+              ? 'bg-[#fff0f3] text-[#FF0055] font-semibold border border-[#ffd1dc]'
+              : 'text-[#727272] bg-white border border-[#e5e7eb]'
+          }`}
+        >
+          Direct Platform Desk
+        </button>
+      </div>
+
+      {/* Hero Card */}
+      <section id="hero" className="p-4 sm:p-6 lg:p-8">
         <div className="relative bg-[#FF0055] text-white pt-16 pb-20 md:pt-24 md:pb-28 rounded-3xl sm:rounded-[32px] overflow-hidden shadow-xl shadow-[#FF0055]/10">
           {/* Ambient ASCII Background across the Hero Canvas */}
           <AsciiBackground theme="crimson" />
@@ -107,28 +246,22 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* Asymmetric Bento Blueprint Grid */}
-      <section className="py-14 md:py-18 bg-[#f9f9f9] border-b border-[#e5e7eb]">
+      {/* 4-Stage Dine-In Flow */}
+      <section id="flow" className="py-14 md:py-18 bg-[#f9f9f9] border-b border-[#e5e7eb]">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <div className="text-[11px] font-mono-num uppercase tracking-wider text-[#949494]">
-                Architecture Blueprint
-              </div>
-              <h2 className="text-2xl font-bold text-[#262626]" data-ui-balance>
-                4-Stage Dine-In Flow
-              </h2>
+          <div className="mb-8">
+            <div className="text-[11px] font-mono-num uppercase tracking-wider text-[#949494]">
+              Operational Architecture
             </div>
-            <span className="hidden sm:inline text-[12px] font-mono-num text-[#727272]">
-              Hairline Exposed Grid • 1px Mesh
-            </span>
+            <h2 className="text-2xl font-bold text-[#262626]" data-ui-balance>
+              4-Stage Dine-In Flow
+            </h2>
           </div>
 
-          {/* Exposed Hairline Bento Grid with Corner Crosshairs */}
+          {/* Clean Bento Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-[#e5e7eb] border border-[#e5e7eb] rounded-2xl overflow-hidden shadow-xs relative">
             {/* Cell 1 */}
             <div className="bg-white p-6 sm:p-7 flex flex-col justify-between relative group">
-              <span className="absolute top-2 right-2 text-[#b5b5b5] font-mono text-[10px]">+</span>
               <div>
                 <div className="w-8 h-8 rounded-full bg-[#f9f9f9] border border-[#e5e7eb] text-[#FF0055] flex items-center justify-center font-mono-num font-bold text-[13px] mb-4">
                   01
@@ -141,13 +274,12 @@ export const HomePage: React.FC = () => {
                 </p>
               </div>
               <div className="mt-6 pt-4 border-t border-[#f0f0f0] text-[11px] font-mono-num text-[#949494]">
-                Latency: &lt;50ms Bind
+                Table Session Bound
               </div>
             </div>
 
             {/* Cell 2 */}
             <div className="bg-white p-6 sm:p-7 flex flex-col justify-between relative group">
-              <span className="absolute top-2 right-2 text-[#b5b5b5] font-mono text-[10px]">+</span>
               <div>
                 <div className="w-8 h-8 rounded-full bg-[#f9f9f9] border border-[#e5e7eb] text-[#FF0055] flex items-center justify-center font-mono-num font-bold text-[13px] mb-4">
                   02
@@ -160,13 +292,12 @@ export const HomePage: React.FC = () => {
                 </p>
               </div>
               <div className="mt-6 pt-4 border-t border-[#f0f0f0] text-[11px] font-mono-num text-[#949494]">
-                Attributed Ledger
+                Attributed Diner Items
               </div>
             </div>
 
             {/* Cell 3 */}
             <div className="bg-white p-6 sm:p-7 flex flex-col justify-between relative group">
-              <span className="absolute top-2 right-2 text-[#b5b5b5] font-mono text-[10px]">+</span>
               <div>
                 <div className="w-8 h-8 rounded-full bg-[#f9f9f9] border border-[#e5e7eb] text-[#FF0055] flex items-center justify-center font-mono-num font-bold text-[13px] mb-4">
                   03
@@ -179,13 +310,12 @@ export const HomePage: React.FC = () => {
                 </p>
               </div>
               <div className="mt-6 pt-4 border-t border-[#f0f0f0] text-[11px] font-mono-num text-[#949494]">
-                Split Settlement Engine
+                Equal &amp; Itemized Split
               </div>
             </div>
 
             {/* Cell 4 */}
             <div className="bg-white p-6 sm:p-7 flex flex-col justify-between relative group">
-              <span className="absolute top-2 right-2 text-[#b5b5b5] font-mono text-[10px]">+</span>
               <div>
                 <div className="w-8 h-8 rounded-full bg-[#f9f9f9] border border-[#e5e7eb] text-[#FF0055] flex items-center justify-center font-mono-num font-bold text-[13px] mb-4">
                   04
@@ -198,7 +328,7 @@ export const HomePage: React.FC = () => {
                 </p>
               </div>
               <div className="mt-6 pt-4 border-t border-[#f0f0f0] text-[11px] font-mono-num text-[#949494]">
-                10-Foot Readability
+                Direct Kitchen Ticket
               </div>
             </div>
           </div>
@@ -206,14 +336,14 @@ export const HomePage: React.FC = () => {
       </section>
 
       {/* ROI & Turnover Projection Tool */}
-      <section className="py-14 bg-white border-b border-[#e5e7eb]">
+      <section id="roi" className="py-14 bg-white border-b border-[#e5e7eb]">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-8">
             <div className="text-[11px] font-mono-num uppercase tracking-wider text-[#949494]">
               Restaurant Unit Economics
             </div>
             <h2 className="text-2xl font-bold text-[#262626]">
-              Turnover Speed & Revenue Modeling
+              Turnover Speed &amp; Revenue Modeling
             </h2>
           </div>
 
@@ -260,7 +390,7 @@ export const HomePage: React.FC = () => {
                   Monthly Growth Projection
                 </span>
                 <span className="px-2.5 py-0.5 rounded-full bg-[#fff0f3] border border-[#ffd1dc] text-[#FF0055] text-[11px] font-mono-num font-bold">
-                  +22% TABLE TURNS
+                  High-Capacity Dining
                 </span>
               </div>
 
@@ -277,11 +407,11 @@ export const HomePage: React.FC = () => {
               <div className="grid grid-cols-2 gap-4 pt-4 border-t border-[#e5e7eb] text-[13px]">
                 <div>
                   <div className="text-[#949494] text-[11px] font-mono-num uppercase">Service Speed</div>
-                  <div className="font-bold text-[#262626] mt-0.5">-18 min / party</div>
+                  <div className="font-bold text-[#262626] mt-0.5">Faster Table Turnover</div>
                 </div>
                 <div>
                   <div className="text-[#949494] text-[11px] font-mono-num uppercase">Hardware Capital</div>
-                  <div className="font-bold text-[#15803d] mt-0.5">0 EGP (No Tablets)</div>
+                  <div className="font-bold text-[#15803d] mt-0.5">0 EGP (No Hardware Leases)</div>
                 </div>
               </div>
             </div>
@@ -290,7 +420,7 @@ export const HomePage: React.FC = () => {
       </section>
 
       {/* Platform Inquiries, Suggestions, Issues & Direct Support Form */}
-      <section className="py-16 bg-[#f9f9f9] border-b border-[#e5e7eb]">
+      <section id="support" className="py-16 bg-[#f9f9f9] border-b border-[#e5e7eb]">
         <div className="max-w-2xl mx-auto px-4 sm:px-6">
           <div className="bg-white rounded-2xl border border-[#e5e7eb] p-6 sm:p-9 shadow-xs space-y-6">
             <div>

@@ -68,7 +68,7 @@ export const MenuPage: React.FC = () => {
                 key={cat.id}
                 onClick={() => setActiveCategory(cat.id)}
                 data-ui-radius="999"
-                className={`px-4 py-2 rounded-full text-[13px] font-medium transition-all shrink-0 cursor-pointer ${
+                className={`px-4 py-2 min-h-[44px] rounded-full text-[13px] font-medium transition-all shrink-0 cursor-pointer flex items-center justify-center ${
                   activeCategory === cat.id
                     ? 'bg-[#fff0f3] text-[#FF0055] shadow-xs border-2 border-[#FF0055] font-bold'
                     : 'bg-white hover:bg-[#f0f0f0] text-[#727272] border border-[#e5e7eb]'
@@ -96,9 +96,17 @@ export const MenuPage: React.FC = () => {
           {filteredDishes.map((dish) => (
             <div
               key={dish.id}
+              role="button"
+              tabIndex={0}
               onClick={() => setSelectedDish(dish)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  setSelectedDish(dish);
+                }
+              }}
               data-ui-radius="16"
-              className="group bg-white rounded-2xl border border-[#e5e7eb] overflow-hidden shadow-xs hover:border-[#FF0055] transition-all cursor-pointer flex flex-col active:scale-[0.99] select-none"
+              className="group bg-white rounded-2xl border border-[#e5e7eb] overflow-hidden shadow-xs hover:border-[#FF0055] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF0055] transition-all cursor-pointer flex flex-col active:scale-[0.99] select-none"
             >
               {/* Dish Image with Badges */}
               <div className="relative h-48 sm:h-52 w-full bg-[#f9f9f9] overflow-hidden">

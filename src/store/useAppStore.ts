@@ -987,12 +987,15 @@ export const useAppStore = create<AppState>()(
           const memberName =
             ticket.items.find((i) => i.addedBy?.memberId === memberId)?.addedBy?.name || 'Diner';
 
+          const existingAmount = currentPaid[memberId]?.amount || 0;
+          const newAmount = Math.round((existingAmount + amount) * 100) / 100;
+
           const updatedPaid: Record<string, DinerPaymentRecord> = {
             ...currentPaid,
             [memberId]: {
               memberId,
               name: memberName,
-              amount,
+              amount: newAmount,
               paidAt: Date.now(),
               paymentMethod: method,
             },

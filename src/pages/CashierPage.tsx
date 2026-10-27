@@ -88,8 +88,11 @@ export const CashierPage: React.FC = () => {
     };
   };
 
+  const paidDinersList = Object.values(tableOrder?.paidDiners || {});
+  const totalPaidOnline = paidDinersList.reduce((sum, d) => sum + d.amount, 0);
+  const remainingDue = tableOrder ? Math.max(0, tableOrder.total - totalPaidOnline) : 0;
   const tenderedAmount = parseFloat(cashTendered) || 0;
-  const changeDue = tableOrder ? Math.max(0, tenderedAmount - tableOrder.total) : 0;
+  const changeDue = tableOrder ? Math.max(0, tenderedAmount - remainingDue) : 0;
 
   return (
     <div className="flex-1 w-full bg-[#f9f9f9] min-h-screen pb-24" data-ui-container="cashier-station">
@@ -225,7 +228,7 @@ export const CashierPage: React.FC = () => {
                 </span>
               </div>
 
-              {activeSession && activeSession.members.length > 0 && (
+              {getTableMeta(selectedTableNum).status !== 'idle' && (
                 <button
                   onClick={() => handleClearTable(selectedTableNum)}
                   className="px-2.5 py-1 text-[11px] rounded-md bg-gray-100 hover:bg-red-50 hover:text-red-600 text-[#727272] transition-colors cursor-pointer"

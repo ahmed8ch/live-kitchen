@@ -168,6 +168,11 @@ export const Sidebar: React.FC = () => {
     return 1;
   };
 
+  // Do not leak staff operations to seated diners at active tables
+  const visibleNavItems = activeTable
+    ? navItems.filter((item) => !item.isStaff)
+    : navItems;
+
   const isDockVisible = isPinned || isRevealed;
 
   return (
@@ -195,7 +200,7 @@ export const Sidebar: React.FC = () => {
 
           <button
             onClick={() => setMobileDrawerOpen(!mobileDrawerOpen)}
-            className="p-2 rounded-lg text-[#262626] hover:bg-[#e5e7eb] border border-[#e5e7eb] flex items-center justify-center min-w-[36px] min-h-[36px] cursor-pointer"
+            className="p-2.5 rounded-xl text-[#262626] hover:bg-[#e5e7eb] border border-[#e5e7eb] flex items-center justify-center min-w-[44px] min-h-[44px] cursor-pointer"
             aria-label="Toggle navigation drawer"
           >
             {mobileDrawerOpen ? <X className="w-5 h-5" /> : <MenuIcon className="w-5 h-5" />}
@@ -220,7 +225,7 @@ export const Sidebar: React.FC = () => {
                 </Link>
                 <button
                   onClick={() => setMobileDrawerOpen(false)}
-                  className="w-8 h-8 rounded-full bg-white border border-[#e5e7eb] flex items-center justify-center text-[#727272] cursor-pointer"
+                  className="min-w-[44px] min-h-[44px] rounded-full bg-white border border-[#e5e7eb] flex items-center justify-center text-[#727272] cursor-pointer"
                   aria-label="Close drawer"
                 >
                   <X className="w-4 h-4" />
@@ -228,7 +233,7 @@ export const Sidebar: React.FC = () => {
               </div>
 
               <nav className="mt-5 space-y-1.5">
-                {navItems.map((item) => {
+                {visibleNavItems.map((item) => {
                   const Icon = item.icon;
                   return (
                     <NavLink
@@ -317,7 +322,7 @@ export const Sidebar: React.FC = () => {
 
         {/* Dock Icons Stack with Smooth Parabolic Magnification */}
         <nav className="flex flex-col items-center gap-1.5" aria-label="Navigation Dock">
-          {navItems.map((item, index) => {
+          {visibleNavItems.map((item, index) => {
             const Icon = item.icon;
             const isActive =
               item.to === '/'
@@ -353,7 +358,7 @@ export const Sidebar: React.FC = () => {
                     transform: `scale(${scale}) translateX(${hoveredIndex === index ? '2px' : '0px'})`,
                     transformOrigin: 'left center',
                   }}
-                  className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-150 ease-out cursor-pointer active:scale-95 ${
+                  className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-150 ease-out cursor-pointer active:scale-95 ${
                     isActive
                       ? 'bg-[#fff0f3] text-[#FF0055] shadow-xs border border-[#ffd1dc]/80'
                       : 'text-[#727272] hover:text-[#262626] hover:bg-[#f5f5f5] border border-transparent'
@@ -418,7 +423,7 @@ export const Sidebar: React.FC = () => {
               onClick={handlePinToggle}
               title={isPinned ? 'Auto-Hide Dock' : 'Pin Dock'}
               aria-label={isPinned ? 'Auto-Hide Dock' : 'Pin Dock'}
-              className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF0055] ${
+              className={`w-11 h-11 rounded-xl flex items-center justify-center transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF0055] ${
                 isPinned
                   ? 'bg-[#fff0f3] text-[#FF0055] border border-[#ffd1dc]'
                   : 'text-[#949494] hover:text-[#262626] hover:bg-[#f5f5f5]'

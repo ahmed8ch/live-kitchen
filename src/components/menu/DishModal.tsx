@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MenuItem, ModifierOption } from '../../types/domain';
 import { useAppStore } from '../../store/useAppStore';
 
@@ -15,6 +15,17 @@ export const DishModal: React.FC<DishModalProps> = ({ dish, onClose, onAdd }) =>
   const [selectedModifiers, setSelectedModifiers] = useState<ModifierOption[]>([]);
   const [notes, setNotes] = useState('');
   const [addedFeedback, setAddedFeedback] = useState(false);
+
+  // Close on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
 
   if (!dish) return null;
 
@@ -125,13 +136,18 @@ export const DishModal: React.FC<DishModalProps> = ({ dish, onClose, onAdd }) =>
                   return (
                     <label
                       key={mod.id}
-                      onClick={() => toggleModifier(mod)}
-                      className={`flex items-center justify-between p-3 rounded-xl border transition-all cursor-pointer select-none ${
+                      className={`flex items-center justify-between p-3 min-h-[48px] rounded-xl border transition-all cursor-pointer select-none ${
                         isSelected
                           ? 'border-[#FF0055] bg-[#fff0f3] shadow-xs'
                           : 'border-[#e5e7eb] bg-white hover:bg-[#f9f9f9]'
                       }`}
                     >
+                      <input
+                        type="checkbox"
+                        className="sr-only"
+                        checked={isSelected}
+                        onChange={() => toggleModifier(mod)}
+                      />
                       <div className="flex items-center gap-3">
                         <div
                           className={`w-5 h-5 rounded-md border flex items-center justify-center transition-colors ${
@@ -172,7 +188,7 @@ export const DishModal: React.FC<DishModalProps> = ({ dish, onClose, onAdd }) =>
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="e.g. Extra pickles, sauce on the side, well-done"
-              className="w-full px-3 py-2 text-[13px] rounded-lg border border-[#e5e7eb] bg-white text-[#262626] placeholder-[#949494] focus:outline-none focus:border-[#FF0055]"
+              className="w-full px-3.5 py-2.5 min-h-[44px] text-[13px] rounded-lg border border-[#e5e7eb] bg-white text-[#262626] placeholder-[#949494] focus:outline-none focus:border-[#FF0055]"
             />
           </div>
         </div>

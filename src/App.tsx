@@ -119,7 +119,7 @@ export const App: React.FC = () => {
 
               <div className="pt-8 border-t border-[#e5e7eb] flex flex-col sm:flex-row items-center justify-between text-[11px] font-mono-num text-[#949494] gap-3">
                 <span>FlameLink Multi-Player Dine-In Operating System</span>
-                <span>Port Said Culinary Pass</span>
+                <span>FlameLink Culinary Pass</span>
               </div>
             </div>
           </footer>

@@ -182,11 +182,11 @@ export const SettlementPage: React.FC = () => {
         payOrderOnline(ticket.id, selectedMethod, splitWays);
         showToast(`Order #${ticket.id} verified and paid in full.`);
       } else if (splitMode === 'equal') {
-        const memberId = currentMember?.id || 'diner-equal';
+        const memberId = currentMember?.id || `diner-equal-${Date.now()}`;
         payDinerShare(ticket.id, memberId, selectedMethod, perPersonAmount);
         showToast(`Paid equal share of ${perPersonAmount.toFixed(2)} EGP.`);
       } else {
-        const memberId = currentMember?.id || 'diner-custom';
+        const memberId = currentMember?.id || `diner-custom-${Date.now()}`;
         payDinerShare(ticket.id, memberId, selectedMethod, itemizedTotal);
         showToast(`Paid ${itemizedTotal.toFixed(2)} EGP for selected dishes.`);
       }
