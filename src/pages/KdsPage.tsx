@@ -55,43 +55,46 @@ export const KdsPage: React.FC = () => {
     }
   };
 
-  // Status Top Band Configuration per DESIGN.md §1 & §5.5
+  // Status Top Band Configuration with Green (Fresh), Amber (Warning), Red (Rush) time bands
   const getTicketStatusTheme = (status: OrderStatus, elapsedSeconds: number) => {
-    // Delayed condition: over 10 min (600s) and not served
-    if (elapsedSeconds > 600 && status !== 'served') {
+    if (status === 'served') {
+      return {
+        bg: '#475569',
+        label: 'SERVED // CLOSED',
+        stage: 'CLOSED',
+        buttonClass: 'bg-[#334155] text-[#94a3b8] cursor-default',
+      };
+    }
+
+    const stageLabel = status === 'cooking' ? 'GRILL' : status === 'ready' ? 'PASS' : 'NEW';
+
+    // Delayed / Rush condition: over 10 min (600s)
+    if (elapsedSeconds > 600) {
       return {
         bg: '#dc2626',
-        label: 'DELAYED // >10 MIN',
+        label: `${stageLabel} // RUSH (>10M)`,
+        stage: stageLabel,
         buttonClass: 'bg-[#dc2626] hover:bg-[#b91c1c] text-white',
       };
     }
 
-    switch (status) {
-      case 'received':
-        return {
-          bg: '#FF0055',
-          label: 'NEW // VERIFIED PAID',
-          buttonClass: 'bg-[#FF0055] hover:opacity-95 text-white',
-        };
-      case 'cooking':
-        return {
-          bg: '#d97706',
-          label: 'COOKING // FLAME LINE',
-          buttonClass: 'bg-[#d97706] hover:opacity-95 text-white',
-        };
-      case 'ready':
-        return {
-          bg: '#15803d',
-          label: 'READY // PASS EXPEDITE',
-          buttonClass: 'bg-[#15803d] hover:opacity-95 text-white',
-        };
-      case 'served':
-        return {
-          bg: '#475569',
-          label: 'SERVED // CLOSED',
-          buttonClass: 'bg-[#334155] text-[#94a3b8] cursor-default',
-        };
+    // Warning condition: 5 to 10 min (300s to 600s)
+    if (elapsedSeconds >= 300) {
+      return {
+        bg: '#d97706',
+        label: `${stageLabel} // WARNING (5-10M)`,
+        stage: stageLabel,
+        buttonClass: 'bg-[#d97706] hover:bg-[#b45309] text-white',
+      };
     }
+
+    // Fresh condition: under 5 min (<300s)
+    return {
+      bg: '#16a34a',
+      label: `${stageLabel} // FRESH (<5M)`,
+      stage: stageLabel,
+      buttonClass: 'bg-[#16a34a] hover:bg-[#15803d] text-white',
+    };
   };
 
   // Whole Number Aggregation Stats across all active orders
@@ -112,10 +115,10 @@ export const KdsPage: React.FC = () => {
       {/* High-Contrast Kitchen Top Header */}
       <header className="h-16 px-6 sm:px-8 bg-[#151921] border-b border-[#252b36] flex items-center justify-between shrink-0 z-20">
         <div className="flex items-center gap-6">
-          <Link to="/" className="inline-flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full bg-[#FF0055] animate-pulse" />
+          <Link to="/" className="inline-flex items-center gap-2.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#FF0055]" />
             <span className="text-[18px] font-bold tracking-tight text-white">
-              Flame<span className="text-[#FF0055]">Pass</span> KDS
+              Flame<span className="text-[#FF0055]">Link</span> <span className="text-[#94a3b8] text-[13px] font-mono-num uppercase tracking-wider ml-1">KDS PASS</span>
             </span>
           </Link>
 
@@ -127,7 +130,7 @@ export const KdsPage: React.FC = () => {
         {/* Action Controls & Simulated Test Order Trigger */}
         <div className="flex items-center gap-3">
           <button
-            onClick={addSampleOrder}
+            onClick={() => addSampleOrder()}
             data-ui-radius="999"
             className="px-4 py-1.5 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[12px] font-mono-num font-medium transition-all shadow-xs cursor-pointer btn-crimson-glow-sm active:scale-95"
             title="Inject a realistic incoming order ticket"

@@ -12,11 +12,11 @@ export const ToastContainer: React.FC = () => {
       role="status"
       aria-live="polite"
       data-ui-container="toast"
-      className="fixed top-6 right-6 z-50 animate-in slide-in-from-top-3 fade-in duration-200"
+      className="fixed top-6 right-6 z-[99999] no-print animate-in slide-in-from-top-3 fade-in duration-200 pointer-events-auto"
     >
       <div
         data-ui-radius="8"
-        className="bg-white text-[#262626] pl-4 pr-5 py-3 rounded-lg border border-[#e5e7eb] border-l-4 border-l-[#FF0055] shadow-lg flex items-center gap-3 max-w-md select-none"
+        className="bg-white text-[#262626] pl-4 pr-5 py-3 rounded-lg border border-[#e5e7eb] border-l-4 border-l-[#FF0055] shadow-2xl flex items-center gap-3 max-w-md select-none"
       >
         <span className="w-5 h-5 rounded-full bg-[#ffd1dc] text-[#FF0055] flex items-center justify-center shrink-0">
           <svg

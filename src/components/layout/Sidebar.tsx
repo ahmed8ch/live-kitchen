@@ -244,14 +244,7 @@ export const Sidebar: React.FC = () => {
                 </button>
               </div>
 
-              {activeTable && (
-                <div className="mt-4 p-2.5 rounded-xl bg-[#fff0f3] border border-[#ffd1dc] flex items-center justify-between">
-                  <span className="text-[12px] text-[#727272]">Table:</span>
-                  <span className="px-2 py-0.5 rounded-md bg-[#FF0055] text-white text-[11px] font-mono-num font-medium">
-                    {activeTable}
-                  </span>
-                </div>
-              )}
+
 
               <nav className="mt-5 space-y-1.5" data-ui-actions="nav">
                 {navItems.map((item) => (
@@ -305,11 +298,7 @@ export const Sidebar: React.FC = () => {
             title="FlameLink Home"
           >
             {isCollapsed ? (
-              <span className="w-8 h-8 rounded-lg bg-white border border-[#e5e7eb] flex items-center justify-center text-[#FF0055] shadow-xs">
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-                  <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 3z" />
-                </svg>
-              </span>
+              <FlameLinkLogo size="md" showWordmark={false} />
             ) : (
               <FlameLinkLogo size="md" />
             )}
@@ -335,26 +324,7 @@ export const Sidebar: React.FC = () => {
           )}
         </div>
 
-        {/* Table Seating Badge in Sidebar */}
-        {activeTable && (
-          <div className="p-2 border-b border-[#e5e7eb] bg-[#fff0f3]">
-            {isCollapsed ? (
-              <div
-                className="w-full text-center py-0.5 rounded bg-[#FF0055] text-white text-[11px] font-mono-num font-medium"
-                title={`Table ${activeTable}`}
-              >
-                {activeTable.replace('T-', '')}
-              </div>
-            ) : (
-              <div className="flex items-center justify-between text-[11px]">
-                <span className="text-[#727272]">Table:</span>
-                <span className="px-2 py-0.5 rounded-full bg-[#FF0055] text-white font-mono-num font-medium">
-                  {activeTable}
-                </span>
-              </div>
-            )}
-          </div>
-        )}
+
 
         {/* Navigation Items List */}
         <nav className="flex-1 py-3 px-2 space-y-1 overflow-y-auto" data-ui-actions="sidebar-nav">

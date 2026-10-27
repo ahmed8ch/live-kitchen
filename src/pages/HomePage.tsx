@@ -147,7 +147,7 @@ export const HomePage: React.FC = () => {
             >
               <div className="flex items-center justify-between text-[10px] text-[#949494] pb-2 mb-2 border-b border-[#383838] font-mono-num uppercase">
                 <span>[ THERMAL FLAME SENSOR MATRIX ]</span>
-                <span className="text-[#FF0055] animate-pulse">ACTIVE // 800°C LINE</span>
+                <span className="text-[#FF0055] font-semibold">ACTIVE // 800°C LINE</span>
               </div>
               <pre className="font-mono m-0 overflow-hidden select-none">
                 {asciiMatrix.map((line, i) => (

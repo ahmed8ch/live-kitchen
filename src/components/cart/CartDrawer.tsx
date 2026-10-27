@@ -112,20 +112,13 @@ export const CartDrawer: React.FC = () => {
           </div>
         </div>
 
-        {/* Seating & Multiplayer Notice Banner */}
-        {activeTable ? (
+        {/* Seating Banner (Clean & Functional) */}
+        {activeTable && (
           <div className="px-5 py-2.5 bg-[#fff0f3] border-b border-[#ffd1dc] flex items-center justify-between text-[12px]">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-[#FF0055]" />
-              <span className="text-[#262626] font-medium">Table {activeTable} Shared Cart</span>
-            </div>
+            <span className="text-[#262626] font-semibold">Table {activeTable}</span>
             <span className="text-[11px] font-mono-num text-[#727272]">
-              {members.length > 0 ? `${readyMembersCount}/${members.length} Diners Ready` : 'Table Bound'}
+              {members.length > 0 ? `${readyMembersCount}/${members.length} Diners Ready` : 'Shared Pool'}
             </span>
-          </div>
-        ) : (
-          <div className="px-5 py-2 bg-[#f9f9f9] border-b border-[#e5e7eb] text-[12px] text-[#727272]">
-            Dine-In Counter / Online Seating
           </div>
         )}
 

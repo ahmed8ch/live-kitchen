@@ -1,5 +1,5 @@
 import React from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAppStore } from '../store/useAppStore';
 import { OrderStatus } from '../types/domain';
 import { FlameLinkLogo } from '../components/ui/FlameLinkLogo';
@@ -14,16 +14,23 @@ const STAGES: { key: OrderStatus; label: string; desc: string; stepNumber: numbe
 
 export const OrderTrackerPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
 
   const orders = useAppStore((state) => state.orders);
   const advanceOrderStatus = useAppStore((state) => state.advanceOrderStatus);
   const activeTable = useAppStore((state) => state.activeTable);
+  const orderAgain = useAppStore((state) => state.orderAgain);
 
   // Target ticket or fallback to latest order
   const ticket =
     id === 'active' || id === 'demo' || !id
       ? orders[0]
       : orders.find((o) => o.id === id) || orders[0];
+
+  const handleOrderAgain = () => {
+    orderAgain();
+    navigate(ticket?.tableNumber ? `/menu?table=${ticket.tableNumber}` : '/menu');
+  };
 
   if (!ticket) {
     return (
@@ -60,15 +67,24 @@ export const OrderTrackerPage: React.FC = () => {
       <div className="max-w-2xl mx-auto px-4 sm:px-6">
         {/* Top Breadcrumb & Status */}
         <div className="flex items-center justify-between mb-6">
-          <Link
-            to={ticket.tableNumber ? `/menu?table=${ticket.tableNumber}` : '/menu'}
-            className="inline-flex items-center gap-1.5 text-[13px] text-[#727272] hover:text-[#262626] transition-colors"
-          >
-            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M19 12H5M12 19l-7-7 7-7" />
-            </svg>
-            <span>Add More Dishes</span>
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link
+              to={ticket.tableNumber ? `/menu?table=${ticket.tableNumber}` : '/menu'}
+              className="inline-flex items-center gap-1.5 text-[13px] text-[#727272] hover:text-[#262626] transition-colors"
+            >
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M19 12H5M12 19l-7-7 7-7" />
+              </svg>
+              <span>Menu</span>
+            </Link>
+
+            <button
+              onClick={handleOrderAgain}
+              className="px-3 py-1 rounded-full bg-[#262626] hover:bg-black text-white text-[12px] font-bold transition-all cursor-pointer shadow-xs"
+            >
+              + Order Again
+            </button>
+          </div>
 
           {/* Advance Kitchen Stage button (active if verified) */}
           {!isCompleted && isVerifiedPaid && (
@@ -78,7 +94,7 @@ export const OrderTrackerPage: React.FC = () => {
               className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white hover:bg-[#f0f0f0] border border-[#e5e7eb] text-[12px] font-mono-num text-[#262626] transition-all cursor-pointer shadow-xs"
               title="Test the real-time kitchen state progression"
             >
-              <span>Advance Kitchen Stage -&gt;</span>
+              <span>Advance Stage -&gt;</span>
             </button>
           )}
         </div>
@@ -87,7 +103,7 @@ export const OrderTrackerPage: React.FC = () => {
         {!isVerifiedPaid && (
           <div className="mb-6 p-4 rounded-2xl bg-[#fff0f3] border-2 border-[#ffd1dc] space-y-2">
             <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#FF0055] animate-ping" />
+              <span className="w-2.5 h-2.5 rounded-full bg-[#FF0055]" />
               <span className="text-[13px] font-bold text-[#FF0055] font-mono-num">
                 AWAITING CASHIER SETTLEMENT (CHIT #{ticket.cashierChitCode || ticket.id})
               </span>
@@ -123,7 +139,7 @@ export const OrderTrackerPage: React.FC = () => {
                 {ticket.tableNumber ? `Table ${ticket.tableNumber}` : 'Online Guest'}
               </span>
               <span className="text-[15px] font-mono-num font-medium text-[#262626]" data-ui-number>
-                #{ticket.id}
+                #<ThermalText text={ticket.id} durationMs={350} />
               </span>
             </div>
           </div>
@@ -229,7 +245,7 @@ export const OrderTrackerPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Action Footer: Link to Settle Bill */}
+          {/* Action Footer: Link to Settle Bill & Loopback */}
           <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div>
               <div className="text-[11px] font-mono-num uppercase text-[#949494]">
@@ -240,19 +256,25 @@ export const OrderTrackerPage: React.FC = () => {
               </div>
             </div>
 
-            <Link
-              to={`/settlement/${ticket.id}`}
-              data-ui-radius="999"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[13px] font-medium transition-all btn-crimson-glow active:scale-[0.99] shadow-xs"
-            >
-              <span>{ticket.isPaid ? 'View Fiscal Receipt' : 'Split & Settle Table Bill ->'}</span>
-            </Link>
-          </div>
-        </div>
+            <div className="flex items-center gap-3 w-full sm:w-auto">
+              {ticket.isPaid && (
+                <button
+                  onClick={handleOrderAgain}
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full bg-[#262626] hover:bg-black text-white text-[13px] font-bold transition-all active:scale-[0.99] shadow-xs cursor-pointer"
+                >
+                  <span>+ Order Again</span>
+                </button>
+              )}
 
-        {/* Real-Time WebSocket Notice */}
-        <div className="text-center text-[12px] font-mono-num text-[#949494]">
-          Live Kitchen Bus Connected • Sub-Second Broadcast Sync
+              <Link
+                to={`/settlement/${ticket.id}`}
+                data-ui-radius="999"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[13px] font-medium transition-all btn-crimson-glow active:scale-[0.99] shadow-xs"
+              >
+                <span>{ticket.isPaid ? 'View Fiscal Receipt' : 'Split & Settle Table Bill ->'}</span>
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
     </div>

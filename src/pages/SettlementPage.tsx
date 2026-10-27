@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAppStore } from '../store/useAppStore';
 import { PaymentMethod } from '../types/domain';
 import { FlameLinkLogo } from '../components/ui/FlameLinkLogo';
@@ -9,10 +9,14 @@ const TIP_PERCENTAGES = [0, 10, 12, 15];
 
 export const SettlementPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+
   const orders = useAppStore((state) => state.orders);
+  const activeOrderId = useAppStore((state) => state.activeOrderId);
   const payOrderOnline = useAppStore((state) => state.payOrderOnline);
   const verifyCashierPayment = useAppStore((state) => state.verifyCashierPayment);
   const submitMealReview = useAppStore((state) => state.submitMealReview);
+  const orderAgain = useAppStore((state) => state.orderAgain);
   const activeTable = useAppStore((state) => state.activeTable);
   const showToast = useAppStore((state) => state.showToast);
 
@@ -24,17 +28,19 @@ export const SettlementPage: React.FC = () => {
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>('apple_pay');
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // Post-meal rating & tipping state (appears AFTER payment)
+  // Post-meal rating & tipping state (Happy Yellow #FBBF24)
+  const [showRatingForm, setShowRatingForm] = useState(false);
   const [rating, setRating] = useState<number>(5);
   const [tipPercent, setTipPercent] = useState<number>(10);
   const [feedback, setFeedback] = useState<string>('');
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
 
-  // Target ticket or fallback to latest
-  const ticket =
-    id && id !== 'active'
-      ? orders.find((o) => o.id === id) || orders[0]
-      : orders[0];
+  // Dynamic ticket lookup: by URL param, or current active order, or latest in store
+  const ticket = id && id !== 'active'
+    ? orders.find((o) => o.id === id)
+    : activeOrderId
+    ? orders.find((o) => o.id === activeOrderId)
+    : orders[0];
 
   if (!ticket) {
     return (
@@ -45,17 +51,17 @@ export const SettlementPage: React.FC = () => {
             <line x1="2" y1="10" x2="22" y2="10" />
           </svg>
         </div>
-        <h2 className="text-xl font-medium text-[#262626]">No Open Ticket to Settle</h2>
+        <h2 className="text-xl font-bold text-[#262626]">No Active Order Ticket</h2>
         <p className="mt-2 text-[#727272] text-[14px] max-w-sm mx-auto">
-          You currently have no orders on file. Visit the culinary menu to place an order.
+          Your table currently has no orders placed. Select dishes from the menu to start.
         </p>
         <div className="mt-6">
           <Link
             to={activeTable ? `/menu?table=${activeTable}` : '/menu'}
             data-ui-radius="999"
-            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#FF0055] text-white text-[13px] font-medium transition-all btn-crimson-glow shadow-xs"
+            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#FF0055] text-white text-[13px] font-bold transition-all btn-crimson-glow shadow-xs"
           >
-            <span>Open Dine-In Menu -&gt;</span>
+            <span>Open Menu -&gt;</span>
           </Link>
         </div>
       </div>
@@ -97,13 +103,19 @@ export const SettlementPage: React.FC = () => {
     setTimeout(() => {
       payOrderOnline(ticket.id, selectedMethod, splitWays);
       setIsProcessing(false);
-      showToast(`Order #${ticket.id} verified and paid in full!`);
-    }, 600);
+      showToast(`Order #${ticket.id} verified and paid in full.`);
+    }, 500);
   };
 
   const handleSimulateCashierVerify = () => {
     verifyCashierPayment(ticket.id, 'card');
-    showToast(`Cashier verified settlement for Chit #${ticket.cashierChitCode || ticket.id}!`);
+    showToast(`Cashier confirmed settlement for Chit #${ticket.cashierChitCode || ticket.id}.`);
+  };
+
+  const handleOrderAgain = () => {
+    orderAgain();
+    const query = activeTable ? `?table=${activeTable}` : '';
+    navigate(`/menu${query}`);
   };
 
   const handleSubmitReview = (e: React.FormEvent) => {
@@ -112,15 +124,13 @@ export const SettlementPage: React.FC = () => {
     setReviewSubmitted(true);
   };
 
-  // Export receipt as image (SVG blob -> download)
+  // Export receipt as image (SVG canvas -> PNG download)
   const handleSaveAsImage = () => {
     const receiptElement = document.getElementById('printable-receipt');
     if (!receiptElement) return;
 
-    // Build SVG foreignObject data
-    const rect = receiptElement.getBoundingClientRect();
-    const width = rect.width || 420;
-    const height = rect.height || 600;
+    const width = 480;
+    const height = 620;
 
     const canvas = document.createElement('canvas');
     canvas.width = width * 2;
@@ -143,12 +153,12 @@ export const SettlementPage: React.FC = () => {
     ctx.fillStyle = '#ffffff';
     ctx.fillText('FlameLink e-Receipt', 20, 26);
 
-    ctx.font = '12px "Geist Mono", monospace';
+    ctx.font = '12px monospace';
     ctx.fillStyle = '#ffffff';
-    ctx.fillText(`#${ticket.id}`, width - 100, 26);
+    ctx.fillText(`#${ticket.id}`, width - 110, 26);
 
     // Body content
-    ctx.font = '13px "Geist Mono", monospace';
+    ctx.font = '13px monospace';
     ctx.fillStyle = '#262626';
     ctx.fillText(`Table: ${ticket.tableNumber || 'Counter'}`, 20, 70);
     ctx.fillText(`Date: ${new Date(ticket.createdAt).toLocaleDateString()} ${new Date(ticket.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`, 20, 90);
@@ -172,7 +182,7 @@ export const SettlementPage: React.FC = () => {
     ctx.fillText(`14% VAT: ${ticket.vatAmount.toFixed(2)} EGP`, 20, y);
     y += 22;
 
-    ctx.font = 'bold 15px "Geist Mono", monospace';
+    ctx.font = 'bold 15px monospace';
     ctx.fillStyle = '#FF0055';
     ctx.fillText(`Total Paid: ${ticket.total.toFixed(2)} EGP`, 20, y);
 
@@ -181,14 +191,14 @@ export const SettlementPage: React.FC = () => {
     link.download = `FlameLink-Receipt-${ticket.id}.png`;
     link.href = dataUrl;
     link.click();
-    showToast(`Receipt #${ticket.id} saved as image!`);
+    showToast(`Receipt #${ticket.id} saved as image.`);
   };
 
   return (
     <div className="flex-1 w-full bg-[#f9f9f9] py-8 sm:py-12 pb-32" data-ui-container="settlement-view">
       <div className="max-w-xl mx-auto px-4 sm:px-6">
-        {/* Navigation Breadcrumb */}
-        <div className="flex items-center justify-between mb-6">
+        {/* Navigation Breadcrumb & Order Again Loopback (NO-PRINT) */}
+        <div className="no-print flex items-center justify-between mb-6">
           <Link
             to={`/order/${ticket.id}`}
             className="inline-flex items-center gap-1.5 text-[13px] text-[#727272] hover:text-[#262626] transition-colors"
@@ -199,30 +209,34 @@ export const SettlementPage: React.FC = () => {
             <span>Back to Live Tracker</span>
           </Link>
 
-          <span className="text-[12px] font-mono-num text-[#949494]" data-ui-number>
-            ETA FISCAL RECEIPT #{ticket.id}
-          </span>
+          {/* Loopback: Order Again button */}
+          <button
+            onClick={handleOrderAgain}
+            className="px-3.5 py-1.5 rounded-full bg-[#262626] hover:bg-black text-white text-[12px] font-bold transition-all cursor-pointer shadow-xs"
+          >
+            + Order Again
+          </button>
         </div>
 
-        {/* Cashier Chit Notice if payment is pending */}
+        {/* Cashier Chit Notice if payment is pending (NO-PRINT) */}
         {!isVerifiedPaid && (
-          <div className="mb-6 p-4 rounded-2xl bg-[#fff0f3] border-2 border-[#ffd1dc] space-y-3">
+          <div className="no-print mb-6 p-4 rounded-2xl bg-[#fff0f3] border-2 border-[#ffd1dc] space-y-3">
             <div className="flex items-start justify-between">
               <div>
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#ffe0e8] text-[#FF0055] text-[11px] font-mono-num font-semibold">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#ffe0e8] text-[#FF0055] text-[11px] font-mono-num font-bold">
                   <span>PAYMENT REQUIRED BEFORE COOKING</span>
                 </div>
                 <h3 className="text-lg font-bold text-[#262626] mt-1">
                   Chit #{ticket.cashierChitCode || ticket.id}
                 </h3>
                 <p className="text-[13px] text-[#727272] mt-0.5">
-                  Present this chit at the front register, or settle online below to fire order to KDS line.
+                  Present this chit at the front register, or settle online below to fire order to kitchen line.
                 </p>
               </div>
 
               <button
                 onClick={handleSimulateCashierVerify}
-                className="px-3 py-1.5 rounded-lg bg-white border border-[#ffd1dc] hover:border-[#FF0055] text-[#FF0055] text-[11px] font-mono-num font-medium transition-colors cursor-pointer shadow-xs shrink-0"
+                className="px-3 py-1.5 rounded-lg bg-white border border-[#ffd1dc] hover:border-[#FF0055] text-[#FF0055] text-[11px] font-mono-num font-bold transition-colors cursor-pointer shadow-xs shrink-0"
                 title="Simulate cashier desk payment confirmation"
               >
                 Simulate Cashier Stamp
@@ -231,7 +245,7 @@ export const SettlementPage: React.FC = () => {
           </div>
         )}
 
-        {/* Perforated Thermal Ticket Container (Wrapped in #printable-receipt for strict print isolation) */}
+        {/* ONLY THIS DIV IS PRINTED (Perforated Thermal Ticket Container) */}
         <div
           id="printable-receipt"
           ref={receiptRef}
@@ -248,9 +262,9 @@ export const SettlementPage: React.FC = () => {
 
             <div className="text-right">
               <span className="text-[11px] font-mono-num uppercase tracking-wider text-[#949494] block">
-                {ticket.tableNumber ? `Table ${ticket.tableNumber}` : 'Online Guest'}
+                {ticket.tableNumber ? `Table ${ticket.tableNumber}` : 'Dine-In'}
               </span>
-              <span className="text-[14px] font-mono-num font-medium text-[#262626]" data-ui-number>
+              <span className="text-[15px] font-mono-num font-bold text-[#262626]" data-ui-number>
                 #{ticket.id}
               </span>
             </div>
@@ -277,7 +291,7 @@ export const SettlementPage: React.FC = () => {
                 <div key={item.cartItemId} className="space-y-1">
                   <div className="flex items-baseline justify-between text-[14px]">
                     <div className="flex items-baseline gap-2">
-                      <span className="font-mono-num font-medium text-[#262626]" data-ui-number>
+                      <span className="font-mono-num font-bold text-[#262626]" data-ui-number>
                         {item.quantity}x
                       </span>
                       <span className="text-[#262626] font-medium">{item.menuItem.name}</span>
@@ -292,7 +306,7 @@ export const SettlementPage: React.FC = () => {
                         </span>
                       )}
                     </div>
-                    <span className="font-mono-num font-medium text-[#262626]" data-ui-number>
+                    <span className="font-mono-num font-bold text-[#262626]" data-ui-number>
                       {lineTotal.toFixed(2)} EGP
                     </span>
                   </div>
@@ -332,15 +346,15 @@ export const SettlementPage: React.FC = () => {
               <span className="font-mono-num text-[#262626]" data-ui-number>{ticket.vatAmount.toFixed(2)} EGP</span>
             </div>
 
-            <div className="pt-2 flex justify-between text-[17px] font-medium text-[#262626]">
+            <div className="pt-2 flex justify-between text-[18px] font-bold text-[#262626]">
               <span>Grand Total</span>
-              <span className="font-mono-num font-medium text-[#FF0055]" data-ui-number>{ticket.total.toFixed(2)} EGP</span>
+              <span className="font-mono-num font-bold text-[#FF0055]" data-ui-number>{ticket.total.toFixed(2)} EGP</span>
             </div>
           </div>
 
-          {/* ADVANCED BILL SPLITTING ENGINE (Equal Fraction OR By Dish Itemized) */}
+          {/* ADVANCED BILL SPLITTING ENGINE (NO-PRINT) */}
           {!isVerifiedPaid && (
-            <div className="py-4 border-b border-[#e5e7eb] space-y-3">
+            <div className="no-print py-4 border-b border-[#e5e7eb] space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-[12px] font-medium text-[#262626]">Split Bill Mode</span>
                 <div className="flex items-center gap-1 bg-[#f9f9f9] p-0.5 rounded-lg border border-[#e5e7eb]">
@@ -370,7 +384,7 @@ export const SettlementPage: React.FC = () => {
                 <div className="space-y-2.5">
                   <div className="flex items-center justify-between">
                     <span className="text-[12px] text-[#727272]">Diners sharing bill:</span>
-                    <span className="text-[13px] font-mono-num font-semibold text-[#FF0055]">
+                    <span className="text-[13px] font-mono-num font-bold text-[#FF0055]">
                       {perPersonAmount.toFixed(2)} EGP / person
                     </span>
                   </div>
@@ -383,7 +397,7 @@ export const SettlementPage: React.FC = () => {
                         data-ui-radius="8"
                         className={`px-3 py-1.5 rounded-lg text-[12px] font-mono-num transition-all cursor-pointer shrink-0 ${
                           splitWays === num
-                            ? 'bg-[#FF0055] text-white font-medium shadow-xs'
+                            ? 'bg-[#FF0055] text-white font-bold shadow-xs'
                             : 'bg-[#f9f9f9] hover:bg-[#f0f0f0] text-[#727272] border border-[#e5e7eb]'
                         }`}
                       >
@@ -427,7 +441,7 @@ export const SettlementPage: React.FC = () => {
                             />
                             <span>{item.quantity}x {item.menuItem.name}</span>
                           </div>
-                          <span className="font-mono-num font-medium">
+                          <span className="font-mono-num font-bold">
                             {itemPrice.toFixed(2)} EGP
                           </span>
                         </label>
@@ -446,22 +460,19 @@ export const SettlementPage: React.FC = () => {
             </div>
           )}
 
-          {/* Settlement Status / Payment Action */}
+          {/* Settlement Status / Payment Action (NO-PRINT) */}
           <div className="pt-5">
             {isVerifiedPaid ? (
               <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-center space-y-1">
-                <div className="inline-flex items-center gap-1.5 text-emerald-800 font-medium text-[14px]">
-                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                  <span>PAID IN FULL // VERIFIED AT REGISTER</span>
+                <div className="text-emerald-800 font-bold text-[14px]">
+                  PAID IN FULL // VERIFIED AT REGISTER
                 </div>
                 <div className="text-[12px] font-mono-num text-emerald-700" data-ui-number>
                   Auth: #AUTH-{ticket.id.replace('ORD-', '99')}-ETA • Method: {ticket.paymentMethod?.replace('_', ' ').toUpperCase()}
                 </div>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="no-print space-y-4">
                 <div className="text-[12px] font-medium text-[#262626]">Select Payment Verification Method:</div>
                 <div className="grid grid-cols-3 gap-2">
                   <button
@@ -473,7 +484,7 @@ export const SettlementPage: React.FC = () => {
                         : 'border-[#e5e7eb] bg-white hover:bg-[#f9f9f9]'
                     }`}
                   >
-                    <div className="text-[13px] font-medium text-[#262626]">Apple Pay</div>
+                    <div className="text-[13px] font-bold text-[#262626]">Apple Pay</div>
                     <div className="text-[11px] text-[#949494] mt-0.5">Instant Auth</div>
                   </button>
 
@@ -486,7 +497,7 @@ export const SettlementPage: React.FC = () => {
                         : 'border-[#e5e7eb] bg-white hover:bg-[#f9f9f9]'
                     }`}
                   >
-                    <div className="text-[13px] font-medium text-[#262626]">Card</div>
+                    <div className="text-[13px] font-bold text-[#262626]">Card</div>
                     <div className="text-[11px] text-[#949494] mt-0.5">Visa / Meeza</div>
                   </button>
 
@@ -499,7 +510,7 @@ export const SettlementPage: React.FC = () => {
                         : 'border-[#e5e7eb] bg-white hover:bg-[#f9f9f9]'
                     }`}
                   >
-                    <div className="text-[13px] font-medium text-[#262626]">Cashier Desk</div>
+                    <div className="text-[13px] font-bold text-[#262626]">Cashier Desk</div>
                     <div className="text-[11px] text-[#949494] mt-0.5">Pay at Door</div>
                   </button>
                 </div>
@@ -508,13 +519,13 @@ export const SettlementPage: React.FC = () => {
                   onClick={handleSettleOnline}
                   disabled={isProcessing}
                   data-ui-radius="999"
-                  className="w-full py-3.5 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[14px] font-medium transition-all btn-crimson-glow active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2"
+                  className="w-full py-3.5 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[14px] font-bold transition-all btn-crimson-glow active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2"
                 >
                   {isProcessing ? (
-                    <span>Authorizing Transaction with ETA Gate...</span>
+                    <span>Authorizing Transaction...</span>
                   ) : (
                     <span>
-                      Settle Bill ({splitMode === 'equal' ? `${perPersonAmount.toFixed(2)} EGP / person` : `${itemizedTotal.toFixed(2)} EGP for selected items`}) -&gt;
+                      Settle Bill ({splitMode === 'equal' ? `${perPersonAmount.toFixed(2)} EGP / person` : `${itemizedTotal.toFixed(2)} EGP`}) -&gt;
                     </span>
                   )}
                 </button>
@@ -523,103 +534,113 @@ export const SettlementPage: React.FC = () => {
           </div>
         </div>
 
-        {/* POST-MEAL TIPPING & 5-STAR REVIEW (Appears ONLY AFTER payment is settled) */}
-        {isVerifiedPaid && !reviewSubmitted && (
-          <section className="mt-8 bg-white p-6 rounded-2xl border border-[#e5e7eb] shadow-xs animate-in fade-in duration-200">
-            <div className="text-center mb-4">
-              <span className="text-[11px] font-mono-num uppercase tracking-wider text-[#FF0055] bg-[#ffe0e8] px-2.5 py-0.5 rounded-full font-medium">
-                Post-Meal Experience
-              </span>
-              <h3 className="text-lg font-medium text-[#262626] mt-2">
-                Rate Your Flame Dining Experience
-              </h3>
-              <p className="text-[13px] text-[#727272]">
-                Your feedback directly impacts our wood-fire culinary crew and floor team.
-              </p>
-            </div>
-
-            <form onSubmit={handleSubmitReview} className="space-y-4">
-              {/* Star Rating (SVG stars, 0 emojis) */}
-              <div className="flex items-center justify-center gap-2">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <button
-                    key={star}
-                    type="button"
-                    onClick={() => setRating(star)}
-                    className="p-1 cursor-pointer transition-transform hover:scale-110"
-                    aria-label={`Rate ${star} stars`}
-                  >
-                    <svg
-                      className={`w-7 h-7 ${star <= rating ? 'text-[#FF0055] fill-[#FF0055]' : 'text-[#e5e7eb]'}`}
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                    >
-                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                    </svg>
-                  </button>
-                ))}
+        {/* POST-MEAL TIPPING & 5-STAR REVIEW (OUTSIDE PRINT AREA, WITH HAPPY YELLOW #FBBF24 STARS) */}
+        {isVerifiedPaid && (
+          <section className="no-print mt-8 bg-white p-6 rounded-2xl border border-[#e5e7eb] shadow-xs">
+            {!showRatingForm && !reviewSubmitted ? (
+              <div className="text-center py-2">
+                <button
+                  onClick={() => setShowRatingForm(true)}
+                  className="px-5 py-2.5 rounded-full bg-[#f9f9f9] hover:bg-[#f0f0f0] border border-[#e5e7eb] text-[#262626] text-[13px] font-bold transition-colors cursor-pointer"
+                >
+                  Rate Dining Experience & Tip Kitchen
+                </button>
               </div>
-
-              {/* Optional Kitchen Gratuity */}
-              <div className="pt-2">
-                <div className="flex items-center justify-between text-[12px] mb-2">
-                  <span className="font-medium text-[#262626]">Optional Kitchen Gratuity</span>
-                  <span className="font-mono-num text-[#727272]">
-                    {tipPercent}% ({tipAmount.toFixed(2)} EGP)
-                  </span>
+            ) : !reviewSubmitted ? (
+              <form onSubmit={handleSubmitReview} className="space-y-4">
+                <div className="text-center mb-3">
+                  <h3 className="text-lg font-bold text-[#262626]">
+                    Rate Your Flame Dining Experience
+                  </h3>
+                  <p className="text-[13px] text-[#727272]">
+                    Feedback directly supports our wood-fire kitchen crew.
+                  </p>
                 </div>
-                <div className="grid grid-cols-4 gap-2">
-                  {TIP_PERCENTAGES.map((pct) => (
+
+                {/* Star Rating (Happy Yellow #FBBF24) */}
+                <div className="flex items-center justify-center gap-2">
+                  {[1, 2, 3, 4, 5].map((star) => (
                     <button
-                      key={pct}
+                      key={star}
                       type="button"
-                      onClick={() => setTipPercent(pct)}
-                      className={`py-1.5 rounded-lg text-[12px] font-mono-num transition-colors cursor-pointer ${
-                        tipPercent === pct
-                          ? 'bg-[#262626] text-white font-medium'
-                          : 'bg-[#f9f9f9] border border-[#e5e7eb] text-[#727272] hover:bg-[#f0f0f0]'
-                      }`}
+                      onClick={() => setRating(star)}
+                      className="p-1 cursor-pointer transition-transform hover:scale-110"
+                      aria-label={`Rate ${star} stars`}
                     >
-                      {pct === 0 ? 'No Tip' : `${pct}%`}
+                      <svg
+                        className={`w-7 h-7 ${star <= rating ? 'text-[#FBBF24] fill-[#FBBF24]' : 'text-[#e5e7eb]'}`}
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                      >
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                      </svg>
                     </button>
                   ))}
                 </div>
-              </div>
 
-              {/* Feedback Note Input */}
-              <div>
-                <label htmlFor="meal-feedback" className="block text-[12px] font-medium text-[#262626] mb-1">
-                  Culinary Notes & Service Feedback (Optional)
-                </label>
-                <textarea
-                  id="meal-feedback"
-                  value={feedback}
-                  onChange={(e) => setFeedback(e.target.value)}
-                  rows={2}
-                  placeholder="e.g. Burgers were juicy, fries were extra crispy!"
-                  className="w-full px-3 py-2 text-[13px] rounded-lg border border-[#e5e7eb] focus:outline-none focus:border-[#FF0055]"
-                />
-              </div>
+                {/* Optional Kitchen Gratuity */}
+                <div className="pt-2">
+                  <div className="flex items-center justify-between text-[12px] mb-2">
+                    <span className="font-medium text-[#262626]">Optional Kitchen Gratuity</span>
+                    <span className="font-mono-num text-[#727272]">
+                      {tipPercent}% ({tipAmount.toFixed(2)} EGP)
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-4 gap-2">
+                    {TIP_PERCENTAGES.map((pct) => (
+                      <button
+                        key={pct}
+                        type="button"
+                        onClick={() => setTipPercent(pct)}
+                        className={`py-1.5 rounded-lg text-[12px] font-mono-num transition-colors cursor-pointer ${
+                          tipPercent === pct
+                            ? 'bg-[#262626] text-white font-bold'
+                            : 'bg-[#f9f9f9] border border-[#e5e7eb] text-[#727272] hover:bg-[#f0f0f0]'
+                        }`}
+                      >
+                        {pct === 0 ? 'No Tip' : `${pct}%`}
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
-              <button
-                type="submit"
-                className="w-full py-2.5 rounded-full bg-[#262626] hover:bg-[#1a1a1a] text-white text-[13px] font-medium transition-colors cursor-pointer shadow-xs"
-              >
-                Submit Review & Gratuity -&gt;
-              </button>
-            </form>
+                <div>
+                  <textarea
+                    value={feedback}
+                    onChange={(e) => setFeedback(e.target.value)}
+                    rows={2}
+                    placeholder="Culinary notes or comments (optional)"
+                    className="w-full px-3 py-2 text-[13px] rounded-lg border border-[#e5e7eb] focus:outline-none focus:border-[#FF0055]"
+                  />
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowRatingForm(false)}
+                    className="px-4 py-2 rounded-full border border-[#e5e7eb] text-[#727272] text-[12px] hover:bg-[#f9f9f9]"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 py-2.5 rounded-full bg-[#262626] hover:bg-black text-white text-[13px] font-bold transition-colors cursor-pointer shadow-xs"
+                  >
+                    Submit Review & Gratuity -&gt;
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-center text-emerald-800 text-[13px] font-bold">
+                Thank you! Your review and gratuity have been credited to the kitchen team.
+              </div>
+            )}
           </section>
         )}
 
-        {reviewSubmitted && (
-          <div className="mt-6 p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-center text-emerald-800 text-[13px] font-medium">
-            Thank you! Your feedback and gratuity have been credited to the kitchen team.
-          </div>
-        )}
-
-        {/* Print / Download / Share Actions Strip */}
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+        {/* Print / Download / Share Actions Strip (NO-PRINT) */}
+        <div className="no-print mt-8 flex flex-wrap items-center justify-center gap-3">
           <button
             onClick={() => window.print()}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#e5e7eb] bg-white text-[13px] text-[#262626] hover:bg-[#f9f9f9] transition-colors shadow-xs cursor-pointer"

@@ -17,6 +17,7 @@ interface AppState {
   isCartDrawerOpen: boolean;
   activeTable: string | null;
   activeTablePin: string | null;
+  activeOrderId: string | null;
   currentMember: MemberProfile | null;
   tableSessions: Record<string, TableSession>;
   orders: OrderTicket[];
@@ -34,24 +35,25 @@ interface AppState {
 
   // Table & Multiplayer actions
   setActiveTable: (table: string | null) => void;
-  initTableSession: (tableNumber: string, memberName?: string) => TableSession;
-  joinTableWithPin: (tableNumber: string, pin: string, memberName: string) => boolean;
+  initTableSession: (tableNumber: string, memberName?: string, avatar?: string) => TableSession;
+  joinTableWithPin: (tableNumber: string, pin: string, memberName: string, avatar?: string) => boolean;
   setMemberReadyToPay: (tableNumber: string, memberId: string, isReady: boolean) => void;
   transferHostControl: (tableNumber: string, targetMemberId: string) => void;
-  regenerateTablePin: (tableNumber: string) => string;
   openPinModal: (tableNumber: string) => void;
   closePinModal: () => void;
+  clearTableSession: (tableNumber: string) => void;
 
   // The Payment Gate & Order actions
   createOrder: (paymentMethod: PaymentMethod) => OrderTicket;
   verifyCashierPayment: (orderId: string, paymentMethod?: PaymentMethod) => void;
   advanceOrderStatus: (orderId: string) => void;
   payOrderOnline: (orderId: string, method: PaymentMethod, splitCount?: number) => void;
+  orderAgain: () => void;
   submitMealReview: (orderId: string, rating: number, feedback?: string, tipAmount?: number) => void;
   syncOrders: (orders: OrderTicket[]) => void;
   syncTableSessions: (sessions: Record<string, TableSession>) => void;
   syncCart: (cart: CartItem[]) => void;
-  addSampleOrder: () => void;
+  addSampleOrder: (targetTable?: string) => void;
 
   // Toast
   showToast: (msg: string) => void;
@@ -62,119 +64,68 @@ const broadcastChannel = typeof window !== 'undefined' && 'BroadcastChannel' in 
   ? new BroadcastChannel('flamelink_multiplayer_sync')
   : null;
 
-// Initial sample order that is ALREADY verified so KDS has realistic data on startup
-const createInitialSampleOrder = (): OrderTicket => {
-  const burger = MENU_ITEMS[0];
-  const ribeye = MENU_ITEMS[4]; // 45-day dry aged ribeye
-  const sampleItems: CartItem[] = [
-    {
-      cartItemId: 'sample-cart-1',
-      menuItem: burger,
-      selectedModifiers: [burger.modifiers[0], burger.modifiers[1]],
-      quantity: 1,
-      notes: 'Medium doneness, extra smoked aioli',
-      addedBy: {
-        memberId: 'mem-host-01',
-        name: 'You (Host)',
-        isHost: true,
-      },
-    },
-    {
-      cartItemId: 'sample-cart-2',
-      menuItem: ribeye,
-      selectedModifiers: [ribeye.modifiers[0]],
-      quantity: 1,
-      notes: 'Truffle butter melted on top',
-      addedBy: {
-        memberId: 'mem-guest-02',
-        name: 'Sarah',
-        isHost: false,
-      },
-    },
-  ];
-
-  const subtotal = 185 + 65 + 40 + 690 + 45; // 1025 EGP
-  const vatAmount = Math.round(subtotal * 0.14 * 100) / 100;
-  const total = Math.round((subtotal + vatAmount) * 100) / 100;
-
-  return {
-    id: 'ORD-101',
-    tableNumber: 'T-04',
-    tablePin: '4040',
-    items: sampleItems,
-    subtotal,
-    vatAmount,
-    total,
-    status: 'cooking',
-    isPaid: true,
-    paymentStatus: 'verified_paid', // Verified: shows on KDS
-    paymentMethod: 'apple_pay',
-    createdAt: Date.now() - 145000,
-    paidAt: Date.now() - 140000,
-  };
-};
-
-const defaultTableSessions: Record<string, TableSession> = {
-  'T-04': {
-    tableNumber: 'T-04',
-    pin: '4040',
-    hostId: 'mem-host-01',
-    status: 'paid_cooking',
-    activeOrderId: 'ORD-101',
-    lastUpdated: Date.now(),
-    members: [
-      {
-        id: 'mem-host-01',
-        name: 'You (Host)',
-        isHost: true,
-        isReadyToPay: true,
-        joinedAt: Date.now() - 200000,
-      },
-      {
-        id: 'mem-guest-02',
-        name: 'Sarah',
-        isHost: false,
-        isReadyToPay: true,
-        joinedAt: Date.now() - 180000,
-      },
-    ],
-  },
+// Initial clean table registry
+const initialTableSessions: Record<string, TableSession> = {
   'T-01': {
     tableNumber: 'T-01',
     pin: '1010',
-    hostId: 'mem-host-t1',
-    status: 'ordering',
+    hostId: '',
+    status: 'idle',
     lastUpdated: Date.now(),
-    members: [
-      {
-        id: 'mem-host-t1',
-        name: 'Ahmed',
-        isHost: true,
-        isReadyToPay: false,
-        joinedAt: Date.now() - 50000,
-      },
-    ],
+    members: [],
   },
   'T-02': {
     tableNumber: 'T-02',
     pin: '2020',
-    hostId: 'mem-host-t2',
-    status: 'waiting_for_payment',
+    hostId: '',
+    status: 'idle',
     lastUpdated: Date.now(),
-    members: [
-      {
-        id: 'mem-host-t2',
-        name: 'Omar',
-        isHost: true,
-        isReadyToPay: true,
-        joinedAt: Date.now() - 60000,
-      },
-    ],
+    members: [],
+  },
+  'T-03': {
+    tableNumber: 'T-03',
+    pin: '3030',
+    hostId: '',
+    status: 'idle',
+    lastUpdated: Date.now(),
+    members: [],
+  },
+  'T-04': {
+    tableNumber: 'T-04',
+    pin: '4040',
+    hostId: '',
+    status: 'idle',
+    lastUpdated: Date.now(),
+    members: [],
+  },
+  'T-05': {
+    tableNumber: 'T-05',
+    pin: '5050',
+    hostId: '',
+    status: 'idle',
+    lastUpdated: Date.now(),
+    members: [],
+  },
+  'T-06': {
+    tableNumber: 'T-06',
+    pin: '6060',
+    hostId: '',
+    status: 'idle',
+    lastUpdated: Date.now(),
+    members: [],
   },
   'T-08': {
     tableNumber: 'T-08',
     pin: '8080',
-    hostId: 'mem-host-t8',
+    hostId: '',
+    status: 'idle',
+    lastUpdated: Date.now(),
+    members: [],
+  },
+  'T-12': {
+    tableNumber: 'T-12',
+    pin: '1212',
+    hostId: '',
     status: 'idle',
     lastUpdated: Date.now(),
     members: [],
@@ -188,15 +139,10 @@ export const useAppStore = create<AppState>()(
       isCartDrawerOpen: false,
       activeTable: null,
       activeTablePin: null,
-      currentMember: {
-        id: 'mem-host-01',
-        name: 'You (Host)',
-        isHost: true,
-        isReadyToPay: false,
-        joinedAt: Date.now(),
-      },
-      tableSessions: defaultTableSessions,
-      orders: [createInitialSampleOrder()],
+      activeOrderId: null,
+      currentMember: null,
+      tableSessions: initialTableSessions,
+      orders: [], // 0 hardcoded orders - all flow dynamically from live cart
       toastMessage: null,
       isPinModalOpen: false,
       pendingJoinTable: null,
@@ -225,35 +171,48 @@ export const useAppStore = create<AppState>()(
       // Table & Multiplayer Lobby Management
       setActiveTable: (table) => {
         if (!table) {
-          set({ activeTable: null, activeTablePin: null });
+          set({ activeTable: null, activeTablePin: null, currentMember: null });
           return;
         }
 
         const cleanTable = table.trim().toUpperCase();
-        const existingSession = get().tableSessions[cleanTable];
+        const { tableSessions, currentMember } = get();
+        const session = tableSessions[cleanTable];
 
-        if (existingSession) {
+        // Check if session has active members
+        if (session && session.members.length > 0) {
+          // If current browser is already in this session's members, keep them
+          const existingUser = currentMember && session.members.find((m) => m.id === currentMember.id);
+          if (existingUser) {
+            set({
+              activeTable: cleanTable,
+              activeTablePin: session.pin,
+              currentMember: existingUser,
+            });
+            return;
+          }
+
+          // Otherwise, another device is Host! Prompt this user to join as guest
           set({
             activeTable: cleanTable,
-            activeTablePin: existingSession.pin,
+            activeTablePin: session.pin,
+            pendingJoinTable: cleanTable,
+            isPinModalOpen: true,
           });
         } else {
-          // Initialize session for newly scanned table
-          get().initTableSession(cleanTable);
+          // Table is idle or new: This user automatically becomes Host! No PIN modal needed!
+          get().initTableSession(cleanTable, 'Host', 'Crown');
         }
       },
 
-      initTableSession: (tableNumber, memberName = 'You (Host)') => {
+      initTableSession: (tableNumber, memberName = 'Host', _avatar = 'Crown') => {
         const cleanTable = tableNumber.trim().toUpperCase();
         const { tableSessions } = get();
+        const existingSession = tableSessions[cleanTable];
 
-        if (tableSessions[cleanTable]) {
-          return tableSessions[cleanTable];
-        }
-
-        const generatedPin = Math.floor(1000 + Math.random() * 9000).toString();
+        const hostPin = existingSession?.pin || Math.floor(1000 + Math.random() * 9000).toString();
         const hostMember: MemberProfile = {
-          id: `mem-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+          id: `host-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
           name: memberName,
           isHost: true,
           isReadyToPay: false,
@@ -262,7 +221,7 @@ export const useAppStore = create<AppState>()(
 
         const newSession: TableSession = {
           tableNumber: cleanTable,
-          pin: generatedPin,
+          pin: hostPin,
           hostId: hostMember.id,
           members: [hostMember],
           status: 'ordering',
@@ -277,36 +236,38 @@ export const useAppStore = create<AppState>()(
         set({
           tableSessions: updatedSessions,
           activeTable: cleanTable,
-          activeTablePin: generatedPin,
+          activeTablePin: hostPin,
           currentMember: hostMember,
+          isPinModalOpen: false,
+          pendingJoinTable: null,
         });
 
         if (broadcastChannel) {
           broadcastChannel.postMessage({ type: 'SESSIONS_SYNC', tableSessions: updatedSessions });
         }
 
-        get().showToast(`Lobby opened for Table ${cleanTable} (PIN: ${generatedPin})`);
+        get().showToast(`Table ${cleanTable} session started. Your PIN is ${hostPin}`);
         return newSession;
       },
 
-      joinTableWithPin: (tableNumber, pin, memberName) => {
+      joinTableWithPin: (tableNumber, pin, memberName, avatar = 'Red Panda') => {
         const cleanTable = tableNumber.trim().toUpperCase();
         const { tableSessions } = get();
         const session = tableSessions[cleanTable];
 
         if (!session) {
-          get().showToast(`Table ${cleanTable} has no active session. Create one.`);
+          get().showToast(`Table ${cleanTable} not found.`);
           return false;
         }
 
         if (session.pin !== pin.trim()) {
-          get().showToast(`Invalid PIN for Table ${cleanTable}. Check with the table host.`);
+          get().showToast(`Incorrect PIN for Table ${cleanTable}. Ask the host.`);
           return false;
         }
 
         const newGuestMember: MemberProfile = {
-          id: `mem-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-          name: memberName.trim() || 'Guest Diner',
+          id: `guest-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+          name: memberName.trim() || avatar,
           isHost: false,
           isReadyToPay: false,
           joinedAt: Date.now(),
@@ -341,7 +302,7 @@ export const useAppStore = create<AppState>()(
           });
         }
 
-        get().showToast(`Joined Table ${cleanTable} pool as ${newGuestMember.name}`);
+        get().showToast(`Joined Table ${cleanTable} as ${newGuestMember.name}`);
         return true;
       },
 
@@ -378,7 +339,7 @@ export const useAppStore = create<AppState>()(
         const member = session.members.find((m) => m.id === memberId);
         get().showToast(
           isReady
-            ? `${member?.name || 'Diner'} is ready to pay!`
+            ? `${member?.name || 'Diner'} is ready to pay`
             : `${member?.name || 'Diner'} is still browsing`
         );
       },
@@ -413,34 +374,40 @@ export const useAppStore = create<AppState>()(
         }
 
         const target = session.members.find((m) => m.id === targetMemberId);
-        get().showToast(`Host privileges transferred to ${target?.name || 'Diner'}`);
+        get().showToast(`Host transferred to ${target?.name || 'Diner'}`);
       },
 
-      regenerateTablePin: (tableNumber) => {
+      clearTableSession: (tableNumber) => {
         const cleanTable = tableNumber.trim().toUpperCase();
         const { tableSessions } = get();
-        const newPin = Math.floor(1000 + Math.random() * 9000).toString();
+        const session = tableSessions[cleanTable];
+        if (!session) return;
+
+        const clearedSession: TableSession = {
+          ...session,
+          status: 'idle',
+          members: [],
+          hostId: '',
+          activeOrderId: undefined,
+          lastUpdated: Date.now(),
+        };
 
         const updatedSessions = {
           ...tableSessions,
-          [cleanTable]: {
-            ...tableSessions[cleanTable],
-            pin: newPin,
-            lastUpdated: Date.now(),
-          },
+          [cleanTable]: clearedSession,
         };
 
         set({
           tableSessions: updatedSessions,
-          activeTablePin: cleanTable === get().activeTable ? newPin : get().activeTablePin,
+          activeTable: cleanTable === get().activeTable ? null : get().activeTable,
+          activeOrderId: cleanTable === get().activeTable ? null : get().activeOrderId,
         });
 
         if (broadcastChannel) {
           broadcastChannel.postMessage({ type: 'SESSIONS_SYNC', tableSessions: updatedSessions });
         }
 
-        get().showToast(`Generated new PIN for Table ${cleanTable}: ${newPin}`);
-        return newPin;
+        get().showToast(`Table ${cleanTable} cleared & marked available.`);
       },
 
       // Cart Actions with Member Attribution
@@ -475,8 +442,8 @@ export const useAppStore = create<AppState>()(
               name: currentMember.name,
               isHost: currentMember.isHost,
             } : {
-              memberId: 'anon',
-              name: 'Online Guest',
+              memberId: 'guest-solo',
+              name: 'You',
               isHost: true,
             },
           };
@@ -484,7 +451,7 @@ export const useAppStore = create<AppState>()(
         }
 
         set({ cart: nextCart });
-        get().showToast(`Added ${quantity}x ${menuItem.name} to order pool`);
+        get().showToast(`Added ${quantity}x ${menuItem.name} to cart`);
 
         if (broadcastChannel && activeTable) {
           broadcastChannel.postMessage({ type: 'CART_SYNC', cart: nextCart, tableNumber: activeTable });
@@ -529,7 +496,7 @@ export const useAppStore = create<AppState>()(
       openCartDrawer: () => set({ isCartDrawerOpen: true }),
       closeCartDrawer: () => set({ isCartDrawerOpen: false }),
 
-      // THE PAYMENT GATE: BLOCK all orders from kitchen until payment verified
+      // THE PAYMENT GATE: Dynamic order creation from cart
       createOrder: (paymentMethod) => {
         const { cart, activeTable, activeTablePin, orders, tableSessions } = get();
         if (cart.length === 0) {
@@ -586,6 +553,7 @@ export const useAppStore = create<AppState>()(
         set({
           orders: updatedOrders,
           tableSessions: updatedSessions,
+          activeOrderId: orderId,
           cart: [],
           isCartDrawerOpen: false,
         });
@@ -593,7 +561,7 @@ export const useAppStore = create<AppState>()(
         if (isInstantOnline) {
           get().showToast(`Payment verified! Order #${orderId} fired to kitchen line`);
         } else {
-          get().showToast(`Cashier Chit #${cashierCode} generated! Settle at register.`);
+          get().showToast(`Cashier Chit #${cashierCode} generated. Settle at front register.`);
         }
 
         if (broadcastChannel) {
@@ -651,7 +619,7 @@ export const useAppStore = create<AppState>()(
           });
         }
 
-        get().showToast(`Payment for #${orderId} verified by cashier! Fired to KDS.`);
+        get().showToast(`Payment for #${orderId} confirmed. Fired to KDS pass!`);
       },
 
       payOrderOnline: (orderId, method, splitCount = 1) => {
@@ -696,6 +664,12 @@ export const useAppStore = create<AppState>()(
         get().showToast(`Order #${orderId} paid in full via ${method.toUpperCase()}!`);
       },
 
+      // Loopback: Order Again button keeps table session intact and clears cart
+      orderAgain: () => {
+        set({ cart: [], isCartDrawerOpen: false, activeOrderId: null });
+        get().showToast(`Ready for your next round of dishes!`);
+      },
+
       // Post-meal 5-Star Review & Optional Kitchen Tip
       submitMealReview: (orderId, rating, feedback, tipAmount = 0) => {
         set((state) => {
@@ -716,10 +690,10 @@ export const useAppStore = create<AppState>()(
           return { orders: updated };
         });
 
-        get().showToast(`Thank you! Your ${rating}-star feedback & gratuity received.`);
+        get().showToast(`Thank you! Your ${rating}-star feedback received.`);
       },
 
-      // KDS Bump Pipeline with Waiter Customer Notification
+      // KDS Bump Pipeline
       advanceOrderStatus: (orderId) => {
         let notifiedTable: string | null = null;
         let isNowReady = false;
@@ -752,18 +726,17 @@ export const useAppStore = create<AppState>()(
         });
 
         if (isNowReady && notifiedTable) {
-          get().showToast(`Dishes for Table ${notifiedTable} are PLATED & heading to table!`);
+          get().showToast(`Dishes for Table ${notifiedTable} are ready at the pass!`);
         } else {
           get().showToast(`Ticket #${orderId} bumped to next stage`);
         }
       },
 
-      addSampleOrder: () => {
+      addSampleOrder: (targetTable = 'T-04') => {
         const { orders, tableSessions } = get();
         const burger = MENU_ITEMS[0];
-        const pizza = MENU_ITEMS[7];
+        const steak = MENU_ITEMS[4];
         const nextId = `ORD-${100 + orders.length + 1}`;
-        const tableNum = `T-0${((orders.length % 5) + 1)}`;
 
         const sampleItems: CartItem[] = [
           {
@@ -771,46 +744,57 @@ export const useAppStore = create<AppState>()(
             menuItem: burger,
             selectedModifiers: [burger.modifiers[0]],
             quantity: 2,
-            notes: 'Extra crispy bacon, medium doneness',
-            addedBy: { memberId: 'mem-1', name: 'Omar', isHost: true },
+            notes: 'Medium doneness, extra crispy bacon',
+            addedBy: { memberId: 'mem-1', name: 'Red Panda', isHost: true },
           },
           {
             cartItemId: `sample-${Date.now()}-2`,
-            menuItem: pizza,
+            menuItem: steak,
             selectedModifiers: [],
             quantity: 1,
-            notes: 'Well done crust',
-            addedBy: { memberId: 'mem-2', name: 'Nour', isHost: false },
+            notes: 'Medium rare',
+            addedBy: { memberId: 'mem-2', name: 'Orange Fox', isHost: false },
           },
         ];
 
-        const subtotal = 185 * 2 + 65 * 2 + 220; // 720
+        const subtotal = 185 * 2 + 65 * 2 + 690;
         const vatAmount = Math.round(subtotal * 0.14 * 100) / 100;
         const total = Math.round((subtotal + vatAmount) * 100) / 100;
 
         const newSample: OrderTicket = {
           id: nextId,
-          tableNumber: tableNum,
+          tableNumber: targetTable,
+          cashierChitCode: `PAY-${targetTable.replace('T-', '')}-${100 + orders.length + 1}`,
           items: sampleItems,
           subtotal,
           vatAmount,
           total,
           status: 'received',
           isPaid: true,
-          paymentStatus: 'verified_paid', // Verified paid so it renders on KDS
+          paymentStatus: 'verified_paid', // Verified paid so it shows on KDS
           paymentMethod: 'card',
           createdAt: Date.now(),
           paidAt: Date.now(),
         };
 
         const updated = [newSample, ...orders];
-        set({ orders: updated });
+        const updatedSessions = {
+          ...tableSessions,
+          [targetTable]: {
+            ...tableSessions[targetTable],
+            status: 'paid_cooking' as TableStatus,
+            activeOrderId: nextId,
+            lastUpdated: Date.now(),
+          },
+        };
+
+        set({ orders: updated, tableSessions: updatedSessions });
 
         if (broadcastChannel) {
-          broadcastChannel.postMessage({ type: 'ORDER_CREATED', orders: updated, tableSessions });
+          broadcastChannel.postMessage({ type: 'ORDER_CREATED', orders: updated, tableSessions: updatedSessions });
         }
 
-        get().showToast(`Verified Chit #${nextId} sent to KDS pass`);
+        get().showToast(`Chit #${nextId} sent to KDS pass for Table ${targetTable}`);
       },
 
       syncOrders: (orders) => set({ orders }),
@@ -818,12 +802,13 @@ export const useAppStore = create<AppState>()(
       syncCart: (cart) => set({ cart }),
     }),
     {
-      name: 'flamelink_multiplayer_store_v3',
+      name: 'flamelink_multiplayer_store_v4',
       partialize: (state) => ({
         cart: state.cart,
         orders: state.orders,
         activeTable: state.activeTable,
         activeTablePin: state.activeTablePin,
+        activeOrderId: state.activeOrderId,
         currentMember: state.currentMember,
         tableSessions: state.tableSessions,
       }),
@@ -850,26 +835,25 @@ if (broadcastChannel) {
     if (data.type === 'GUEST_JOINED') {
       if (store.activeTable === data.tableNumber) {
         store.syncTableSessions(data.tableSessions);
-        store.showToast(`${data.guestName} joined Table ${data.tableNumber} pool!`);
+        store.showToast(`${data.guestName} has joined your table pool.`);
       }
     }
     if (data.type === 'MEMBER_READY_CHANGE') {
       if (store.activeTable === data.tableNumber) {
         store.syncTableSessions(data.tableSessions);
-        store.showToast(`Table diner is ready to settle bill`);
       }
     }
     if (data.type === 'CASHIER_VERIFIED') {
       store.syncOrders(data.orders);
       if (data.tableSessions) store.syncTableSessions(data.tableSessions);
       if (store.activeTable === data.targetTable) {
-        store.showToast(`Cashier verified settlement! Your food is now on the grill.`);
+        store.showToast(`Cashier verified settlement! Your food is now firing on the grill.`);
       }
     }
     if (data.type === 'STATUS_UPDATED') {
       store.syncOrders(data.orders);
       if (data.isNowReady && store.activeTable === data.notifiedTable) {
-        store.showToast(`Your food is ready at the kitchen pass! Server on the way.`);
+        store.showToast(`Your food is ready at the pass! Server on the way.`);
       }
     }
     if (data.type === 'ORDER_CREATED' || data.type === 'ORDER_PAID') {

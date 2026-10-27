@@ -40,7 +40,9 @@ export const FloatingCartBar: React.FC = () => {
         style={{
           boxShadow: '0 0 0 6px rgba(38, 38, 38, 0.08), 0 20px 30px -10px rgba(0, 0, 0, 0.25)',
         }}
-        className="w-full flex items-center justify-between px-5 py-3.5 rounded-full bg-[#262626] text-white hover:bg-[#1a1a1a] border border-[#383838] transition-all active:scale-[0.98] cursor-pointer group"
+        className={`w-full flex items-center justify-between px-5 py-3.5 rounded-full bg-[#262626] text-white hover:bg-[#1a1a1a] border border-[#383838] transition-transform duration-200 cursor-pointer group ${
+          counterPop ? 'scale-105' : 'scale-100'
+        } active:scale-95`}
       >
         {/* Left: Item Count Badge & Label */}
         <div className="flex items-center gap-3">

@@ -211,10 +211,21 @@
 
 /* Strict Clean Print Receipt Engine (Agent 07) */
 @media print {
-  /* Hide the rest of the document */
-  body {
+  @page {
+    margin: 0;
+    size: auto;
+  }
+
+  html, body {
     background: #ffffff !important;
     color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
+
+  body * {
+    visibility: hidden !important;
   }
 
   header,
@@ -229,15 +240,21 @@
     display: none !important;
   }
 
-  /* Only printable receipt container is rendered */
+  #printable-receipt,
+  #printable-receipt * {
+    visibility: visible !important;
+  }
+
   #printable-receipt {
     display: block !important;
-    position: static !important;
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
     width: 100% !important;
-    max-width: 450px !important;
+    max-width: 420px !important;
     margin: 0 auto !important;
-    padding: 20px !important;
-    border: 1px solid #000000 !important;
+    padding: 24px 20px !important;
+    border: none !important;
     box-shadow: none !important;
     background: #ffffff !important;
     color: #000000 !important;

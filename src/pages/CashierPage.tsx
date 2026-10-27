@@ -10,43 +10,80 @@ export const CashierPage: React.FC = () => {
   const orders = useAppStore((state) => state.orders);
   const tableSessions = useAppStore((state) => state.tableSessions);
   const verifyCashierPayment = useAppStore((state) => state.verifyCashierPayment);
+  const clearTableSession = useAppStore((state) => state.clearTableSession);
+  const addSampleOrder = useAppStore((state) => state.addSampleOrder);
   const showToast = useAppStore((state) => state.showToast);
 
+  const [selectedTableNum, setSelectedTableNum] = useState<string>('T-04');
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>('card');
-  const [filterMode, setFilterMode] = useState<'all' | 'pending' | 'verified'>('all');
+  const [cashTendered, setCashTendered] = useState<string>('');
 
-  // Orders pending front desk settlement
+  // Verified vs Pending orders
   const pendingOrders = orders.filter((o) => o.paymentStatus === 'pending_verification');
   const verifiedOrders = orders.filter((o) => o.paymentStatus === 'verified_paid');
 
   const totalCollectedToday = verifiedOrders.reduce((sum, o) => sum + o.total, 0);
-  const totalPendingCollection = pendingOrders.reduce((sum, o) => sum + o.total, 0);
 
-  const handleVerify = (orderId: string, chitCode?: string) => {
+  // Active table session
+  const activeSession = tableSessions[selectedTableNum];
+  const tableOrder = orders.find((o) => o.tableNumber === selectedTableNum && o.status !== 'served');
+
+  const handleConfirmPayment = (orderId: string, chitCode?: string) => {
     verifyCashierPayment(orderId, selectedMethod);
-    showToast(`Chit #${chitCode || orderId} settled via ${selectedMethod.toUpperCase()} & fired to KDS!`);
+    setCashTendered('');
+    showToast(`Payment confirmed for Chit #${chitCode || orderId}. Fired to KDS line.`);
   };
 
-  const getTableStatus = (tableNum: string) => {
+  const handleClearTable = (tableNum: string) => {
+    clearTableSession(tableNum);
+    showToast(`Table ${tableNum} marked Cleared & Available.`);
+  };
+
+  const handleSimulatePendingOrder = (tableNum: string) => {
+    addSampleOrder(tableNum);
+  };
+
+  const getTableMeta = (tableNum: string) => {
     const session = tableSessions[tableNum];
-    if (!session) return { status: 'idle', label: 'Idle / Available', color: 'bg-gray-100 text-[#727272] border-[#e5e7eb]' };
+    const pendingForTable = pendingOrders.find((o) => o.tableNumber === tableNum);
 
-    // Check if table has an active pending order
-    const hasPending = pendingOrders.some((o) => o.tableNumber === tableNum);
-    if (hasPending) {
-      return { status: 'waiting_for_payment', label: 'Waiting for Payment', color: 'bg-[#fff0f3] text-[#FF0055] border-[#ffd1dc] animate-pulse' };
+    if (pendingForTable) {
+      return {
+        status: 'waiting_for_payment',
+        label: 'Waiting for Payment',
+        badgeClass: 'bg-[#fff0f3] text-[#FF0055] border-[#ffd1dc] border-2 font-bold',
+        amount: pendingForTable.total,
+      };
     }
 
-    if (session.status === 'paid_cooking') {
-      return { status: 'paid_cooking', label: 'Paid & Cooking', color: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
+    if (session?.status === 'paid_cooking') {
+      return {
+        status: 'paid_cooking',
+        label: 'Paid & Cooking',
+        badgeClass: 'bg-emerald-50 text-emerald-800 border-emerald-300 font-medium',
+        amount: undefined,
+      };
     }
 
-    if (session.status === 'ordering') {
-      return { status: 'ordering', label: 'Ordering in Progress', color: 'bg-amber-50 text-amber-700 border-amber-200' };
+    if (session && session.members.length > 0) {
+      return {
+        status: 'ordering',
+        label: 'Ordering',
+        badgeClass: 'bg-amber-50 text-amber-800 border-amber-300 font-medium',
+        amount: undefined,
+      };
     }
 
-    return { status: 'idle', label: 'Idle / Available', color: 'bg-gray-100 text-[#727272] border-[#e5e7eb]' };
+    return {
+      status: 'idle',
+      label: 'Cleared / Available',
+      badgeClass: 'bg-[#f9f9f9] text-[#727272] border-[#e5e7eb]',
+      amount: undefined,
+    };
   };
+
+  const tenderedAmount = parseFloat(cashTendered) || 0;
+  const changeDue = tableOrder ? Math.max(0, tenderedAmount - tableOrder.total) : 0;
 
   return (
     <div className="flex-1 w-full bg-[#f9f9f9] min-h-screen pb-24" data-ui-container="cashier-station">
@@ -57,11 +94,11 @@ export const CashierPage: React.FC = () => {
             <FlameLinkLogo size="md" />
             <div className="h-5 w-[1px] bg-[#e5e7eb] hidden sm:block" />
             <div>
-              <div className="text-[14px] font-medium text-[#262626]">
-                Front Register Station // Cashier Pass
+              <div className="text-[14px] font-bold text-[#262626]">
+                Cashier Station // Live POS Terminal
               </div>
               <div className="text-[12px] font-mono-num text-[#727272]">
-                Sub-150ms KDS Kitchen Gate Lock
+                Front Register Verification Gate
               </div>
             </div>
           </div>
@@ -69,16 +106,16 @@ export const CashierPage: React.FC = () => {
           <div className="flex items-center gap-3">
             <div className="text-right px-3 py-1 bg-[#f9f9f9] border border-[#e5e7eb] rounded-lg">
               <span className="text-[10px] font-mono-num uppercase text-[#727272] block">Verified Today</span>
-              <span className="text-[14px] font-mono-num font-semibold text-[#15803d]">
+              <span className="text-[15px] font-mono-num font-bold text-[#15803d]">
                 {totalCollectedToday.toFixed(2)} EGP
               </span>
             </div>
 
             <Link
               to="/kds"
-              className="px-4 py-2 rounded-full bg-[#262626] hover:bg-[#1a1a1a] text-white text-[12px] font-medium transition-colors shadow-xs"
+              className="px-4 py-2 rounded-full bg-[#262626] hover:bg-black text-white text-[12px] font-medium transition-colors shadow-xs"
             >
-              Open KDS Screen -&gt;
+              Open KDS Pass -&gt;
             </Link>
           </div>
         </div>
@@ -89,253 +126,384 @@ export const CashierPage: React.FC = () => {
         <section className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="bg-white p-5 rounded-2xl border border-[#e5e7eb] shadow-xs">
             <span className="text-[11px] font-mono-num uppercase text-[#727272]">Waiting for Payment</span>
-            <div className="text-2xl font-mono-num font-medium text-[#FF0055] mt-1">
+            <div className="text-2xl font-mono-num font-bold text-[#FF0055] mt-1">
               {pendingOrders.length} Chits
             </div>
             <div className="text-[12px] font-mono-num text-[#727272] mt-1">
-              Total {totalPendingCollection.toFixed(2)} EGP
+              {pendingOrders.reduce((s, o) => s + o.total, 0).toFixed(2)} EGP pending cashier stamp
             </div>
           </div>
 
           <div className="bg-white p-5 rounded-2xl border border-[#e5e7eb] shadow-xs">
             <span className="text-[11px] font-mono-num uppercase text-[#727272]">Verified & Fired to KDS</span>
-            <div className="text-2xl font-mono-num font-medium text-[#15803d] mt-1">
+            <div className="text-2xl font-mono-num font-bold text-[#15803d] mt-1">
               {verifiedOrders.length} Orders
             </div>
             <div className="text-[12px] font-mono-num text-[#727272] mt-1">
-              Instant Pass Authorization
+              On cooking pass or served
             </div>
           </div>
 
           <div className="bg-white p-5 rounded-2xl border border-[#e5e7eb] shadow-xs">
-            <span className="text-[11px] font-mono-num uppercase text-[#727272]">Active Dine-In Pools</span>
-            <div className="text-2xl font-mono-num font-medium text-[#262626] mt-1">
-              {Object.keys(tableSessions).length} Tables Active
+            <span className="text-[11px] font-mono-num uppercase text-[#727272]">Active Dining Tables</span>
+            <div className="text-2xl font-mono-num font-bold text-[#262626] mt-1">
+              {Object.values(tableSessions).filter((s) => s.members.length > 0).length} Tables Seated
             </div>
             <div className="text-[12px] font-mono-num text-[#727272] mt-1">
-              Multi-party PIN sync active
+              Real-time multi-party state sync
             </div>
           </div>
         </section>
 
-        {/* Live Restaurant Tables Status Matrix */}
+        {/* Live Restaurant Tables Status Grid (Interactive - Click any table) */}
         <section className="bg-white p-6 rounded-2xl border border-[#e5e7eb] shadow-xs">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
             <div>
-              <h2 className="text-lg font-medium text-[#262626]">Live Dining Room Table Status</h2>
+              <h2 className="text-lg font-bold text-[#262626]">Live Table Status</h2>
               <p className="text-[13px] text-[#727272]">
-                Real-time synchronization across seated guest mobile browsers and cashier station.
+                Click any table to view seated diners, review draft items, ring up cashier settlement, or clear table.
               </p>
             </div>
-            <span className="text-[12px] font-mono-num text-[#949494]">
-              {RESTAURANT_TABLES.length} Registered Tables
-            </span>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => handleSimulatePendingOrder(selectedTableNum)}
+                className="px-3 py-1.5 rounded-lg border border-[#ffd1dc] bg-[#fff0f3] text-[#FF0055] text-[12px] font-medium hover:bg-[#ffe0e8] cursor-pointer"
+              >
+                + Simulate Test Chit on {selectedTableNum}
+              </button>
+            </div>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
             {RESTAURANT_TABLES.map((tableNum) => {
-              const info = getTableStatus(tableNum);
-              const session = tableSessions[tableNum];
+              const meta = getTableMeta(tableNum);
+              const isSelected = selectedTableNum === tableNum;
 
               return (
-                <div
+                <button
                   key={tableNum}
-                  className={`p-3 rounded-xl border text-center transition-all ${info.color}`}
+                  onClick={() => setSelectedTableNum(tableNum)}
+                  className={`p-3.5 rounded-xl border text-center transition-all cursor-pointer relative ${meta.badgeClass} ${
+                    isSelected ? 'ring-2 ring-[#FF0055] shadow-md' : 'hover:scale-[1.02]'
+                  }`}
                 >
-                  <div className="text-lg font-mono-num font-bold">
+                  <div className="text-xl font-mono-num font-bold">
                     {tableNum}
                   </div>
-                  <div className="text-[10px] font-medium tracking-tight mt-1 truncate">
-                    {info.label}
+                  <div className="text-[11px] font-medium mt-1 truncate">
+                    {meta.label}
                   </div>
-                  {session?.pin && (
-                    <div className="text-[10px] font-mono-num text-[#727272] mt-1">
-                      PIN: {session.pin}
+                  {meta.amount && (
+                    <div className="text-[11px] font-mono-num font-bold text-[#FF0055] mt-1">
+                      {meta.amount.toFixed(0)} EGP
                     </div>
                   )}
-                </div>
+                </button>
               );
             })}
           </div>
         </section>
 
-        {/* Critical Gate: Pending Cashier Settlements */}
-        <section className="space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#FF0055] animate-ping" />
-                <h2 className="text-lg font-medium text-[#262626]">
-                  The Payment Gate // Pending Cashier Chits
-                </h2>
+        {/* Selected Table Inspection & Terminal Settlement Panel */}
+        <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Table Details & Seated Guests */}
+          <div className="bg-white p-6 rounded-2xl border border-[#e5e7eb] shadow-xs space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-[#e5e7eb]">
+              <div>
+                <h3 className="text-lg font-bold text-[#262626]">
+                  Table {selectedTableNum} Details
+                </h3>
+                <span className="text-[12px] font-mono-num text-[#727272]">
+                  Status: {getTableMeta(selectedTableNum).label}
+                </span>
               </div>
-              <p className="text-[13px] text-[#727272]">
-                Orders below are strictly BLOCKED from KDS kitchen line until payment is confirmed by front register.
-              </p>
+
+              {activeSession && activeSession.members.length > 0 && (
+                <button
+                  onClick={() => handleClearTable(selectedTableNum)}
+                  className="px-2.5 py-1 text-[11px] rounded-md bg-gray-100 hover:bg-red-50 hover:text-red-600 text-[#727272] transition-colors cursor-pointer"
+                >
+                  Clear Table
+                </button>
+              )}
             </div>
 
-            <div className="flex items-center gap-2">
-              <span className="text-[12px] text-[#727272]">Payment Type:</span>
-              <div className="flex items-center gap-1 bg-white p-1 rounded-lg border border-[#e5e7eb]">
-                {(['card', 'cashier', 'apple_pay'] as PaymentMethod[]).map((m) => (
-                  <button
-                    key={m}
-                    onClick={() => setSelectedMethod(m)}
-                    className={`px-2.5 py-1 rounded text-[11px] font-medium transition-colors cursor-pointer ${
-                      selectedMethod === m
-                        ? 'bg-[#262626] text-white'
-                        : 'text-[#727272] hover:text-[#262626]'
-                    }`}
-                  >
-                    {m === 'card' ? 'Visa / Card' : m === 'cashier' ? 'Cash' : 'Apple Pay'}
-                  </button>
-                ))}
+            {/* PIN Code */}
+            <div className="p-3 bg-[#f9f9f9] rounded-xl border border-[#e5e7eb] flex items-center justify-between text-[13px]">
+              <span className="text-[#727272]">Table PIN:</span>
+              <span className="font-mono-num font-bold text-[#262626] tracking-widest text-[16px]">
+                {activeSession?.pin || '----'}
+              </span>
+            </div>
+
+            {/* Seated Diners List */}
+            <div>
+              <div className="text-[12px] font-semibold text-[#262626] mb-2">
+                Seated Diners ({activeSession?.members.length || 0}):
               </div>
+
+              {!activeSession || activeSession.members.length === 0 ? (
+                <div className="text-[13px] text-[#949494] py-3 text-center border border-dashed border-[#e5e7eb] rounded-xl">
+                  Table is currently cleared / empty
+                </div>
+              ) : (
+                <div className="space-y-1.5">
+                  {activeSession.members.map((m) => (
+                    <div
+                      key={m.id}
+                      className="p-2 rounded-lg bg-[#f9f9f9] border border-[#e5e7eb] flex items-center justify-between text-[13px]"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-[#15803d]" />
+                        <span className="font-medium text-[#262626]">{m.name}</span>
+                        {m.isHost && (
+                          <span className="text-[10px] uppercase font-mono-num px-1 rounded bg-[#ffe0e8] text-[#FF0055]">
+                            Host
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-[11px] font-mono-num text-[#727272]">
+                        {m.isReadyToPay ? 'Ready' : 'Ordering'}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
-          {pendingOrders.length === 0 ? (
-            <div className="p-8 text-center bg-white rounded-2xl border border-[#e5e7eb]">
-              <div className="w-12 h-12 rounded-full bg-emerald-50 text-[#15803d] border border-emerald-200 flex items-center justify-center mx-auto mb-3">
-                <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
+          {/* Active Order & Cashier Settlement Engine */}
+          <div className="lg:col-span-2 bg-white p-6 rounded-2xl border border-[#e5e7eb] shadow-xs space-y-5">
+            <div className="flex items-center justify-between pb-3 border-b border-[#e5e7eb]">
+              <div>
+                <h3 className="text-lg font-bold text-[#262626]">
+                  Settlement Terminal // Table {selectedTableNum}
+                </h3>
+                <span className="text-[12px] text-[#727272]">
+                  {tableOrder ? `Order #${tableOrder.id}` : 'No active order ticket on this table'}
+                </span>
               </div>
-              <h3 className="text-[15px] font-medium text-[#262626]">No Pending Chits at Register</h3>
-              <p className="text-[13px] text-[#727272] mt-1">
-                All submitted orders have been paid and verified. The kitchen line is fully synced.
-              </p>
+
+              {tableOrder && (
+                <div className="text-right">
+                  <span className="text-[11px] font-mono-num text-[#727272] block uppercase">Total Due</span>
+                  <span className="text-2xl font-mono-num font-bold text-[#FF0055]">
+                    {tableOrder.total.toFixed(2)} EGP
+                  </span>
+                </div>
+              )}
             </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              {pendingOrders.map((order) => (
-                <div
-                  key={order.id}
-                  className="bg-white rounded-2xl border-2 border-[#ffd1dc] shadow-sm p-6 space-y-4 relative"
-                >
-                  <div className="flex items-start justify-between pb-3 border-b border-[#e5e7eb]">
-                    <div>
-                      <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#ffe0e8] text-[#FF0055] text-[11px] font-mono-num font-semibold">
-                        <span>AWAITING PAYMENT</span>
-                      </div>
-                      <div className="text-xl font-mono-num font-bold text-[#262626] mt-1">
-                        Chit #{order.cashierChitCode || order.id}
-                      </div>
-                      <div className="text-[13px] text-[#727272] font-medium">
-                        {order.tableNumber ? `Delivering to Table ${order.tableNumber}` : 'Dine-In Counter'}
-                      </div>
-                    </div>
 
-                    <div className="text-right">
-                      <span className="text-[11px] font-mono-num uppercase text-[#949494] block">Payable Total</span>
-                      <span className="text-2xl font-mono-num font-bold text-[#FF0055]">
-                        {order.total.toFixed(2)} EGP
-                      </span>
-                      <span className="text-[10px] font-mono-num text-[#949494] block">
-                        incl. 14% VAT ({order.vatAmount.toFixed(2)} EGP)
-                      </span>
-                    </div>
+            {!tableOrder ? (
+              <div className="py-12 text-center text-[#727272]">
+                <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-2 text-[#949494]">
+                  <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="2" y="4" width="20" height="16" rx="2" />
+                    <line x1="2" y1="10" x2="22" y2="10" />
+                  </svg>
+                </div>
+                <div className="text-[14px] font-medium text-[#262626]">No unpaid ticket on Table {selectedTableNum}</div>
+                <p className="text-[12px] mt-1">
+                  Once guests submit an order choosing "Pay at Cashier Desk", the ticket will populate here.
+                </p>
+                <div className="mt-4">
+                  <button
+                    onClick={() => handleSimulatePendingOrder(selectedTableNum)}
+                    className="px-4 py-2 rounded-full bg-[#262626] text-white text-[12px] font-medium hover:bg-black cursor-pointer shadow-xs"
+                  >
+                    Simulate Sample Order on {selectedTableNum}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {/* Status Alert */}
+                <div className="p-3 rounded-xl bg-[#fff0f3] border border-[#ffd1dc] flex items-center justify-between">
+                  <div>
+                    <span className="text-[11px] font-mono-num font-semibold text-[#FF0055] uppercase block">
+                      {tableOrder.paymentStatus === 'pending_verification' ? 'WAITING FOR CASHIER SETTLEMENT' : 'PAID & COOKING'}
+                    </span>
+                    <span className="text-[13px] font-mono-num text-[#262626] font-medium">
+                      Chit #{tableOrder.cashierChitCode || tableOrder.id}
+                    </span>
                   </div>
+                  <span className="text-[12px] font-mono-num text-[#727272]">
+                    {tableOrder.items.reduce((s, i) => s + i.quantity, 0)} items
+                  </span>
+                </div>
 
-                  {/* Order Line Items */}
-                  <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
-                    {order.items.map((item, idx) => (
-                      <div key={item.cartItemId || idx} className="flex justify-between text-[13px]">
-                        <span className="text-[#262626]">
-                          <strong className="font-mono-num font-semibold text-[#111827]">{item.quantity}x</strong> {item.menuItem.name}
-                          {item.addedBy && (
-                            <span className="text-[11px] text-[#727272] ml-1.5 font-mono-num">
-                              ({item.addedBy.name})
+                {/* Line Items List */}
+                <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                  {tableOrder.items.map((item, idx) => (
+                    <div key={item.cartItemId || idx} className="flex justify-between text-[13px] py-1 border-b border-[#f0f0f0]">
+                      <span className="text-[#262626]">
+                        <strong className="font-mono-num font-bold text-[#111827] mr-1.5">{item.quantity}x</strong>
+                        {item.menuItem.name}
+                        {item.addedBy && (
+                          <span className="text-[11px] text-[#727272] ml-1.5">({item.addedBy.name})</span>
+                        )}
+                      </span>
+                      <span className="font-mono-num font-medium text-[#262626]">
+                        {(item.menuItem.basePrice * item.quantity).toFixed(2)} EGP
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Tax Breakdown */}
+                <div className="pt-2 border-t border-[#e5e7eb] space-y-1 text-[12px]">
+                  <div className="flex justify-between text-[#727272]">
+                    <span>Net Subtotal:</span>
+                    <span className="font-mono-num text-[#262626]">{tableOrder.subtotal.toFixed(2)} EGP</span>
+                  </div>
+                  <div className="flex justify-between text-[#727272]">
+                    <span>ETA 14% VAT:</span>
+                    <span className="font-mono-num text-[#262626]">{tableOrder.vatAmount.toFixed(2)} EGP</span>
+                  </div>
+                  <div className="flex justify-between text-[15px] font-bold text-[#262626] pt-1 border-t border-[#e5e7eb]">
+                    <span>Grand Total:</span>
+                    <span className="font-mono-num text-[#FF0055]">{tableOrder.total.toFixed(2)} EGP</span>
+                  </div>
+                </div>
+
+                {/* Cashier Payment Action (Only if pending) */}
+                {tableOrder.paymentStatus === 'pending_verification' ? (
+                  <div className="pt-4 border-t border-[#e5e7eb] space-y-3">
+                    <div className="text-[12px] font-medium text-[#262626]">Tender Method:</div>
+                    <div className="grid grid-cols-3 gap-2">
+                      <button
+                        onClick={() => setSelectedMethod('card')}
+                        className={`p-2 rounded-lg border text-center transition-all cursor-pointer text-[12px] font-medium ${
+                          selectedMethod === 'card' ? 'border-[#FF0055] bg-[#fff0f3] text-[#FF0055]' : 'bg-[#f9f9f9] text-[#727272]'
+                        }`}
+                      >
+                        Visa / Meeza POS
+                      </button>
+                      <button
+                        onClick={() => setSelectedMethod('cashier')}
+                        className={`p-2 rounded-lg border text-center transition-all cursor-pointer text-[12px] font-medium ${
+                          selectedMethod === 'cashier' ? 'border-[#FF0055] bg-[#fff0f3] text-[#FF0055]' : 'bg-[#f9f9f9] text-[#727272]'
+                        }`}
+                      >
+                        Physical Cash
+                      </button>
+                      <button
+                        onClick={() => setSelectedMethod('apple_pay')}
+                        className={`p-2 rounded-lg border text-center transition-all cursor-pointer text-[12px] font-medium ${
+                          selectedMethod === 'apple_pay' ? 'border-[#FF0055] bg-[#fff0f3] text-[#FF0055]' : 'bg-[#f9f9f9] text-[#727272]'
+                        }`}
+                      >
+                        Apple Pay
+                      </button>
+                    </div>
+
+                    {selectedMethod === 'cashier' && (
+                      <div className="p-3 bg-[#f9f9f9] rounded-xl border border-[#e5e7eb] space-y-2">
+                        <div className="flex items-center justify-between text-[12px]">
+                          <span className="font-medium text-[#262626]">Cash Tendered:</span>
+                          <span className="text-[11px] text-[#727272]">Enter bill received</span>
+                        </div>
+                        <input
+                          type="number"
+                          value={cashTendered}
+                          onChange={(e) => setCashTendered(e.target.value)}
+                          placeholder={`e.g. ${Math.ceil(tableOrder.total / 100) * 100}`}
+                          className="w-full px-3 py-2 rounded-lg border border-[#e5e7eb] bg-white font-mono-num text-[14px] text-[#262626] focus:outline-none focus:border-[#FF0055]"
+                        />
+                        {tenderedAmount > 0 && (
+                          <div className="flex items-center justify-between text-[12px] pt-1">
+                            <span className="text-[#727272]">Change to Return:</span>
+                            <span className="font-mono-num font-bold text-[#15803d]">
+                              {changeDue.toFixed(2)} EGP
                             </span>
-                          )}
-                        </span>
-                        <span className="font-mono-num text-[#727272]">
-                          {(item.menuItem.basePrice * item.quantity).toFixed(2)} EGP
-                        </span>
+                          </div>
+                        )}
                       </div>
-                    ))}
-                  </div>
+                    )}
 
-                  {/* Cashier Action Button */}
-                  <div className="pt-2">
                     <button
-                      onClick={() => handleVerify(order.id, order.cashierChitCode)}
-                      className="w-full py-3.5 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[14px] font-medium transition-all btn-crimson-glow active:scale-[0.99] cursor-pointer shadow-sm flex items-center justify-center gap-2"
+                      onClick={() => handleConfirmPayment(tableOrder.id, tableOrder.cashierChitCode)}
+                      className="w-full py-3.5 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[14px] font-bold transition-all btn-crimson-glow active:scale-[0.99] cursor-pointer shadow-md flex items-center justify-center gap-2"
                     >
                       <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                         <polyline points="20 6 9 17 4 12" />
                       </svg>
                       <span>
-                        Verify Table Settlement ({order.total.toFixed(2)} EGP) -&gt; Fire to KDS
+                        Confirm Payment ({tableOrder.total.toFixed(2)} EGP) & Fire to KDS
                       </span>
+                    </button>
+                  </div>
+                ) : (
+                  <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-center space-y-1">
+                    <div className="text-emerald-800 font-bold text-[14px]">
+                      VERIFIED PAID // FIRED TO KDS
+                    </div>
+                    <div className="text-[12px] font-mono-num text-emerald-700">
+                      Paid via {tableOrder.paymentMethod?.toUpperCase()} • Cooking on grill line
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* Global Pending Chits Queue */}
+        <section className="bg-white p-6 rounded-2xl border border-[#e5e7eb] shadow-xs space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-bold text-[#262626]">
+              All Unpaid Chits Waiting for Register Stamp ({pendingOrders.length})
+            </h2>
+            <span className="text-[12px] font-mono-num text-[#727272]">
+              Real-time register queue
+            </span>
+          </div>
+
+          {pendingOrders.length === 0 ? (
+            <div className="p-6 text-center text-[#727272] bg-[#f9f9f9] rounded-xl border border-[#e5e7eb]">
+              No unpaid chits pending at front desk. All orders are settled.
+            </div>
+          ) : (
+            <div className="divide-y divide-[#e5e7eb]">
+              {pendingOrders.map((order) => (
+                <div
+                  key={order.id}
+                  className="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                >
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono-num font-bold text-[#262626] text-[15px]">
+                        Chit #{order.cashierChitCode || order.id}
+                      </span>
+                      <span className="px-2 py-0.5 rounded-full bg-[#fff0f3] text-[#FF0055] text-[11px] font-mono-num font-semibold">
+                        Table {order.tableNumber || 'Counter'}
+                      </span>
+                    </div>
+                    <div className="text-[12px] text-[#727272] mt-0.5">
+                      {order.items.map((i) => `${i.quantity}x ${i.menuItem.name}`).join(', ')}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-4">
+                    <div className="text-right">
+                      <span className="font-mono-num font-bold text-[#FF0055] text-[16px]">
+                        {order.total.toFixed(2)} EGP
+                      </span>
+                      <span className="text-[10px] font-mono-num text-[#949494] block">incl. VAT</span>
+                    </div>
+
+                    <button
+                      onClick={() => handleConfirmPayment(order.id, order.cashierChitCode)}
+                      className="px-4 py-2 rounded-full bg-[#FF0055] text-white text-[12px] font-bold hover:opacity-95 transition-all cursor-pointer shadow-xs"
+                    >
+                      Confirm Payment
                     </button>
                   </div>
                 </div>
               ))}
             </div>
           )}
-        </section>
-
-        {/* Settled Orders History Audit */}
-        <section className="bg-white p-6 rounded-2xl border border-[#e5e7eb] shadow-xs space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-medium text-[#262626]">Settled Transactions Ledger</h2>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setFilterMode('all')}
-                className={`px-3 py-1 rounded-full text-[12px] font-mono-num transition-colors ${
-                  filterMode === 'all' ? 'bg-[#262626] text-white' : 'bg-[#f9f9f9] text-[#727272]'
-                }`}
-              >
-                All Orders ({orders.length})
-              </button>
-              <button
-                onClick={() => setFilterMode('verified')}
-                className={`px-3 py-1 rounded-full text-[12px] font-mono-num transition-colors ${
-                  filterMode === 'verified' ? 'bg-[#15803d] text-white' : 'bg-[#f9f9f9] text-[#727272]'
-                }`}
-              >
-                Paid ({verifiedOrders.length})
-              </button>
-            </div>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-[13px]">
-              <thead className="border-b border-[#e5e7eb] text-[11px] font-mono-num uppercase text-[#727272]">
-                <tr>
-                  <th className="py-2.5">Order ID</th>
-                  <th className="py-2.5">Table</th>
-                  <th className="py-2.5">Items</th>
-                  <th className="py-2.5">Method</th>
-                  <th className="py-2.5">Total (EGP)</th>
-                  <th className="py-2.5">Gate Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#f0f0f0] font-mono-num">
-                {orders.map((o) => (
-                  <tr key={o.id} className="hover:bg-[#fcfbf9]">
-                    <td className="py-2.5 font-medium text-[#262626]">{o.id}</td>
-                    <td className="py-2.5">{o.tableNumber || 'Counter'}</td>
-                    <td className="py-2.5">{o.items.reduce((s, i) => s + i.quantity, 0)} items</td>
-                    <td className="py-2.5 uppercase text-[#727272]">{o.paymentMethod?.replace('_', ' ') || 'UNSET'}</td>
-                    <td className="py-2.5 font-semibold text-[#262626]">{o.total.toFixed(2)}</td>
-                    <td className="py-2.5">
-                      {o.paymentStatus === 'verified_paid' ? (
-                        <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-emerald-50 text-[#15803d] border border-emerald-200">
-                          VERIFIED / ON KDS
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-[#ffe0e8] text-[#FF0055] border border-[#ffd1dc]">
-                          BLOCKED / PENDING
-                        </span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
         </section>
       </main>
     </div>

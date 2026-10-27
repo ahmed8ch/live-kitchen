@@ -8,7 +8,6 @@ export const TableLobbyBar: React.FC = () => {
   const tableSessions = useAppStore((state) => state.tableSessions);
   const openPinModal = useAppStore((state) => state.openPinModal);
   const setMemberReadyToPay = useAppStore((state) => state.setMemberReadyToPay);
-  const regenerateTablePin = useAppStore((state) => state.regenerateTablePin);
   const showToast = useAppStore((state) => state.showToast);
 
   const [copied, setCopied] = useState(false);
@@ -17,15 +16,14 @@ export const TableLobbyBar: React.FC = () => {
     return (
       <div className="w-full bg-[#f9f9f9] border-b border-[#e5e7eb] px-4 py-2.5">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-[13px]">
-          <div className="flex items-center gap-2 text-[#727272]">
-            <span className="w-2 h-2 rounded-full bg-[#949494]" />
-            <span>Browsing Solo / Counter Mode</span>
-          </div>
+          <span className="text-[#727272]">
+            Dine-In Self Ordering
+          </span>
           <button
             onClick={() => openPinModal('T-04')}
             className="px-3.5 py-1.5 rounded-full bg-white hover:bg-[#f0f0f0] border border-[#e5e7eb] text-[#262626] font-medium text-[12px] transition-colors cursor-pointer shadow-xs"
           >
-            Join Table Pool with PIN -&gt;
+            Join Table Pool -&gt;
           </button>
         </div>
       </div>
@@ -55,13 +53,17 @@ export const TableLobbyBar: React.FC = () => {
   return (
     <div className="w-full bg-[#fff0f3] border-b border-[#ffd1dc] px-4 py-2.5 transition-colors">
       <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
-        {/* Left: Table ID, PIN, and Copy Action */}
+        {/* Left: Table ID, PIN, and Copy Action (NO FLICKING DOTS) */}
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#FF0055] animate-pulse" />
-            <span className="font-mono-num font-medium text-[14px] text-[#262626]">
-              Table {activeTable} Pool
+            <span className="font-mono-num font-bold text-[14px] text-[#262626]">
+              Table {activeTable}
             </span>
+            {isHost && (
+              <span className="text-[10px] font-mono-num font-semibold uppercase px-2 py-0.5 rounded-full bg-[#FF0055] text-white">
+                Host
+              </span>
+            )}
           </div>
 
           <div className="h-4 w-[1px] bg-[#ffd1dc]" />
@@ -73,7 +75,7 @@ export const TableLobbyBar: React.FC = () => {
             </span>
             <button
               onClick={handleCopyPin}
-              title="Click to copy 4-digit PIN to share with table companions"
+              title="Click to copy 4-digit PIN for companions"
               className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-white border border-[#ffd1dc] text-[#FF0055] text-[13px] font-mono-num font-semibold shadow-xs hover:border-[#FF0055] transition-colors cursor-pointer"
             >
               <span>{pin}</span>
@@ -86,22 +88,12 @@ export const TableLobbyBar: React.FC = () => {
               <span className="text-[11px] font-mono-num text-[#15803d]">Copied!</span>
             )}
           </div>
-
-          {isHost && (
-            <button
-              onClick={() => regenerateTablePin(activeTable)}
-              title="Regenerate table PIN if compromised"
-              className="text-[11px] font-mono-num text-[#727272] hover:text-[#FF0055] underline transition-colors cursor-pointer"
-            >
-              Reset PIN
-            </button>
-          )}
         </div>
 
         {/* Center: Party Members seated */}
         <div className="flex items-center gap-2 overflow-x-auto max-w-full pb-1 md:pb-0 scrollbar-none">
           <span className="text-[11px] text-[#727272] shrink-0 font-mono-num">
-            Party ({members.length}):
+            Diners ({members.length}):
           </span>
 
           {members.map((member) => (
@@ -117,19 +109,14 @@ export const TableLobbyBar: React.FC = () => {
                 className={`w-2 h-2 rounded-full ${
                   member.isReadyToPay ? 'bg-[#15803d]' : 'bg-[#e5e7eb]'
                 }`}
-                title={member.isReadyToPay ? 'Ready to settle bill' : 'Still choosing dishes'}
+                title={member.isReadyToPay ? 'Ready to settle bill' : 'Choosing dishes'}
               />
               <span>{member.name}</span>
-              {member.isHost && (
-                <span className="text-[9px] font-mono-num uppercase px-1 py-0.2 rounded bg-[#ffe0e8] text-[#FF0055]">
-                  Host
-                </span>
-              )}
             </div>
           ))}
         </div>
 
-        {/* Right: Guest Ready Toggle & Table Switch */}
+        {/* Right: Guest Ready Toggle & Join Table Action */}
         <div className="flex items-center gap-2">
           {!isHost && currentMember && (
             <button
@@ -148,7 +135,7 @@ export const TableLobbyBar: React.FC = () => {
             onClick={() => openPinModal(activeTable)}
             className="px-2.5 py-1 text-[11px] font-mono-num text-[#727272] hover:text-[#262626] bg-white rounded-md border border-[#e5e7eb] transition-colors cursor-pointer"
           >
-            Switch Table
+            Join Table
           </button>
         </div>
       </div>
