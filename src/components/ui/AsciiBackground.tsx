@@ -63,8 +63,26 @@ export const AsciiBackground: React.FC<AsciiBackgroundProps> = ({
       mouseY = -1000;
     };
 
+    const updateTouch = (e: TouchEvent) => {
+      if (e.touches && e.touches.length > 0) {
+        const touch = e.touches[0];
+        const rect = canvas.getBoundingClientRect();
+        mouseX = touch.clientX - rect.left;
+        mouseY = touch.clientY - rect.top;
+      }
+    };
+
+    const handleTouchEnd = () => {
+      mouseX = -1000;
+      mouseY = -1000;
+    };
+
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseleave', handleMouseLeave);
+    window.addEventListener('touchstart', updateTouch, { passive: true });
+    window.addEventListener('touchmove', updateTouch, { passive: true });
+    window.addEventListener('touchend', handleTouchEnd, { passive: true });
+    window.addEventListener('touchcancel', handleTouchEnd, { passive: true });
 
     const render = () => {
       if (!isVisible) {
@@ -150,6 +168,10 @@ export const AsciiBackground: React.FC<AsciiBackgroundProps> = ({
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseleave', handleMouseLeave);
+      window.removeEventListener('touchstart', updateTouch);
+      window.removeEventListener('touchmove', updateTouch);
+      window.removeEventListener('touchend', handleTouchEnd);
+      window.removeEventListener('touchcancel', handleTouchEnd);
     };
   }, [theme]);
 

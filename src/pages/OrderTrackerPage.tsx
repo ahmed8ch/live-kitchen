@@ -130,7 +130,7 @@ export const OrderTrackerPage: React.FC = () => {
             </div>
 
             <div className="text-right">
-              <span className="text-[11px] font-mono-num uppercase tracking-wider text-[#949494] block">
+              <span className="text-[11px] font-mono-num text-[#949494] block">
                 {ticket.tableNumber ? `Table ${ticket.tableNumber}` : 'Online Guest'}
               </span>
               <span className="text-[15px] font-mono-num font-medium text-[#262626]" data-ui-number>
@@ -141,7 +141,7 @@ export const OrderTrackerPage: React.FC = () => {
 
           {/* Tear Line / Status Headline */}
           <div className="py-3 thermal-tear-line flex items-center justify-between">
-            <span className="text-[12px] font-medium text-[#727272] uppercase tracking-wider">
+            <span className="text-[12px] font-medium text-[#727272]">
               Current Kitchen Status:
             </span>
             <span className="px-3 py-1 rounded-full bg-[#fff0f3] border border-[#ffd1dc] text-[#FF0055] text-[12px] font-mono-num font-medium">
@@ -202,7 +202,7 @@ export const OrderTrackerPage: React.FC = () => {
                           {stage.label}
                         </span>
                         {isCurrent && (
-                          <span className="text-[11px] font-mono-num text-[#FF0055] uppercase tracking-wider">
+                          <span className="text-[11px] font-medium text-[#FF0055]">
                             Active Station
                           </span>
                         )}
@@ -219,7 +219,7 @@ export const OrderTrackerPage: React.FC = () => {
 
           {/* Ticket Items Overview */}
           <div className="py-4 border-b border-[#e5e7eb] space-y-2.5">
-            <div className="text-[11px] font-mono-num uppercase tracking-wider text-[#949494]">
+            <div className="text-[12px] font-medium text-[#727272]">
               Dishes in Preparation ({ticket.items.reduce((s, i) => s + i.quantity, 0)} Items)
             </div>
 

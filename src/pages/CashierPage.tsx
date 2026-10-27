@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAppStore } from '../store/useAppStore';
 import { PaymentMethod } from '../types/domain';
 import { FlameLinkLogo } from '../components/ui/FlameLinkLogo';
+import { WorkstationBarrier } from '../components/layout/WorkstationBarrier';
 
 const RESTAURANT_TABLES = ['T-01', 'T-02', 'T-03', 'T-04', 'T-05', 'T-06', 'T-08', 'T-12'];
 
@@ -183,7 +184,13 @@ export const CashierPage: React.FC = () => {
   const receiptOrder = orders.find((o) => o.id === receiptOrderId) || tableOrder;
 
   return (
-    <div className="flex-1 w-full bg-[#f9f9f9] min-h-screen pb-24" data-ui-container="cashier-station">
+    <WorkstationBarrier
+      portalName="Cashier POS Terminal"
+      portalCode="POS-FRONT-01"
+      stationRole="Front Desk Cash Register"
+      description="The FlameLink Cashier POS is a front-counter financial register terminal engineered strictly for desktop workstations and commercial touch cash registers (minimum 1024px horizontal resolution). Mobile phone access is locked to prevent unauthorized drawer and settlement operations."
+    >
+      <div className="flex-1 w-full bg-[#f9f9f9] min-h-screen pb-24" data-ui-container="cashier-station">
       {/* Station Top Bar */}
       <header className="bg-white border-b border-[#e5e7eb] px-4 sm:px-8 py-4 sticky top-0 z-30 shadow-xs">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -1106,5 +1113,6 @@ export const CashierPage: React.FC = () => {
         </div>
       )}
     </div>
+    </WorkstationBarrier>
   );
 };

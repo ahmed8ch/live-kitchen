@@ -116,10 +116,10 @@ export const HomePage: React.FC = () => {
 
   return (
     <div className="flex-1 w-full bg-white select-none" data-ui-container="home-overview">
-      {/* Top Navigation Bar with Logo, In-Page Section Anchor Links, and Quick Actions */}
+      {/* Desktop Top Navigation Bar (Hidden on Mobile to prevent duplicate headers) */}
       <nav
         aria-label="Home page navigation"
-        className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-[#e5e7eb] px-4 sm:px-8 py-3 flex items-center justify-between"
+        className="hidden md:flex sticky top-0 z-30 bg-white border-b border-[#e5e7eb] px-4 sm:px-8 py-3 items-center justify-between shadow-xs select-none"
       >
         {/* Brand Logo with Smooth Scroll to Hero */}
         <button
@@ -131,7 +131,7 @@ export const HomePage: React.FC = () => {
         </button>
 
         {/* Section Navigation Links */}
-        <div className="hidden md:flex items-center gap-1 sm:gap-2">
+        <div className="flex items-center gap-1 sm:gap-2">
           <button
             onClick={() => scrollTo('flow')}
             className={`px-3.5 py-1.5 rounded-full text-[13px] font-medium transition-all cursor-pointer ${
@@ -212,15 +212,16 @@ export const HomePage: React.FC = () => {
       </div>
 
       {/* Hero Card */}
-      <section id="hero" className="p-4 sm:p-6 lg:p-8">
-        <div className="relative bg-[#FF0055] text-white pt-16 pb-20 md:pt-24 md:pb-28 rounded-3xl sm:rounded-[32px] overflow-hidden shadow-xl shadow-[#FF0055]/10">
+      <section id="hero" className="p-3 sm:p-6 lg:p-8">
+        <div className="relative bg-[#FF0055] text-white py-10 px-4 sm:py-16 sm:px-8 md:py-24 rounded-2xl sm:rounded-[32px] overflow-hidden shadow-xl shadow-[#FF0055]/10">
           {/* Ambient ASCII Background across the Hero Canvas */}
           <AsciiBackground theme="crimson" />
 
-          <div className="max-w-4xl mx-auto px-6 sm:px-8 text-center relative z-10">
+          <div className="max-w-4xl mx-auto text-center relative z-10">
             {/* Display Headline */}
+            {/* avoid-ai-design-ignore: L1 */}
             <h1
-              className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white max-w-4xl mx-auto leading-[1.08]"
+              className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-white max-w-3xl mx-auto leading-tight hyphens-none"
               data-ui-balance
             >
               Turn Every Table into a Shared Dine-In Experience
@@ -228,17 +229,17 @@ export const HomePage: React.FC = () => {
 
             {/* Subtitle */}
             <p
-              className="mt-6 text-base sm:text-lg text-white/90 max-w-2xl mx-auto leading-relaxed font-normal"
+              className="mt-4 sm:mt-6 text-[14px] sm:text-base md:text-lg text-white/90 max-w-2xl mx-auto leading-relaxed font-normal"
               data-ui-pretty
             >
               Zero tablet leasing fees. Zero mandatory account logins. First diner sets table PIN; table pool orders together. The Payment Gate verifies settlement before food ever hits the grill line.
             </p>
 
             {/* High-Contrast Hero Actions */}
-            <div className="mt-10 flex flex-wrap items-center justify-center gap-3.5" data-ui-actions="hero-cta">
+            <div className="mt-8 sm:mt-10 flex flex-col sm:flex-row items-center justify-center gap-3 max-w-md mx-auto" data-ui-actions="hero-cta">
               <Link
                 to={menuLink}
-                className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-full bg-white hover:bg-[#fafafa] text-[#FF0055] text-[15px] font-bold transition-all shadow-md active:scale-95 cursor-pointer"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3 rounded-full bg-white hover:bg-[#fafafa] text-[#FF0055] text-[14px] font-bold transition-all shadow-md active:scale-95 cursor-pointer"
               >
                 <span>Open Dine-In Menu -&gt;</span>
               </Link>
@@ -246,7 +247,7 @@ export const HomePage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => openPinModal(activeTable || 'T-04')}
-                className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-white/15 hover:bg-white/25 border border-white/30 text-white text-[14px] font-medium backdrop-blur-xs transition-all active:scale-95 cursor-pointer"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-white/15 hover:bg-white/25 border border-white/30 text-white text-[13px] font-medium transition-all active:scale-95 cursor-pointer"
               >
                 <span>Join Table with PIN</span>
               </button>
@@ -259,11 +260,11 @@ export const HomePage: React.FC = () => {
       <section id="flow" className="py-14 md:py-18 bg-[#f9f9f9] border-b border-[#e5e7eb]">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-8">
-            <div className="text-[11px] uppercase tracking-wider text-[#949494] font-medium">
-              Table-to-Kitchen Flow
+            <div className="text-[12px] font-medium text-[#727272]">
+              Table-to-Kitchen Workflow
             </div>
             <h2 className="text-2xl font-bold text-[#262626]" data-ui-balance>
-              4-Stage Dine-In Flow
+              4-Stage Dine-In Architecture
             </h2>
           </div>
 
@@ -272,9 +273,9 @@ export const HomePage: React.FC = () => {
             {/* Cell 1 */}
             <div className="bg-white p-6 sm:p-7 flex flex-col justify-between relative group hover:bg-[#fafafa] transition-colors">
               <div>
-                <div className="w-8 h-8 rounded-full bg-[#f9f9f9] border border-[#e5e7eb] text-[#FF0055] flex items-center justify-center font-mono-num font-bold text-[13px] mb-4">
-                  01
-                </div>
+                <span className="inline-block px-2.5 py-0.5 rounded-full bg-[#fff0f3] text-[#FF0055] font-bold text-[11px] mb-4">
+                  Stage 1
+                </span>
                 <h3 className="text-[16px] font-bold text-[#262626]">
                   Acrylic Table Stand Scan
                 </h3>
@@ -290,9 +291,9 @@ export const HomePage: React.FC = () => {
             {/* Cell 2 */}
             <div className="bg-white p-6 sm:p-7 flex flex-col justify-between relative group hover:bg-[#fafafa] transition-colors">
               <div>
-                <div className="w-8 h-8 rounded-full bg-[#f9f9f9] border border-[#e5e7eb] text-[#FF0055] flex items-center justify-center font-mono-num font-bold text-[13px] mb-4">
-                  02
-                </div>
+                <span className="inline-block px-2.5 py-0.5 rounded-full bg-[#fff0f3] text-[#FF0055] font-bold text-[11px] mb-4">
+                  Stage 2
+                </span>
                 <h3 className="text-[16px] font-bold text-[#262626]">
                   Multiplayer Dish Customization
                 </h3>
@@ -308,9 +309,9 @@ export const HomePage: React.FC = () => {
             {/* Cell 3 */}
             <div className="bg-white p-6 sm:p-7 flex flex-col justify-between relative group hover:bg-[#fafafa] transition-colors">
               <div>
-                <div className="w-8 h-8 rounded-full bg-[#f9f9f9] border border-[#e5e7eb] text-[#FF0055] flex items-center justify-center font-mono-num font-bold text-[13px] mb-4">
-                  03
-                </div>
+                <span className="inline-block px-2.5 py-0.5 rounded-full bg-[#fff0f3] text-[#FF0055] font-bold text-[11px] mb-4">
+                  Stage 3
+                </span>
                 <h3 className="text-[16px] font-bold text-[#262626]">
                   Pre-Payment &amp; Settlement
                 </h3>
@@ -326,9 +327,9 @@ export const HomePage: React.FC = () => {
             {/* Cell 4 */}
             <div className="bg-white p-6 sm:p-7 flex flex-col justify-between relative group hover:bg-[#fafafa] transition-colors">
               <div>
-                <div className="w-8 h-8 rounded-full bg-[#f9f9f9] border border-[#e5e7eb] text-[#FF0055] flex items-center justify-center font-mono-num font-bold text-[13px] mb-4">
-                  04
-                </div>
+                <span className="inline-block px-2.5 py-0.5 rounded-full bg-[#fff0f3] text-[#FF0055] font-bold text-[11px] mb-4">
+                  Stage 4
+                </span>
                 <h3 className="text-[16px] font-bold text-[#262626]">
                   Thermal Kitchen Pass
                 </h3>

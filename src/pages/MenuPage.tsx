@@ -89,7 +89,7 @@ export const MenuPage: React.FC = () => {
                   {userAccount ? userAccount.fullName.charAt(0).toUpperCase() : 'G'}
                 </div>
                 <div>
-                  <div className="text-[10px] font-mono-num uppercase tracking-wider text-[#727272]">
+                  <div className="text-[11px] font-medium text-[#727272]">
                     {userAccount ? 'Diner Profile' : 'Guest / Sign In'}
                   </div>
                   <div className="text-[12px] font-bold text-[#262626] font-mono-num flex items-center gap-1">
@@ -105,7 +105,7 @@ export const MenuPage: React.FC = () => {
 
               {activeTable && (
                 <div className="sm:text-right bg-[#f9f9f9] px-4 py-2 rounded-xl border border-[#e5e7eb] shrink-0">
-                  <div className="text-[10px] font-mono-num uppercase tracking-wider text-[#727272]">
+                  <div className="text-[11px] font-medium text-[#727272]">
                     Table Seating
                   </div>
                   <div className="text-base font-mono-num font-bold text-[#FF0055]">
@@ -166,7 +166,7 @@ export const MenuPage: React.FC = () => {
 
           {/* Dietary Tag Filter Pills */}
           <div className="flex items-center gap-1.5 overflow-x-auto pt-3 pb-0.5 scrollbar-none" data-ui-actions="dietary-filters">
-            <span className="text-[11px] font-mono-num uppercase tracking-wider text-[#949494] mr-1 shrink-0">
+            <span className="text-[11px] font-medium text-[#949494] mr-1 shrink-0">
               Filter:
             </span>
             {DIETARY_TAGS.map((tag) => (

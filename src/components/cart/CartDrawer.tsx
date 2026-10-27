@@ -119,7 +119,7 @@ export const CartDrawer: React.FC = () => {
       role="dialog"
       aria-modal="true"
       aria-label="Order Cart Drawer"
-      className="fixed inset-0 z-50 flex justify-end bg-black/45 backdrop-blur-xs animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex justify-end bg-black/50 animate-in fade-in duration-200"
       onClick={closeCartDrawer}
     >
       <div
@@ -206,7 +206,7 @@ export const CartDrawer: React.FC = () => {
                 <div className="flex items-center justify-between pb-1 border-b border-[#e5e7eb]">
                   <div className="flex items-center gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#FF0055]" />
-                    <span className="text-[12px] font-mono-num font-semibold text-[#262626] uppercase tracking-wider">
+                    <span className="text-[12px] font-semibold text-[#262626]">
                       {group.isYou ? 'Your Items' : `${group.name}'s Items`}
                     </span>
                   </div>
@@ -381,7 +381,7 @@ export const CartDrawer: React.FC = () => {
               <div className="p-4 rounded-xl bg-white border border-[#e5e7eb] space-y-3 animate-in fade-in duration-150">
                 {/* Split Strategy Choice */}
                 <div>
-                  <div className="text-[11px] font-mono-num font-bold uppercase tracking-wider text-[#727272] mb-1.5">
+                  <div className="text-[12px] font-semibold text-[#727272] mb-1.5">
                     Table Payment Strategy
                   </div>
                   <div className="grid grid-cols-3 gap-1.5 text-center">
@@ -421,7 +421,7 @@ export const CartDrawer: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="text-[11px] font-mono-num font-bold uppercase tracking-wider text-[#727272] pt-1">
+                <div className="text-[12px] font-semibold text-[#727272] pt-1">
                   Payment Method:
                 </div>
 

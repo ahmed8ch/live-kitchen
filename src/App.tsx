@@ -72,7 +72,7 @@ export const App: React.FC = () => {
               {/* Sitemap Grid */}
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-8 text-[13px]">
                 <div className="space-y-3">
-                  <span className="font-bold text-[#262626] uppercase text-[11px] block tracking-wider font-medium">
+                  <span className="font-bold text-[#262626] text-[13px] block">
                     Dine-In Operations
                   </span>
                   <ul className="space-y-2 text-[#727272]">
@@ -83,7 +83,7 @@ export const App: React.FC = () => {
                 </div>
 
                 <div className="space-y-3">
-                  <span className="font-bold text-[#262626] uppercase text-[11px] block tracking-wider font-medium">
+                  <span className="font-bold text-[#262626] text-[13px] block">
                     Kitchen Systems
                   </span>
                   <ul className="space-y-2 text-[#727272]">
@@ -94,7 +94,7 @@ export const App: React.FC = () => {
                 </div>
 
                 <div className="space-y-3">
-                  <span className="font-bold text-[#262626] uppercase text-[11px] block tracking-wider font-medium">
+                  <span className="font-bold text-[#262626] text-[13px] block">
                     Financials
                   </span>
                   <ul className="space-y-2 text-[#727272]">

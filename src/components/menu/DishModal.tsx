@@ -61,7 +61,7 @@ export const DishModal: React.FC<DishModalProps> = ({ dish, onClose, onAdd }) =>
       role="dialog"
       aria-modal="true"
       aria-labelledby="dish-modal-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/50 backdrop-blur-xs animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/50 animate-in fade-in duration-200"
       onClick={onClose}
     >
       <div

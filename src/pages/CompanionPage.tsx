@@ -173,7 +173,7 @@ export const CompanionPage: React.FC = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-[#FF0055]" />
-                <span className="text-[11px] font-mono-num font-bold uppercase tracking-wider text-[#FF0055]">
+                <span className="text-[12px] font-bold text-[#FF0055]">
                   Table Settlement Active
                 </span>
               </div>
@@ -186,7 +186,7 @@ export const CompanionPage: React.FC = () => {
             <div className="bg-white rounded-2xl p-5 border border-[#e5e7eb] shadow-xs space-y-4">
               <div className="flex items-start justify-between border-b border-[#f0f0f0] pb-3">
                 <div>
-                  <div className="text-[11px] font-mono-num uppercase tracking-wider text-[#727272]">
+                  <div className="text-[12px] font-medium text-[#727272]">
                     Your Personal Dine-In Share
                   </div>
                   <h3 className="text-lg font-bold text-[#262626] mt-0.5">
@@ -195,7 +195,7 @@ export const CompanionPage: React.FC = () => {
                 </div>
 
                 <div className="text-right">
-                  <div className="text-[10px] font-mono-num uppercase tracking-wider text-[#727272]">
+                  <div className="text-[11px] font-medium text-[#727272]">
                     Share Total
                   </div>
                   <div className="text-lg font-mono-num font-bold text-[#FF0055]">
@@ -365,7 +365,7 @@ export const CompanionPage: React.FC = () => {
             </div>
 
             <div className="sm:text-right bg-[#f9f9f9] px-4 py-2 rounded-xl border border-[#e5e7eb] shrink-0">
-              <div className="text-[10px] font-mono-num uppercase tracking-wider text-[#727272]">
+              <div className="text-[11px] font-medium text-[#727272]">
                 Table Seating
               </div>
               <div className="text-base font-mono-num font-bold text-[#FF0055]">

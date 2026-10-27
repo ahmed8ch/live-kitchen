@@ -354,16 +354,16 @@ export const SettlementPage: React.FC = () => {
           className="thermal-ticket-light p-6 sm:p-8 bg-white shadow-xs"
         >
           {/* Header Tear Band */}
-          <div className="flex items-start justify-between pb-6 border-b border-[#e5e7eb]">
-            <div>
+          <div className="flex items-start justify-between pb-6 border-b border-[#e5e7eb] gap-4">
+            <div className="min-w-0 flex-1">
               <FlameLinkLogo size="md" />
-              <div className="text-[12px] text-[#727272] mt-1.5">
+              <div className="text-[12px] text-[#727272] mt-1.5 leading-snug">
                 Official Egyptian Tax Authority (ETA) e-Receipt
               </div>
             </div>
 
-            <div className="text-right">
-              <span className="text-[11px] font-mono-num uppercase tracking-wider text-[#949494] block">
+            <div className="shrink-0 text-right whitespace-nowrap">
+              <span className="text-[11px] font-mono-num text-[#949494] block">
                 {ticket.tableNumber ? `Table ${ticket.tableNumber}` : 'Dine-In'}
               </span>
               <span className="text-[15px] font-mono-num font-bold text-[#262626]" data-ui-number>
@@ -373,14 +373,14 @@ export const SettlementPage: React.FC = () => {
           </div>
 
           {/* Notch Line Indicator */}
-          <div className="py-2.5 my-1 thermal-tear-line flex items-center justify-between text-[11px] text-[#949494] font-mono-num uppercase">
+          <div className="py-2.5 my-1 thermal-tear-line flex items-center justify-between text-[11px] text-[#949494] font-mono-num">
             <span>Fiscal ID: 849-204-118</span>
             <span>{new Date(ticket.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
           </div>
 
           {/* Itemized Line Items */}
           <div className="py-4 space-y-3.5 border-b border-[#e5e7eb]">
-            <div className="text-[11px] font-mono-num uppercase tracking-wider text-[#949494]">
+            <div className="text-[11px] font-mono-num text-[#949494]">
               Itemized Order Summary
             </div>
 
@@ -391,24 +391,26 @@ export const SettlementPage: React.FC = () => {
 
               return (
                 <div key={item.cartItemId} className="space-y-1">
-                  <div className="flex items-baseline justify-between text-[14px]">
-                    <div className="flex items-baseline gap-2">
-                      <span className="font-mono-num font-bold text-[#262626]" data-ui-number>
-                        {item.quantity}x
-                      </span>
-                      <span className="text-[#262626] font-medium">{item.menuItem.name}</span>
-                      {item.quantity > 1 && (
-                        <span className="text-[12px] font-mono-num text-[#949494]" data-ui-number>
-                          @{unitPrice.toFixed(2)}
+                  <div className="flex items-start justify-between text-[14px] gap-2">
+                    <div className="flex-1 min-w-0 pr-1">
+                      <div className="flex items-baseline gap-1.5 flex-wrap">
+                        <span className="font-mono-num font-bold text-[#262626] shrink-0" data-ui-number>
+                          {item.quantity}x
                         </span>
-                      )}
+                        <span className="text-[#262626] font-medium leading-snug">{item.menuItem.name}</span>
+                        {item.quantity > 1 && (
+                          <span className="text-[12px] font-mono-num text-[#949494] shrink-0" data-ui-number>
+                            @{unitPrice.toFixed(2)}
+                          </span>
+                        )}
+                      </div>
                       {item.addedBy && (
-                        <span className="text-[11px] font-mono-num text-[#727272]">
-                          ({item.addedBy.name})
-                        </span>
+                        <div className="text-[11px] font-mono-num text-[#727272] mt-0.5">
+                          Ordered by {item.addedBy.name}
+                        </div>
                       )}
                     </div>
-                    <span className="font-mono-num font-bold text-[#262626]" data-ui-number>
+                    <span className="shrink-0 font-mono-num font-bold text-[#262626] whitespace-nowrap pt-0.5" data-ui-number>
                       {lineTotal.toFixed(2)} EGP
                     </span>
                   </div>
@@ -477,21 +479,21 @@ export const SettlementPage: React.FC = () => {
           {/* ADVANCED BILL SPLITTING ENGINE (NO-PRINT) */}
           {!isVerifiedPaid && (
             <div className="no-print py-4 border-b border-[#e5e7eb] space-y-3">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                 <span className="text-[12px] font-medium text-[#262626]">Split Bill Mode</span>
-                <div className="flex items-center gap-1 bg-[#f9f9f9] p-0.5 rounded-lg border border-[#e5e7eb]">
+                <div className="grid grid-cols-3 sm:flex items-center gap-1 bg-[#f9f9f9] p-1 rounded-xl border border-[#e5e7eb] w-full sm:w-auto">
                   <button
                     onClick={() => setSplitMode('by_diner')}
-                    className={`px-2.5 py-1 rounded text-[11px] font-medium transition-colors cursor-pointer ${
-                      splitMode === 'by_diner' ? 'bg-[#262626] text-white' : 'text-[#727272]'
+                    className={`px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-colors cursor-pointer text-center whitespace-nowrap ${
+                      splitMode === 'by_diner' ? 'bg-[#262626] text-white shadow-xs' : 'text-[#727272] hover:text-[#262626]'
                     }`}
                   >
                     Split by Diner
                   </button>
                   <button
                     onClick={() => setSplitMode('equal')}
-                    className={`px-2.5 py-1 rounded text-[11px] font-medium transition-colors cursor-pointer ${
-                      splitMode === 'equal' ? 'bg-[#262626] text-white' : 'text-[#727272]'
+                    className={`px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-colors cursor-pointer text-center whitespace-nowrap ${
+                      splitMode === 'equal' ? 'bg-[#262626] text-white shadow-xs' : 'text-[#727272] hover:text-[#262626]'
                     }`}
                   >
                     Equal Split
@@ -501,8 +503,8 @@ export const SettlementPage: React.FC = () => {
                       setSplitMode('itemized');
                       if (selectedItemIds.length === 0) selectAllItems();
                     }}
-                    className={`px-2.5 py-1 rounded text-[11px] font-medium transition-colors cursor-pointer ${
-                      splitMode === 'itemized' ? 'bg-[#262626] text-white' : 'text-[#727272]'
+                    className={`px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-colors cursor-pointer text-center whitespace-nowrap ${
+                      splitMode === 'itemized' ? 'bg-[#262626] text-white shadow-xs' : 'text-[#727272] hover:text-[#262626]'
                     }`}
                   >
                     Custom Dishes
@@ -806,14 +808,14 @@ export const SettlementPage: React.FC = () => {
                   onClick={handleSettleAction}
                   disabled={isProcessing}
                   data-ui-radius="999"
-                  className="w-full py-3.5 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[14px] font-bold transition-all btn-crimson-glow active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2"
+                  className="w-full py-3.5 px-4 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[13px] sm:text-[14px] font-bold transition-all btn-crimson-glow active:scale-[0.99] cursor-pointer flex items-center justify-center text-center shadow-xs"
                 >
                   {isProcessing ? (
                     <span>Authorizing Transaction...</span>
                   ) : (
                     <span>
                       {splitMode === 'by_diner'
-                        ? `Settle Full Remaining Balance (${remainingTableBalance.toFixed(2)} EGP) ->`
+                        ? `Settle Remaining Balance (${remainingTableBalance.toFixed(2)} EGP) ->`
                         : splitMode === 'equal'
                         ? `Settle Equal Share (${perPersonAmount.toFixed(2)} EGP / person) ->`
                         : `Settle Selected Dishes (${itemizedTotal.toFixed(2)} EGP) ->`}
@@ -954,10 +956,10 @@ export const SettlementPage: React.FC = () => {
         )}
 
         {/* Print / Download / Share Actions Strip (NO-PRINT) */}
-        <div className="no-print mt-8 flex flex-wrap items-center justify-center gap-3">
+        <div className="no-print mt-8 grid grid-cols-1 sm:grid-cols-3 gap-2.5 max-w-lg mx-auto">
           <button
             onClick={() => window.print()}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#e5e7eb] bg-white text-[13px] text-[#262626] hover:bg-[#f9f9f9] transition-colors shadow-xs cursor-pointer"
+            className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-full border border-[#e5e7eb] bg-white text-[13px] text-[#262626] hover:bg-[#f9f9f9] transition-colors shadow-xs cursor-pointer"
           >
             <svg className="w-4 h-4 text-[#727272]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <polyline points="6 9 6 2 18 2 18 9" />
@@ -969,7 +971,7 @@ export const SettlementPage: React.FC = () => {
 
           <button
             onClick={() => window.print()}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#e5e7eb] bg-white text-[13px] text-[#262626] hover:bg-[#f9f9f9] transition-colors shadow-xs cursor-pointer"
+            className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-full border border-[#e5e7eb] bg-white text-[13px] text-[#262626] hover:bg-[#f9f9f9] transition-colors shadow-xs cursor-pointer"
           >
             <svg className="w-4 h-4 text-[#727272]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -981,14 +983,14 @@ export const SettlementPage: React.FC = () => {
 
           <button
             onClick={handleSaveAsImage}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#e5e7eb] bg-white text-[13px] text-[#262626] hover:bg-[#f9f9f9] transition-colors shadow-xs cursor-pointer"
+            className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-full border border-[#e5e7eb] bg-white text-[13px] text-[#262626] hover:bg-[#f9f9f9] transition-colors shadow-xs cursor-pointer"
           >
             <svg className="w-4 h-4 text-[#727272]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
               <circle cx="8.5" cy="8.5" r="1.5" />
               <polyline points="21 15 16 10 5 21" />
             </svg>
-            <span>Save / Share as Image</span>
+            <span>Save as Image</span>
           </button>
         </div>
       </div>

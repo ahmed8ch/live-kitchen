@@ -23,11 +23,11 @@ export const Sidebar: React.FC = () => {
   const activeTable = useAppStore((state) => state.activeTable);
   const orders = useAppStore((state) => state.orders);
 
-  // macOS Dock Auto-Hide & Pin State (Hidden by default per user directive)
+  // macOS Dock Auto-Hide & Pin State (Strictly unpinned by default per user directive)
   const [isRevealed, setIsRevealed] = useState(false);
   const [isPinned, setIsPinned] = useState(() => {
     if (typeof window !== 'undefined') {
-      return localStorage.getItem('flamelink_dock_pinned') === 'true';
+      return sessionStorage.getItem('flamelink_dock_pinned') === 'true';
     }
     return false;
   });
@@ -40,13 +40,15 @@ export const Sidebar: React.FC = () => {
   const trackerTarget = orders.length > 0 ? `/order/${orders[0].id}` : '/tracker';
   const settlementTarget = orders.length > 0 ? `/settlement/${orders[0].id}` : '/settlement';
   const tableParam = activeTable ? `?table=${activeTable}` : '';
+  const menuTarget = `/menu${tableParam}`;
 
   // Toggle Dock Pin
   const handlePinToggle = () => {
     const nextState = !isPinned;
     setIsPinned(nextState);
     if (typeof window !== 'undefined') {
-      localStorage.setItem('flamelink_dock_pinned', String(nextState));
+      sessionStorage.setItem('flamelink_dock_pinned', String(nextState));
+      localStorage.removeItem('flamelink_dock_pinned');
     }
   };
 
@@ -104,14 +106,14 @@ export const Sidebar: React.FC = () => {
     const handleMouseMove = (e: MouseEvent) => {
       if (isPinned) return;
 
-      // Mouse reaches the left edge trigger zone (<= 14px): reveal dock
-      if (e.clientX <= 14) {
+      // Mouse reaches the left edge trigger zone (<= 24px): reveal dock immediately across all browsers
+      if (e.clientX <= 24) {
         if (leaveTimerRef.current) {
           clearTimeout(leaveTimerRef.current);
           leaveTimerRef.current = null;
         }
         setIsRevealed(true);
-      } else if (e.clientX > 92) {
+      } else if (e.clientX > 100) {
         // Mouse moved well past the dock capsule: auto-hide cleanly
         if (!leaveTimerRef.current) {
           leaveTimerRef.current = setTimeout(() => {
@@ -203,14 +205,8 @@ export const Sidebar: React.FC = () => {
     return 1;
   };
 
-  // Separate consumer dining navigation from back-office staff links when seated at tables
-  const isDineInRoute = ['/menu', '/companion', '/guest-order', '/tracker', '/settlement'].some(
-    (path) => location.pathname.startsWith(path)
-  );
-
-  const visibleNavItems = isDineInRoute
-    ? navItems.filter((item) => ['home', 'menu', 'companion', 'tracker', 'settlement'].includes(item.id))
-    : navItems;
+  // Unified navigation items across all pages (consistent across overview, dine-in, and operations)
+  const visibleNavItems = navItems;
 
   const isDockVisible = isPinned || isRevealed;
 
@@ -219,15 +215,22 @@ export const Sidebar: React.FC = () => {
       {/* =========================================================================
           MOBILE TOP BAR & SLIDE-IN DRAWER (< 768px Viewports)
           ========================================================================= */}
-      <header className="md:hidden h-14 w-full bg-[#f9f9f9] border-b border-[#e5e7eb] px-4 flex items-center justify-between sticky top-0 z-40 select-none">
+      <header className="md:hidden h-14 w-full bg-white border-b border-[#e5e7eb] px-4 flex items-center justify-between sticky top-0 z-40 select-none shadow-xs">
         <Link to="/" className="inline-flex items-center min-h-[44px] min-w-[44px]">
           <FlameLinkLogo size="md" />
         </Link>
 
         <div className="flex items-center gap-2">
+          <Link
+            to={menuTarget}
+            className="px-3.5 py-1.5 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[12px] font-bold btn-crimson-glow shadow-xs transition-all active:scale-95 cursor-pointer"
+          >
+            Dine-In Menu
+          </Link>
+
           <button
             onClick={() => setMobileDrawerOpen(!mobileDrawerOpen)}
-            className="p-2.5 rounded-xl text-[#262626] hover:bg-[#e5e7eb] border border-[#e5e7eb] flex items-center justify-center min-w-[44px] min-h-[44px] cursor-pointer"
+            className="p-2 rounded-xl text-[#262626] hover:bg-[#f9f9f9] border border-[#e5e7eb] flex items-center justify-center min-w-[40px] min-h-[40px] cursor-pointer"
             aria-label="Toggle navigation drawer"
           >
             {mobileDrawerOpen ? <X className="w-5 h-5" /> : <MenuIcon className="w-5 h-5" />}
@@ -301,12 +304,12 @@ export const Sidebar: React.FC = () => {
           DESKTOP macOS AUTO-HIDING DOCK (>= 768px Viewports)
           ========================================================================= */}
 
-      {/* Left-Edge Trigger Sensor (14px wide edge detection) */}
+      {/* Left-Edge Trigger Sensor (Generous 24px wide edge detection across Firefox, Chrome, Safari) */}
       {!isPinned && (
         <div
           onMouseEnter={handleTriggerEnter}
           onMouseLeave={handleTriggerLeave}
-          className="fixed left-0 top-0 bottom-0 w-3.5 z-40 hidden md:block"
+          className="fixed left-0 top-0 bottom-0 w-6 z-40 hidden md:block"
           aria-hidden="true"
         />
       )}

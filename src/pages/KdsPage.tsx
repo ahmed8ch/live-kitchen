@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAppStore } from '../store/useAppStore';
 import { OrderStatus, OrderTicket } from '../types/domain';
+import { WorkstationBarrier } from '../components/layout/WorkstationBarrier';
 
 export const KdsPage: React.FC = () => {
   const orders = useAppStore((state) => state.orders);
@@ -141,10 +142,16 @@ export const KdsPage: React.FC = () => {
   });
 
   return (
-    <div
-      className="min-h-screen bg-[#0d0f12] blueprint-dots-dark text-white flex flex-col font-sans select-none overflow-x-hidden pb-16"
-      data-ui-container="kds-screen"
+    <WorkstationBarrier
+      portalName="Kitchen Display System (KDS)"
+      portalCode="KDS-BOH-01"
+      stationRole="Kitchen Expeditor Pass"
+      description="The FlameLink Kitchen Display System (KDS) is an operational pass terminal engineered strictly for line expeditor screens and high-temperature kitchen displays (minimum 1024px horizontal resolution). Mobile phone access is locked to maintain order dispatch safety and line coordination."
     >
+      <div
+        className="min-h-screen bg-[#0d0f12] blueprint-dots-dark text-white flex flex-col font-sans select-none overflow-x-hidden pb-16"
+        data-ui-container="kds-screen"
+      >
       {/* High-Contrast Kitchen Top Header */}
       <header className="h-16 px-6 sm:px-8 bg-[#151921] border-b border-[#252b36] flex items-center justify-between shrink-0 z-20">
         <div className="flex items-center gap-6">
@@ -434,5 +441,6 @@ export const KdsPage: React.FC = () => {
         </div>
       </footer>
     </div>
+    </WorkstationBarrier>
   );
 };
