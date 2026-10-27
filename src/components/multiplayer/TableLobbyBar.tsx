@@ -6,6 +6,7 @@ export const TableLobbyBar: React.FC = () => {
   const activeTable = useAppStore((state) => state.activeTable);
   const activeTablePin = useAppStore((state) => state.activeTablePin);
   const currentMember = useAppStore((state) => state.currentMember);
+  const companionMember = useAppStore((state) => state.companionMember);
   const tableSessions = useAppStore((state) => state.tableSessions);
   const openPinModal = useAppStore((state) => state.openPinModal);
   const setMemberReadyToPay = useAppStore((state) => state.setMemberReadyToPay);
@@ -35,11 +36,20 @@ export const TableLobbyBar: React.FC = () => {
   }
 
   const location = useLocation();
-  const isCompanionView = location.pathname.startsWith('/companion') || location.pathname.startsWith('/guest-order');
-  const session = tableSessions[activeTable];
+  const isCompanionView =
+    location.pathname.startsWith('/companion') ||
+    location.pathname.startsWith('/guest-order') ||
+    (typeof window !== 'undefined' &&
+      (window.location.pathname.startsWith('/companion') || window.location.pathname.startsWith('/guest-order')));
+  const session = activeTable ? tableSessions[activeTable] : null;
   const members = session?.members || [];
-  const isHost = !isCompanionView && (currentMember?.isHost ?? false) && (session?.hostId === currentMember?.id);
+  const isHost = !isCompanionView;
   const pin = activeTablePin || session?.pin || '----';
+
+  const hostMember = session?.members?.find((m) => m.isHost) || (currentMember?.isHost ? currentMember : null);
+  const effectiveUser = isHost
+    ? (hostMember || currentMember)
+    : (companionMember || currentMember);
 
   const handleCopyPin = () => {
     if (typeof navigator !== 'undefined' && navigator.clipboard) {
@@ -51,9 +61,9 @@ export const TableLobbyBar: React.FC = () => {
   };
 
   const handleToggleReady = () => {
-    if (!currentMember) return;
-    const nextState = !currentMember.isReadyToPay;
-    setMemberReadyToPay(activeTable, currentMember.id, nextState);
+    if (!activeTable || !effectiveUser) return;
+    const nextState = !effectiveUser.isReadyToPay;
+    setMemberReadyToPay(activeTable, effectiveUser.id, nextState);
   };
 
   return (
@@ -71,7 +81,7 @@ export const TableLobbyBar: React.FC = () => {
               </span>
             ) : (
               <span className="text-[10px] font-mono-num font-semibold uppercase px-2 py-0.5 rounded-full bg-white border border-[#ffd1dc] text-[#FF0055]">
-                {currentMember?.name || 'Guest'}
+                {effectiveUser?.name || 'Guest'}
               </span>
             )}
           </div>
@@ -114,7 +124,9 @@ export const TableLobbyBar: React.FC = () => {
 
           {members.map((member, idx) => {
             if (!member) return null;
-            const isMe = member.id === currentMember?.id;
+            const isMe = isHost
+              ? Boolean(member.isHost || (hostMember && member.id === hostMember.id))
+              : Boolean(effectiveUser && member.id === effectiveUser.id);
             return (
               <div
                 key={member.id || `mem-${idx}`}
@@ -128,12 +140,12 @@ export const TableLobbyBar: React.FC = () => {
                   className={`w-2 h-2 rounded-full ${
                     member.isReadyToPay ? 'bg-[#15803d]' : 'bg-[#e5e7eb]'
                   }`}
-                  title={member.isReadyToPay ? 'Ready to pay' : 'Browsing dishes'}
+                  title={member.isReadyToPay ? 'Ready: done choosing dishes' : 'Still choosing dishes'}
                 />
                 <span>{member.name || 'Diner'}{member.isHost ? ' (Host)' : ''}</span>
 
                 {/* Host can kick unwanted/duplicate companions */}
-                {isHost && !member.isHost && (
+                {isHost && !member.isHost && activeTable && (
                   <button
                     type="button"
                     onClick={() => removeMemberFromTable(activeTable, member.id)}
@@ -161,31 +173,40 @@ export const TableLobbyBar: React.FC = () => {
 
         {/* Right: Seated Actions */}
         <div className="flex items-center gap-2">
-          {!isHost && currentMember && (
+          {!isHost && effectiveUser && (
             <div className="flex items-center gap-1.5">
               <button
+                type="button"
                 onClick={handleToggleReady}
+                title={
+                  effectiveUser.isReadyToPay
+                    ? 'You are marked ready. Click to switch back to browsing.'
+                    : 'Notify the table host that you have finished picking your dishes.'
+                }
                 className={`px-3 py-1 rounded-full text-[12px] font-medium transition-all cursor-pointer shadow-xs ${
-                  currentMember.isReadyToPay
+                  effectiveUser.isReadyToPay
                     ? 'bg-[#15803d] text-white hover:bg-[#166534]'
                     : 'bg-white text-[#262626] border border-[#e5e7eb] hover:border-[#FF0055]'
                 }`}
               >
-                {currentMember.isReadyToPay ? 'Marked Ready' : 'Mark Ready to Pay'}
+                {effectiveUser.isReadyToPay ? 'Ready (Done Choosing)' : 'I am Done Choosing'}
               </button>
-              <button
-                onClick={() => leaveTableSession(activeTable, currentMember.id)}
-                className="text-[11px] font-mono-num text-red-600 hover:underline px-1 cursor-pointer"
-                title="Leave table pool"
-              >
-                Leave
-              </button>
+              {activeTable && (
+                <button
+                  type="button"
+                  onClick={() => leaveTableSession(activeTable, effectiveUser.id)}
+                  className="text-[11px] font-mono-num text-red-600 hover:underline px-1 cursor-pointer"
+                  title="Leave table pool"
+                >
+                  Leave
+                </button>
+              )}
             </div>
           )}
 
           {isHost && (
-            <span className="text-[11px] font-mono-num text-[#727272] px-2 py-1 rounded bg-white border border-[#ffd1dc]/60">
-              Table Host Active
+            <span className="text-[11px] font-mono-num text-[#727272] px-2.5 py-1 rounded bg-white border border-[#ffd1dc]/60">
+              Host Controls Active ({members.filter((m) => m?.isReadyToPay).length}/{members.length} Diners Ready)
             </span>
           )}
         </div>

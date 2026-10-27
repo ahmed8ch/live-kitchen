@@ -46,24 +46,24 @@ export const SettlementPage: React.FC = () => {
 
   if (!ticket) {
     return (
-      <div className="flex-1 w-full max-w-2xl mx-auto px-4 py-20 text-center" data-ui-container="empty-settlement">
-        <div className="w-14 h-14 rounded-full bg-[#f9f9f9] border border-[#e5e7eb] flex items-center justify-center mx-auto text-[#727272] mb-4">
-          <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <div className="flex-1 w-full max-w-md mx-auto px-4 py-20 sm:py-24 text-center" data-ui-container="empty-settlement">
+        <div className="w-14 h-14 rounded-full bg-[#f9f9f9] border border-[#e5e7eb] flex items-center justify-center mx-auto text-[#727272] mb-4 shadow-xs">
+          <svg className="w-6 h-6 stroke-[1.75px]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <rect x="2" y="5" width="20" height="14" rx="2" />
             <line x1="2" y1="10" x2="22" y2="10" />
           </svg>
         </div>
-        <h2 className="text-xl font-bold text-[#262626]">No Active Order Ticket</h2>
-        <p className="mt-2 text-[#727272] text-[14px] max-w-sm mx-auto">
+        <h2 className="text-[20px] sm:text-xl font-bold tracking-tight text-[#262626]">No Active Order Ticket</h2>
+        <p className="mt-2 text-[#727272] text-[14px] leading-relaxed max-w-sm mx-auto">
           Your table currently has no orders placed. Select dishes from the menu to start.
         </p>
         <div className="mt-6">
           <Link
             to={activeTable ? `/menu?table=${activeTable}` : '/menu'}
             data-ui-radius="999"
-            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#FF0055] text-white text-[13px] font-bold transition-all btn-crimson-glow shadow-xs"
+            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#FF0055] text-white text-[13px] font-bold transition-all btn-crimson-glow shadow-xs hover:bg-[#e0004d] active:scale-95"
           >
-            <span>Open Menu -&gt;</span>
+            <span>Open Dine-In Menu -&gt;</span>
           </Link>
         </div>
       </div>

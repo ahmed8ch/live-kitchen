@@ -46,6 +46,7 @@ interface AppState {
   leaveTableSession: (tableNumber: string, memberId: string) => void;
   removeMemberFromTable: (tableNumber: string, targetMemberId: string) => void;
   resetTableSession: (tableNumber: string) => void;
+  ensureHostSession: (tableNumber?: string) => void;
 
   // Platform Feedback & Inquiries
   platformFeedback: Array<{
@@ -203,6 +204,23 @@ export const useAppStore = create<AppState>()(
       },
 
       // Table & Multiplayer Lobby Management
+      ensureHostSession: (tableNumber) => {
+        const { activeTable, tableSessions } = get();
+        const targetTable = (tableNumber || activeTable || 'T-04').trim().toUpperCase();
+        const session = tableSessions[targetTable];
+        if (session && session.members && session.members.length > 0) {
+          const hostMember = session.members.find((m) => m?.isHost) || session.members[0];
+          set({
+            activeTable: targetTable,
+            activeTablePin: session.pin,
+            currentMember: hostMember,
+            companionMember: null,
+          });
+        } else {
+          get().initTableSession(targetTable, 'Red Panda (Host)', 'Red Panda');
+        }
+      },
+
       setActiveTable: (table) => {
         if (!table) {
           set({ activeTable: null, activeTablePin: null });
@@ -212,9 +230,24 @@ export const useAppStore = create<AppState>()(
         const cleanTable = table.trim().toUpperCase();
         const { tableSessions, currentMember } = get();
         const session = tableSessions[cleanTable];
+        const isCompanionRoute =
+          typeof window !== 'undefined' &&
+          (window.location.pathname.startsWith('/companion') || window.location.pathname.startsWith('/guest-order'));
 
         // Check if session has active members
         if (session && session.members && session.members.length > 0) {
+          if (!isCompanionRoute) {
+            // When on /menu or non-companion route, user is always the Host
+            const hostMember = session.members.find((m) => m?.isHost) || session.members[0];
+            set({
+              activeTable: cleanTable,
+              activeTablePin: session.pin,
+              currentMember: hostMember,
+              companionMember: null,
+            });
+            return;
+          }
+
           // If current browser is already in this session's members, keep them
           const existingUser = currentMember && session.members.find((m) => m?.id === currentMember?.id);
           if (existingUser) {
@@ -499,7 +532,7 @@ export const useAppStore = create<AppState>()(
 
       setMemberReadyToPay: (tableNumber, memberId, isReady) => {
         const cleanTable = tableNumber.trim().toUpperCase();
-        const { tableSessions, currentMember } = get();
+        const { tableSessions, currentMember, companionMember } = get();
         const session = tableSessions[cleanTable];
         if (!session) return;
 
@@ -515,6 +548,9 @@ export const useAppStore = create<AppState>()(
           currentMember: currentMember?.id === memberId
             ? { ...currentMember, isReadyToPay: isReady }
             : currentMember,
+          companionMember: companionMember?.id === memberId
+            ? { ...companionMember, isReadyToPay: isReady }
+            : companionMember,
         });
 
         if (broadcastChannel) {
@@ -731,15 +767,26 @@ export const useAppStore = create<AppState>()(
 
       // Cart Actions with Member Attribution
       addToCart: (menuItem, selectedModifiers, quantity, notes) => {
-        const { currentMember, activeTable, cart } = get();
-        const modKey = selectedModifiers.map((m) => m.id).sort().join(',');
+        const { currentMember, activeTable, cart, tableSessions } = get();
+        const session = activeTable ? tableSessions[activeTable] : null;
+        const hostMember = session?.members?.find((m) => m?.isHost);
+
+        const isCompanionRoute =
+          typeof window !== 'undefined' &&
+          (window.location.pathname.startsWith('/companion') || window.location.pathname.startsWith('/guest-order'));
+
+        const activeUser = isCompanionRoute
+          ? (get().companionMember || currentMember || { id: 'guest-solo', name: 'You', isHost: false, isReadyToPay: false, joinedAt: Date.now() })
+          : (hostMember || currentMember || { id: 'host-solo', name: 'Red Panda (Host)', isHost: true, isReadyToPay: false, joinedAt: Date.now() });
+
+        const modKey = (selectedModifiers || []).map((m) => m.id).sort().join(',');
 
         const existingIndex = cart.findIndex(
           (item) =>
             item.menuItem.id === menuItem.id &&
-            item.selectedModifiers.map((m) => m.id).sort().join(',') === modKey &&
+            (item.selectedModifiers || []).map((m) => m.id).sort().join(',') === modKey &&
             (item.notes || '') === (notes || '') &&
-            item.addedBy?.memberId === currentMember?.id
+            item.addedBy?.memberId === activeUser.id
         );
 
         let nextCart: CartItem[];
@@ -753,17 +800,13 @@ export const useAppStore = create<AppState>()(
           const newItem: CartItem = {
             cartItemId: `cart-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
             menuItem,
-            selectedModifiers,
+            selectedModifiers: selectedModifiers || [],
             quantity,
             notes,
-            addedBy: currentMember ? {
-              memberId: currentMember.id,
-              name: currentMember.name,
-              isHost: currentMember.isHost,
-            } : {
-              memberId: 'guest-solo',
-              name: 'You',
-              isHost: true,
+            addedBy: {
+              memberId: activeUser.id,
+              name: activeUser.name,
+              isHost: activeUser.isHost,
             },
           };
           nextCart = [...cart, newItem];
@@ -1241,9 +1284,25 @@ export const useAppStore = create<AppState>()(
         activeTablePin: state.activeTablePin,
         activeOrderId: state.activeOrderId,
         currentMember: state.currentMember,
-        companionMember: state.companionMember,
         tableSessions: state.tableSessions,
       }),
+      onRehydrateStorage: () => (state) => {
+        if (!state) return;
+        state.companionMember = null;
+        if (
+          typeof window !== 'undefined' &&
+          !window.location.pathname.startsWith('/companion') &&
+          !window.location.pathname.startsWith('/guest-order')
+        ) {
+          if (state.activeTable && state.tableSessions[state.activeTable]) {
+            const session = state.tableSessions[state.activeTable];
+            const host = session?.members?.find((m) => m?.isHost) || session?.members?.[0];
+            if (host) {
+              state.currentMember = host;
+            }
+          }
+        }
+      },
     }
   )
 );

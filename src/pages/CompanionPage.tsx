@@ -197,7 +197,7 @@ export const CompanionPage: React.FC = () => {
               {isCompanionSharePaid ? (
                 <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-center space-y-1">
                   <div className="text-emerald-800 font-bold text-[13px]">
-                    SHARE PAID // {paidRecord?.amount.toFixed(2)} EGP VIA {paidRecord?.paymentMethod?.toUpperCase()}
+                    Share Settled: {paidRecord?.amount.toFixed(2)} EGP via {paidRecord?.paymentMethod?.replace('_', ' ').toUpperCase()}
                   </div>
                   <div className="text-[11px] font-mono-num text-emerald-700">
                     {isOrderFullySettled

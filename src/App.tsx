@@ -58,20 +58,16 @@ export const App: React.FC = () => {
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 pb-8 border-b border-[#e5e7eb]">
                 {/* Generous, Prominent Logo Presence */}
-                <div className="space-y-2">
+                <div className="space-y-2 max-w-xl">
                   <FlameLinkLogo size="xl" />
-                  <p className="text-[13px] text-[#727272] max-w-sm">
-                    Multiplayer Dine-In Operating System for high-volume dining rooms. Zero tablet hardware leases.
+                  <p className="text-[13px] text-[#727272] leading-relaxed mt-2">
+                    Bring-Your-Own-Device (BYOD) self-ordering via table QR codes. Guests order and settle checks directly from their personal mobile phones—saving restaurants capital equipment leases and maintenance fees on tabletop tablet kiosks.
                   </p>
-                </div>
-
-                <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-[#e5e7eb] text-[12px] font-mono-num text-[#727272] shadow-xs">
-                  <span>FlameLink Dine-In OS</span>
                 </div>
               </div>
 
               {/* Sitemap Grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 text-[13px]">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-8 text-[13px]">
                 <div className="space-y-3">
                   <span className="font-bold text-[#262626] uppercase font-mono-num text-[11px] block tracking-wider">
                     Dine-In Operations
@@ -104,22 +100,6 @@ export const App: React.FC = () => {
                     <li><span className="text-[#949494]">Apple Pay &amp; Meeza</span></li>
                   </ul>
                 </div>
-
-                <div className="space-y-3">
-                  <span className="font-bold text-[#262626] uppercase font-mono-num text-[11px] block tracking-wider">
-                    Platform
-                  </span>
-                  <ul className="space-y-2 text-[#727272]">
-                    <li><span className="text-[#949494]">FlameLink OS v2.0</span></li>
-                    <li><span className="text-[#949494]">Wood-Fired Grill Engine</span></li>
-                    <li><span className="text-[#949494]">Real-Time Line Pass</span></li>
-                  </ul>
-                </div>
-              </div>
-
-              <div className="pt-8 border-t border-[#e5e7eb] flex flex-col sm:flex-row items-center justify-between text-[11px] font-mono-num text-[#949494] gap-3">
-                <span>FlameLink Multi-Player Dine-In Operating System</span>
-                <span>FlameLink Culinary Pass</span>
               </div>
             </div>
           </footer>

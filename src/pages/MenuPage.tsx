@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { MENU_ITEMS } from '../domain/menuData';
 import { MenuCategory, MenuItem } from '../types/domain';
 import { DishModal } from '../components/menu/DishModal';
@@ -17,6 +18,9 @@ const CATEGORIES: { id: 'all' | MenuCategory; label: string }[] = [
 ];
 
 export const MenuPage: React.FC = () => {
+  const [searchParams] = useSearchParams();
+  const tableParam = searchParams.get('table');
+
   const [activeCategory, setActiveCategory] = useState<'all' | MenuCategory>('all');
   const [selectedDish, setSelectedDish] = useState<MenuItem | null>(null);
 
@@ -24,7 +28,8 @@ export const MenuPage: React.FC = () => {
 
   useEffect(() => {
     flushPendingHostToasts();
-  }, []);
+    useAppStore.getState().ensureHostSession(tableParam || undefined);
+  }, [tableParam]);
 
   const filteredDishes =
     activeCategory === 'all'

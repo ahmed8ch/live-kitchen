@@ -13,7 +13,6 @@ import {
   Menu as MenuIcon,
   Pin,
   PinOff,
-  ShoppingCart,
 } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 import { FlameLinkLogo } from '../ui/FlameLinkLogo';
@@ -23,8 +22,6 @@ export const Sidebar: React.FC = () => {
 
   const activeTable = useAppStore((state) => state.activeTable);
   const orders = useAppStore((state) => state.orders);
-  const cart = useAppStore((state) => state.cart);
-  const openCartDrawer = useAppStore((state) => state.openCartDrawer);
 
   // macOS Dock Auto-Hide & Pin State (Hidden by default per user directive)
   const [isRevealed, setIsRevealed] = useState(false);
@@ -43,7 +40,6 @@ export const Sidebar: React.FC = () => {
   const trackerTarget = orders.length > 0 ? `/order/${orders[0].id}` : '/tracker';
   const settlementTarget = orders.length > 0 ? `/settlement/${orders[0].id}` : '/settlement';
   const tableParam = activeTable ? `?table=${activeTable}` : '';
-  const totalCartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   // Toggle Dock Pin
   const handlePinToggle = () => {
@@ -134,27 +130,24 @@ export const Sidebar: React.FC = () => {
       icon: Receipt,
     },
     {
+      id: 'kds',
+      label: 'Kitchen Pass (KDS)',
+      to: '/kds',
+      badge: 'KDS',
+      icon: ChefHat,
+    },
+    {
       id: 'cashier',
-      label: 'Cashier Station',
+      label: 'Cashier POS',
       to: '/cashier',
       badge: 'POS',
       icon: Building,
-      isStaff: true,
-    },
-    {
-      id: 'kds',
-      label: 'Kitchen Pass',
-      to: '/kds',
-      badge: 'Pass',
-      icon: ChefHat,
-      isStaff: true,
     },
     {
       id: 'stand',
       label: 'Table QR Stand',
       to: '/stand',
       icon: QrCode,
-      isStaff: true,
     },
   ];
 
@@ -168,10 +161,7 @@ export const Sidebar: React.FC = () => {
     return 1;
   };
 
-  // Do not leak staff operations to seated diners at active tables
-  const visibleNavItems = activeTable
-    ? navItems.filter((item) => !item.isStaff)
-    : navItems;
+  const visibleNavItems = navItems;
 
   const isDockVisible = isPinned || isRevealed;
 
@@ -186,18 +176,6 @@ export const Sidebar: React.FC = () => {
         </Link>
 
         <div className="flex items-center gap-2">
-          {totalCartCount > 0 && (
-            <button
-              onClick={() => openCartDrawer()}
-              className="px-3 py-1.5 rounded-full bg-[#fff0f3] border border-[#ffd1dc] text-[#FF0055] text-[12px] font-medium flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
-            >
-              <span>Cart</span>
-              <span className="w-4 h-4 rounded-full bg-[#FF0055] text-white flex items-center justify-center text-[10px] font-mono-num font-medium">
-                {totalCartCount}
-              </span>
-            </button>
-          )}
-
           <button
             onClick={() => setMobileDrawerOpen(!mobileDrawerOpen)}
             className="p-2.5 rounded-xl text-[#262626] hover:bg-[#e5e7eb] border border-[#e5e7eb] flex items-center justify-center min-w-[44px] min-h-[44px] cursor-pointer"
@@ -264,7 +242,7 @@ export const Sidebar: React.FC = () => {
             </div>
 
             <div className="pt-4 border-t border-[#e5e7eb] text-[11px] font-mono-num text-[#949494]">
-              FlameLink Dine-In OS
+              Live Kitchen | Dine-In OS
             </div>
           </div>
         </div>
@@ -301,7 +279,7 @@ export const Sidebar: React.FC = () => {
         data-ui-container="macos-dock"
         onMouseEnter={handleDockEnter}
         onMouseLeave={handleDockLeave}
-        className={`fixed left-4 top-1/2 -translate-y-1/2 z-40 hidden md:flex flex-col items-center py-2.5 px-2 rounded-[22px] bg-white/90 backdrop-blur-2xl border border-[#e5e7eb]/90 shadow-[0_20px_50px_-10px_rgba(0,0,0,0.14),0_8px_16px_-6px_rgba(0,0,0,0.04),inset_0_1px_0_rgba(255,255,255,0.9)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] select-none ${
+        className={`fixed left-4 top-1/2 -translate-y-1/2 z-40 hidden md:flex flex-col items-center py-3 px-2 rounded-[24px] bg-white/95 backdrop-blur-2xl border border-[#e5e7eb] shadow-[0_24px_50px_-12px_rgba(0,0,0,0.12),0_8px_20px_-4px_rgba(0,0,0,0.06),inset_0_1px_0_rgba(255,255,255,1)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] select-none ${
           isDockVisible
             ? 'translate-x-0 opacity-100 pointer-events-auto'
             : '-translate-x-[calc(100%+28px)] opacity-0 pointer-events-none'
@@ -336,10 +314,10 @@ export const Sidebar: React.FC = () => {
                 onMouseEnter={() => setHoveredIndex(index)}
                 className="relative group flex items-center justify-center"
               >
-                {/* Active Indicator Pip (#FF0055 Crimson dot, macOS Dock physical detail) */}
+                {/* Active Indicator Bar (Vertical pill anchored to left edge) */}
                 {isActive && (
                   <span
-                    className="absolute -left-1 w-1.5 h-1.5 rounded-full bg-[#FF0055] shadow-[0_0_6px_rgba(255,0,85,0.7)]"
+                    className="absolute -left-2.5 w-1 h-5 rounded-r-full bg-[#FF0055] shadow-[0_0_8px_rgba(255,0,85,0.85)]"
                     aria-hidden="true"
                   />
                 )}
@@ -347,7 +325,7 @@ export const Sidebar: React.FC = () => {
                 {/* Live Activity Pulse Pip */}
                 {item.badge === 'Live' && !isActive && (
                   <span
-                    className="absolute -left-1 w-1.5 h-1.5 rounded-full bg-[#FF0055] animate-ping"
+                    className="absolute -left-1.5 w-1.5 h-1.5 rounded-full bg-[#FF0055] animate-ping"
                     aria-hidden="true"
                   />
                 )}
@@ -360,12 +338,12 @@ export const Sidebar: React.FC = () => {
                   }}
                   className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-150 ease-out cursor-pointer active:scale-95 ${
                     isActive
-                      ? 'bg-[#fff0f3] text-[#FF0055] shadow-xs border border-[#ffd1dc]/80'
-                      : 'text-[#727272] hover:text-[#262626] hover:bg-[#f5f5f5] border border-transparent'
+                      ? 'bg-[#fff0f3] text-[#FF0055] font-semibold border border-[#ffd1dc] shadow-[0_0_0_1px_rgba(255,0,85,0.14),0_3px_10px_rgba(255,0,85,0.12)]'
+                      : 'text-[#727272] hover:text-[#262626] hover:bg-[#f5f5f5] hover:border-[#e5e7eb] border border-transparent'
                   }`}
                   aria-label={item.label}
                 >
-                  <Icon className="w-4 h-4 stroke-[1.8px]" />
+                  <Icon className={`w-4 h-4 ${isActive ? 'stroke-[2.2px] text-[#FF0055]' : 'stroke-[1.8px]'}`} />
                 </NavLink>
 
                 {/* Instantaneous Clarity Tooltip (macOS Pill anchored to right) */}
@@ -387,34 +365,10 @@ export const Sidebar: React.FC = () => {
           })}
         </nav>
 
-        {/* Bottom Actions: Cart Shortcut + Pin Toggle */}
+        {/* Bottom Action: Pin Toggle */}
         <div className="w-6 h-[1px] bg-[#e5e7eb] my-1" />
 
         <div className="flex flex-col items-center gap-1">
-          {/* Quick Cart Trigger Pill (macOS Dock Badge) */}
-          {totalCartCount > 0 && (
-            <div className="relative group flex items-center justify-center">
-              <button
-                type="button"
-                onClick={() => openCartDrawer()}
-                className="w-10 h-10 rounded-xl bg-[#fff0f3] hover:bg-[#ffe5ec] border border-[#ffd1dc] text-[#FF0055] flex items-center justify-center transition-all cursor-pointer relative shadow-xs active:scale-95"
-                aria-label={`Open Cart with ${totalCartCount} items`}
-              >
-                <ShoppingCart className="w-4 h-4" />
-                <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#FF0055] text-white text-[10px] font-mono-num font-bold flex items-center justify-center shadow-xs">
-                  {totalCartCount}
-                </span>
-              </button>
-
-              <div
-                role="tooltip"
-                className="absolute left-[calc(100%+14px)] px-2.5 py-1 rounded-md bg-[#262626] text-white text-[11px] font-mono-num font-medium whitespace-nowrap shadow-xl opacity-0 scale-95 pointer-events-none group-hover:opacity-100 group-hover:scale-100 transition-all duration-100 ease-out z-50"
-              >
-                View Cart ({totalCartCount} dishes)
-                <div className="absolute top-1/2 -left-1 -translate-y-1/2 w-0 h-0 border-y-4 border-y-transparent border-r-4 border-r-[#262626]" />
-              </div>
-            </div>
-          )}
 
           {/* Pin / Auto-Hide Dock Toggle */}
           <div className="relative group flex items-center justify-center">

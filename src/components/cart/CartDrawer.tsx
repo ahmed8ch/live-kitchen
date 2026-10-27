@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAppStore } from '../../store/useAppStore';
 import { PaymentMethod } from '../../types/domain';
 
 export const CartDrawer: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const cart = useAppStore((state) => state.cart);
   const isCartDrawerOpen = useAppStore((state) => state.isCartDrawerOpen);
@@ -30,7 +31,21 @@ export const CartDrawer: React.FC = () => {
   }
 
   const session = activeTable ? tableSessions[activeTable] : null;
-  const isHost = (currentMember?.isHost ?? true) && !companionMember;
+
+  // Clean persona isolation:
+  // Route determines persona: /companion or /guest-order is Companion; /menu and default is Host.
+  const isCompanionRoute =
+    location.pathname.startsWith('/companion') ||
+    location.pathname.startsWith('/guest-order') ||
+    (typeof window !== 'undefined' &&
+      (window.location.pathname.startsWith('/companion') || window.location.pathname.startsWith('/guest-order')));
+
+  const isHost = !isCompanionRoute;
+  const hostMember = session?.members?.find((m) => m.isHost) || (currentMember?.isHost ? currentMember : null);
+  const effectiveMember = isHost
+    ? (hostMember || currentMember)
+    : (companionMember || currentMember);
+
   const members = session?.members || [];
   const readyMembersCount = members.filter((m) => m.isReadyToPay).length;
 
@@ -51,9 +66,12 @@ export const CartDrawer: React.FC = () => {
     const memberKey = item.addedBy?.memberId || 'unassigned';
     const memberName = item.addedBy?.name || 'Table Diner';
     if (!acc[memberKey]) {
+      const isYou = isHost
+        ? Boolean(item.addedBy?.isHost || (hostMember && memberKey === hostMember.id) || (currentMember?.isHost && memberKey === currentMember.id))
+        : Boolean(effectiveMember && memberKey === effectiveMember.id);
       acc[memberKey] = {
         name: memberName,
-        isYou: memberKey === currentMember?.id,
+        isYou,
         items: [],
       };
     }
@@ -73,8 +91,8 @@ export const CartDrawer: React.FC = () => {
   };
 
   const handleToggleMyReady = () => {
-    if (!activeTable || !currentMember) return;
-    setMemberReadyToPay(activeTable, currentMember.id, !currentMember.isReadyToPay);
+    if (!activeTable || !effectiveMember) return;
+    setMemberReadyToPay(activeTable, effectiveMember.id, !effectiveMember.isReadyToPay);
   };
 
   return (
@@ -100,7 +118,7 @@ export const CartDrawer: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2">
-            {cart.length > 0 && (
+            {cart.length > 0 && isHost && (
               <button
                 onClick={clearCart}
                 className="text-[12px] text-[#727272] hover:text-[#dc2626] px-2.5 py-1.5 rounded-full hover:bg-red-50 transition-colors cursor-pointer"
@@ -325,15 +343,15 @@ export const CartDrawer: React.FC = () => {
                   onClick={handleToggleMyReady}
                   data-ui-radius="999"
                   className={`w-full py-3.5 rounded-full text-[13px] font-bold transition-all cursor-pointer flex items-center justify-center gap-2 shadow-xs ${
-                    currentMember?.isReadyToPay
-                      ? 'bg-emerald-600 text-white hover:bg-emerald-700'
+                    effectiveMember?.isReadyToPay
+                      ? 'bg-[#15803d] text-white hover:bg-[#166534]'
                       : 'bg-[#FF0055] text-white hover:opacity-95 btn-crimson-glow'
                   }`}
                 >
                   <span>
-                    {currentMember?.isReadyToPay
-                      ? 'I am Ready (Click to Browse More)'
-                      : 'I am Done Choosing (Mark Ready) ->'}
+                    {effectiveMember?.isReadyToPay
+                      ? 'Ready (Click to Keep Browsing)'
+                      : 'I am Done Choosing (Notify Host) ->'}
                   </span>
                 </button>
               </div>
@@ -443,12 +461,11 @@ export const CartDrawer: React.FC = () => {
                     <span>
                       Table Diners Ready: {readyMembersCount}/{members.length}
                     </span>
-                    <button
-                      onClick={handleToggleMyReady}
-                      className="text-[#FF0055] hover:underline font-bold cursor-pointer"
-                    >
-                      {currentMember?.isReadyToPay ? '[Mark Browsing]' : '[Mark Ready]'}
-                    </button>
+                    <span className="text-[11px] font-mono-num text-[#727272]">
+                      {readyMembersCount === members.length
+                        ? 'All companions ready'
+                        : `${members.length - readyMembersCount} browsing`}
+                    </span>
                   </div>
                 )}
               </div>
