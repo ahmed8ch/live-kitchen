@@ -2,11 +2,13 @@ import React, { useEffect } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Sidebar } from './components/layout/Sidebar';
 import { ToastContainer } from './components/ui/ToastContainer';
+import { TableLobbyModal } from './components/multiplayer/TableLobbyModal';
 import { HomePage } from './pages/HomePage';
 import { MenuPage } from './pages/MenuPage';
 import { OrderTrackerPage } from './pages/OrderTrackerPage';
 import { SettlementPage } from './pages/SettlementPage';
 import { KdsPage } from './pages/KdsPage';
+import { CashierPage } from './pages/CashierPage';
 import { TableStandPage } from './pages/TableStandPage';
 import { useAppStore } from './store/useAppStore';
 import { FlameLinkLogo } from './components/ui/FlameLinkLogo';
@@ -16,7 +18,7 @@ export const App: React.FC = () => {
   const setActiveTable = useAppStore((state) => state.setActiveTable);
   const isKds = location.pathname === '/kds';
 
-  // Ingest ?table=XX from URL on mount (Agent 01 - Systems Architect)
+  // Ingest ?table=XX from URL on mount
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
     const tableParam = searchParams.get('table');
@@ -40,6 +42,7 @@ export const App: React.FC = () => {
             <Route path="/order/:id" element={<OrderTrackerPage />} />
             <Route path="/settlement" element={<SettlementPage />} />
             <Route path="/settlement/:id" element={<SettlementPage />} />
+            <Route path="/cashier" element={<CashierPage />} />
             <Route path="/kds" element={<KdsPage />} />
             <Route path="/stand" element={<TableStandPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
@@ -69,6 +72,9 @@ export const App: React.FC = () => {
 
       {/* Floating Toast Notification strictly at Top-Right */}
       <ToastContainer />
+
+      {/* PIN-Protected Multiplayer Table Lobby Modal */}
+      <TableLobbyModal />
     </div>
   );
 };

@@ -29,7 +29,7 @@ export const HomePage: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Compute 7x30 ASCII matrix
+  // Compute 7x32 ASCII matrix
   const rows = 7;
   const cols = 32;
   const asciiMatrix: string[] = [];
@@ -75,7 +75,6 @@ export const HomePage: React.FC = () => {
   };
 
   // ROI Calculations
-  // Faster turnover: +22% more turns per day = 0.6 extra turns per table/day
   const extraDailyParties = Math.round(tableCount * 0.65);
   const extraDailyRevenue = extraDailyParties * avgCheck;
   const monthlyRevenueUplift = extraDailyRevenue * 30;
@@ -87,9 +86,9 @@ export const HomePage: React.FC = () => {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
           {/* Top Status Capsule */}
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-[#e5e7eb] mb-6 shadow-xs">
-            <span className="w-2 h-2 rounded-full bg-[#ff4d00]" />
+            <span className="w-2 h-2 rounded-full bg-[#FF0055]" />
             <span className="text-[12px] font-mono-num font-medium text-[#262626]">
-              FLAMELINK v2.0 // ZERO-FRICTION DINE-IN OS
+              FLAMELINK v2.0 // MULTIPLAYER DINE-IN OS
             </span>
           </div>
 
@@ -98,36 +97,43 @@ export const HomePage: React.FC = () => {
             className="text-3xl sm:text-4xl lg:text-5xl font-medium tracking-tight text-[#262626] max-w-3xl mx-auto leading-[1.12]"
             data-ui-balance
           >
-            Turn Every Table into an{' '}
-            <span className="text-[#ff4d00]">Autonomous Flame Kitchen</span>
+            Turn Every Table into a{' '}
+            <span className="text-[#FF0055]">Synchronized Multiplayer Kitchen</span>
           </h1>
 
           {/* Calm Technical Subtitle */}
           <p className="mt-4 text-base sm:text-lg text-[#616161] max-w-2xl mx-auto leading-relaxed" data-ui-pretty>
-            Zero tablet hardware leasing, zero mandatory logins. Diners scan acrylic stands, customize items, and dispatch orders to the kitchen pass in under 150ms.
+            Zero tablet leasing, zero mandatory logins. First diner sets table PIN; table pool orders together. The Payment Gate verifies settlement before food ever hits the grill line.
           </p>
 
           {/* Hero CTAs */}
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3" data-ui-actions="hero-cta">
             <Link
               to={menuLink}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3 rounded-full bg-[#ff4d00] hover:opacity-95 text-white text-[14px] font-medium transition-all btn-ember-glow active:scale-[0.99] shadow-sm"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[14px] font-medium transition-all btn-crimson-glow active:scale-[0.99] shadow-sm"
             >
               <span>Launch Dine-In Menu -&gt;</span>
+            </Link>
+
+            <Link
+              to="/cashier"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-white hover:bg-[#f0f0f0] border border-[#e5e7eb] text-[#262626] text-[14px] font-medium transition-all active:scale-[0.99] shadow-xs"
+            >
+              <span>Cashier Station POS</span>
             </Link>
 
             <Link
               to="/kds"
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-white hover:bg-[#f0f0f0] border border-[#e5e7eb] text-[#262626] text-[14px] font-medium transition-all active:scale-[0.99] shadow-xs"
             >
-              <span>View Kitchen Line KDS</span>
+              <span>Kitchen Line KDS</span>
             </Link>
           </div>
 
           {/* Interactive Thermal Flame ASCII Matrix (DESIGN.md §4.1) */}
           <div className="mt-12 max-w-xl mx-auto">
             <div
-              className="bg-[#262626] text-[#ffa06d] p-4 rounded-lg border border-[#383838] shadow-lg text-left relative overflow-hidden font-mono-num text-[11px] sm:text-[13px] leading-tight tracking-widest cursor-crosshair"
+              className="bg-[#262626] text-[#ff8da1] p-4 rounded-lg border border-[#383838] shadow-lg text-left relative overflow-hidden font-mono-num text-[11px] sm:text-[13px] leading-tight tracking-widest cursor-crosshair"
               onMouseMove={(e) => {
                 const rect = e.currentTarget.getBoundingClientRect();
                 const relX = (e.clientX - rect.left) / rect.width;
@@ -141,7 +147,7 @@ export const HomePage: React.FC = () => {
             >
               <div className="flex items-center justify-between text-[10px] text-[#949494] pb-2 mb-2 border-b border-[#383838] font-mono-num uppercase">
                 <span>[ THERMAL FLAME SENSOR MATRIX ]</span>
-                <span className="text-[#ffa06d] animate-pulse">ACTIVE // 800°C LINE</span>
+                <span className="text-[#FF0055] animate-pulse">ACTIVE // 800°C LINE</span>
               </div>
               <pre className="font-mono m-0 overflow-hidden select-none">
                 {asciiMatrix.map((line, i) => (
@@ -151,7 +157,7 @@ export const HomePage: React.FC = () => {
                 ))}
               </pre>
               <div className="pt-2 mt-2 border-t border-[#383838] flex items-center justify-between text-[10px] text-[#949494]">
-                <span>Hover cursor to deflect line heat</span>
+                <span>Hover cursor to deflect flame line heat</span>
                 <span className="font-mono-num">FPS: 60 • RTT: 1.2ms</span>
               </div>
             </div>
@@ -173,11 +179,11 @@ export const HomePage: React.FC = () => {
           <div
             className={`font-mono-num text-[12px] sm:text-[13px] px-4 py-1.5 rounded-lg border transition-all ${
               isFiringDemo
-                ? 'bg-[#fff8f5] border-[#ff4d00] text-[#ff4d00] btn-ember-glow-sm'
+                ? 'bg-[#fff0f3] border-[#FF0055] text-[#FF0055] btn-crimson-glow-sm'
                 : 'bg-[#f9f9f9] border-[#e5e7eb] text-[#262626]'
             }`}
           >
-            TABLE T-04 ──[ <span className="text-[#ff4d00] font-medium">{conduitText}</span> ]──&gt; FLAME PASS
+            TABLE T-04 ──[ <span className="text-[#FF0055] font-medium">{conduitText}</span> ]──&gt; FLAME PASS
           </div>
 
           <button
@@ -207,12 +213,12 @@ export const HomePage: React.FC = () => {
           </div>
 
           {/* Exposed Hairline Bento Grid with Corner Crosshairs */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-[#e5e7eb] border border-[#e5e7eb] rounded-2xl overflow-hidden shadow-xs relative">
-            {/* Cell 1: Acrylic Table Stand Scan */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-px bg-[#e5e7eb] border border-[#e5e7eb] rounded-2xl overflow-hidden shadow-xs relative">
+            {/* Cell 1: Acrylic Table Stand Scan & PIN Lobby */}
             <div className="bg-white p-6 sm:p-7 flex flex-col justify-between relative group card-glow-hover">
               <span className="absolute top-2 right-2 text-[#b5b5b5] font-mono text-[10px]">+</span>
               <div>
-                <div className="w-8 h-8 rounded-lg bg-[#f9f9f9] border border-[#e5e7eb] flex items-center justify-center text-[#ff4d00] mb-4">
+                <div className="w-8 h-8 rounded-lg bg-[#f9f9f9] border border-[#e5e7eb] flex items-center justify-center text-[#FF0055] mb-4">
                   <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <rect x="3" y="3" width="7" height="7" />
                     <rect x="14" y="3" width="7" height="7" />
@@ -221,14 +227,14 @@ export const HomePage: React.FC = () => {
                   </svg>
                 </div>
                 <div className="text-[12px] font-mono-num text-[#949494] uppercase">01 // Entry Point</div>
-                <h3 className="text-[17px] font-medium text-[#262626] mt-1">Acrylic Stand Scan</h3>
+                <h3 className="text-[17px] font-medium text-[#262626] mt-1">PIN Table Pool</h3>
                 <p className="mt-2 text-[13px] text-[#616161] leading-relaxed">
-                  Diner camera opens the exact table menu instantly with zero app download or account gatekeeping.
+                  First diner generates a 4-digit PIN. Friends enter the PIN to join the shared cart without downloading an app.
                 </p>
               </div>
 
               <div className="mt-6 pt-4 border-t border-[#e5e7eb]">
-                <Link to="/stand" className="text-[12px] font-medium text-[#ff4d00] hover:underline">
+                <Link to="/stand" className="text-[12px] font-medium text-[#FF0055] hover:underline">
                   Launch Stand Studio -&gt;
                 </Link>
               </div>
@@ -238,7 +244,7 @@ export const HomePage: React.FC = () => {
             <div className="bg-white p-6 sm:p-7 flex flex-col justify-between relative group card-glow-hover">
               <span className="absolute top-2 right-2 text-[#b5b5b5] font-mono text-[10px]">+</span>
               <div>
-                <div className="w-8 h-8 rounded-lg bg-[#f9f9f9] border border-[#e5e7eb] flex items-center justify-center text-[#ff4d00] mb-4">
+                <div className="w-8 h-8 rounded-lg bg-[#f9f9f9] border border-[#e5e7eb] flex items-center justify-center text-[#FF0055] mb-4">
                   <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M18 8h1a4 4 0 0 1 0 8h-1" />
                     <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" />
@@ -248,39 +254,65 @@ export const HomePage: React.FC = () => {
                   </svg>
                 </div>
                 <div className="text-[12px] font-mono-num text-[#949494] uppercase">02 // Culinary Menu</div>
-                <h3 className="text-[17px] font-medium text-[#262626] mt-1">Touch Customizer</h3>
+                <h3 className="text-[17px] font-medium text-[#262626] mt-1">Shared Touch Cart</h3>
                 <p className="mt-2 text-[13px] text-[#616161] leading-relaxed">
-                  Touch anywhere on dish cards to open portion modifiers, meat doneness, and extra toppings.
+                  Touch anywhere on dish cards to customize. Items group by diner: "Sarah's Order", "Your Order".
                 </p>
               </div>
 
               <div className="mt-6 pt-4 border-t border-[#e5e7eb]">
-                <Link to={menuLink} className="text-[12px] font-medium text-[#ff4d00] hover:underline">
+                <Link to={menuLink} className="text-[12px] font-medium text-[#FF0055] hover:underline">
                   Browse 14 Dishes -&gt;
                 </Link>
               </div>
             </div>
 
-            {/* Cell 3: KDS Thermal Pass */}
+            {/* Cell 3: The Payment Gate */}
             <div className="bg-white p-6 sm:p-7 flex flex-col justify-between relative group card-glow-hover">
               <span className="absolute top-2 right-2 text-[#b5b5b5] font-mono text-[10px]">+</span>
               <div>
-                <div className="w-8 h-8 rounded-lg bg-[#f9f9f9] border border-[#e5e7eb] flex items-center justify-center text-[#ff4d00] mb-4">
+                <div className="w-8 h-8 rounded-lg bg-[#f9f9f9] border border-[#e5e7eb] flex items-center justify-center text-[#FF0055] mb-4">
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="2" y="4" width="20" height="16" rx="2" />
+                    <line x1="2" y1="10" x2="22" y2="10" />
+                    <line x1="7" y1="15" x2="7.01" y2="15" strokeWidth="2.5" />
+                    <line x1="11" y1="15" x2="17" y2="15" strokeWidth="2" />
+                  </svg>
+                </div>
+                <div className="text-[12px] font-mono-num text-[#949494] uppercase">03 // The Payment Gate</div>
+                <h3 className="text-[17px] font-medium text-[#262626] mt-1">Cashier Station</h3>
+                <p className="mt-2 text-[13px] text-[#616161] leading-relaxed">
+                  Orders are locked from kitchen until paid online or verified at the cashier desk via Chit #PAY-XX.
+                </p>
+              </div>
+
+              <div className="mt-6 pt-4 border-t border-[#e5e7eb]">
+                <Link to="/cashier" className="text-[12px] font-medium text-[#FF0055] hover:underline">
+                  Open Cashier POS -&gt;
+                </Link>
+              </div>
+            </div>
+
+            {/* Cell 4: KDS Thermal Pass */}
+            <div className="bg-white p-6 sm:p-7 flex flex-col justify-between relative group card-glow-hover">
+              <span className="absolute top-2 right-2 text-[#b5b5b5] font-mono text-[10px]">+</span>
+              <div>
+                <div className="w-8 h-8 rounded-lg bg-[#f9f9f9] border border-[#e5e7eb] flex items-center justify-center text-[#FF0055] mb-4">
                   <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <rect x="2" y="3" width="20" height="14" rx="2" />
                     <line x1="8" y1="21" x2="16" y2="21" />
                     <line x1="12" y1="17" x2="12" y2="21" />
                   </svg>
                 </div>
-                <div className="text-[12px] font-mono-num text-[#949494] uppercase">03 // Kitchen Line</div>
-                <h3 className="text-[17px] font-medium text-[#262626] mt-1">Physical Thermal Chit KDS</h3>
+                <div className="text-[12px] font-mono-num text-[#949494] uppercase">04 // Kitchen Pass</div>
+                <h3 className="text-[17px] font-medium text-[#262626] mt-1">Thermal Chit KDS</h3>
                 <p className="mt-2 text-[13px] text-[#616161] leading-relaxed">
-                  Perforated warm paper tickets on dark obsidian canvas with live elapsed timers and modifier specs.
+                  24px headers, 20px dish names, 18px bold crimson modifiers. Sticky batch totals for high-speed line cooks.
                 </p>
               </div>
 
               <div className="mt-6 pt-4 border-t border-[#e5e7eb]">
-                <Link to="/kds" className="text-[12px] font-medium text-[#ff4d00] hover:underline">
+                <Link to="/kds" className="text-[12px] font-medium text-[#FF0055] hover:underline">
                   Open Kitchen Pass -&gt;
                 </Link>
               </div>
@@ -294,7 +326,7 @@ export const HomePage: React.FC = () => {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
             <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#f9f9f9] border border-[#e5e7eb] text-[11px] font-mono-num font-medium text-[#ff4d00] uppercase mb-4">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#f9f9f9] border border-[#e5e7eb] text-[11px] font-mono-num font-medium text-[#FF0055] uppercase mb-4">
                 Economic Impact Model
               </div>
               <h2 className="text-2xl sm:text-3xl font-medium text-[#262626] tracking-tight" data-ui-balance>
@@ -309,7 +341,7 @@ export const HomePage: React.FC = () => {
                 <div>
                   <div className="flex justify-between text-[13px] mb-1.5">
                     <span className="font-medium text-[#262626]">Active Dining Tables</span>
-                    <span className="font-mono-num font-medium text-[#ff4d00]" data-ui-number>
+                    <span className="font-mono-num font-medium text-[#FF0055]" data-ui-number>
                       {tableCount} Tables
                     </span>
                   </div>
@@ -321,7 +353,7 @@ export const HomePage: React.FC = () => {
                     value={tableCount}
                     aria-label="Active Dining Tables Count"
                     onChange={(e) => setTableCount(Number(e.target.value))}
-                    className="w-full h-1.5 bg-[#e5e7eb] rounded-lg appearance-none cursor-pointer accent-[#ff4d00]"
+                    className="w-full h-1.5 bg-[#e5e7eb] rounded-lg appearance-none cursor-pointer accent-[#FF0055]"
                   />
                   <div className="flex justify-between text-[11px] text-[#949494] font-mono-num mt-1">
                     <span>6 Tables</span>
@@ -332,7 +364,7 @@ export const HomePage: React.FC = () => {
                 <div>
                   <div className="flex justify-between text-[13px] mb-1.5">
                     <span className="font-medium text-[#262626]">Average Check per Party</span>
-                    <span className="font-mono-num font-medium text-[#ff4d00]" data-ui-number>
+                    <span className="font-mono-num font-medium text-[#FF0055]" data-ui-number>
                       {avgCheck} EGP
                     </span>
                   </div>
@@ -344,7 +376,7 @@ export const HomePage: React.FC = () => {
                     value={avgCheck}
                     aria-label="Average Check per Party in EGP"
                     onChange={(e) => setAvgCheck(Number(e.target.value))}
-                    className="w-full h-1.5 bg-[#e5e7eb] rounded-lg appearance-none cursor-pointer accent-[#ff4d00]"
+                    className="w-full h-1.5 bg-[#e5e7eb] rounded-lg appearance-none cursor-pointer accent-[#FF0055]"
                   />
                   <div className="flex justify-between text-[11px] text-[#949494] font-mono-num mt-1">
                     <span>120 EGP</span>
@@ -360,7 +392,7 @@ export const HomePage: React.FC = () => {
                 <span className="text-[12px] font-mono-num uppercase text-[#949494]">
                   Monthly Growth Projection
                 </span>
-                <span className="px-2.5 py-0.5 rounded-full bg-[#fff8f5] border border-[#fcddcc] text-[#ff4d00] text-[11px] font-mono-num font-medium">
+                <span className="px-2.5 py-0.5 rounded-full bg-[#fff0f3] border border-[#ffd1dc] text-[#FF0055] text-[11px] font-mono-num font-medium">
                   +22% TABLE TURNS
                 </span>
               </div>

@@ -45,7 +45,7 @@ export const FloatingCartBar: React.FC = () => {
         {/* Left: Item Count Badge & Label */}
         <div className="flex items-center gap-3">
           <div
-            className={`w-7 h-7 rounded-full bg-[#ff4d00] text-white flex items-center justify-center font-mono-num font-medium text-[13px] shadow-xs transition-transform duration-200 ${
+            className={`w-7 h-7 rounded-full bg-[#FF0055] text-white flex items-center justify-center font-mono-num font-medium text-[13px] shadow-xs transition-transform duration-200 ${
               counterPop ? 'scale-125' : 'scale-100'
             }`}
             data-ui-number
@@ -59,7 +59,7 @@ export const FloatingCartBar: React.FC = () => {
 
         {/* Right: Subtotal & Arrow */}
         <div className="flex items-center gap-2.5">
-          <span className="font-mono-num font-medium text-[15px] text-[#ff4d00]" data-ui-number>
+          <span className="font-mono-num font-medium text-[15px] text-[#FF0055]" data-ui-number>
             {subtotal.toFixed(2)} EGP
           </span>
           <svg

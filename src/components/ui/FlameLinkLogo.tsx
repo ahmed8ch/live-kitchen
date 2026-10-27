@@ -3,35 +3,50 @@ import React from 'react';
 interface FlameLinkLogoProps {
   className?: string;
   size?: 'sm' | 'md' | 'lg';
+  showWordmark?: boolean;
 }
 
-export const FlameLinkLogo: React.FC<FlameLinkLogoProps> = ({ className = '', size = 'md' }) => {
-  const iconSize = size === 'sm' ? 'w-4 h-4' : size === 'lg' ? 'w-6 h-6' : 'w-5 h-5';
+export const FlameLinkLogo: React.FC<FlameLinkLogoProps> = ({
+  className = '',
+  size = 'md',
+  showWordmark = true,
+}) => {
+  const iconSize = size === 'sm' ? 'w-5 h-5' : size === 'lg' ? 'w-7 h-7' : 'w-6 h-6';
   const textSize = size === 'sm' ? 'text-[14px]' : size === 'lg' ? 'text-[22px]' : 'text-[17px]';
 
   return (
     <span className={`inline-flex items-center gap-2 select-none ${className}`}>
-      {/* Geometric Flame Icon */}
+      {/* Brand SVG Mark (Crimson Flame #FF0055) */}
       <span className="flex items-center justify-center shrink-0">
         <svg
-          className={`${iconSize} text-[#ff4d00]`}
+          className={`${iconSize}`}
           viewBox="0 0 24 24"
           fill="none"
-          stroke="currentColor"
-          strokeWidth="2.2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
+          xmlns="http://www.w3.org/2000/svg"
           aria-hidden="true"
         >
-          <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 3z" />
+          {/* Outer Flame Contour */}
+          <path
+            d="M12 2C9.5 5 7 8 7 12C7 15.3 9.7 18 13 18C16.3 18 19 15.3 19 12C19 9.5 17.5 7.5 15.5 6C15 8 13.5 9.5 12 10.5C11.5 8 12.5 5 12 2Z"
+            fill="#FF0055"
+          />
+          {/* Inner Flame Core */}
+          <path
+            d="M12 13C11 13 10 13.8 10 15C10 16.1 10.9 17 12 17C13.1 17 14 16.1 14 15C14 14.2 13.4 13.5 12 13Z"
+            fill="#FFFFFF"
+          />
+          {/* Base Precision Notch */}
+          <circle cx="12" cy="20.5" r="1.5" fill="#FF0055" />
         </svg>
       </span>
 
       {/* Baseline-Unified Wordmark */}
-      <span className={`${textSize} font-medium tracking-tight leading-none`}>
-        <span className="text-[#262626]">Flame</span>
-        <span className="text-[#ff4d00]">Link</span>
-      </span>
+      {showWordmark && (
+        <span className={`${textSize} font-medium tracking-tight leading-none`}>
+          <span className="text-[#262626]">Flame</span>
+          <span className="text-[#FF0055]">Link</span>
+        </span>
+      )}
     </span>
   );
 };

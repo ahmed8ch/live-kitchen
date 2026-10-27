@@ -4,6 +4,7 @@ import { MenuCategory, MenuItem } from '../types/domain';
 import { DishModal } from '../components/menu/DishModal';
 import { FloatingCartBar } from '../components/cart/FloatingCartBar';
 import { CartDrawer } from '../components/cart/CartDrawer';
+import { TableLobbyBar } from '../components/multiplayer/TableLobbyBar';
 import { useAppStore } from '../store/useAppStore';
 
 const CATEGORIES: { id: 'all' | MenuCategory; label: string }[] = [
@@ -28,6 +29,9 @@ export const MenuPage: React.FC = () => {
 
   return (
     <div className="flex-1 w-full bg-white pb-36" data-ui-container="menu-view">
+      {/* Sticky Table Lobby Bar (Multiplayer PIN Pool, Host/Guest Status) */}
+      <TableLobbyBar />
+
       {/* Menu Header Card */}
       <section className="bg-white border-b border-[#e5e7eb] pt-8 pb-6 sm:pt-10 sm:pb-8">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -45,7 +49,7 @@ export const MenuPage: React.FC = () => {
           >
             <div>
               <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#ff4d00]" />
+                <span className="w-2.5 h-2.5 rounded-full bg-[#FF0055]" />
                 <h1 className="text-xl sm:text-2xl font-medium text-[#262626] tracking-tight">
                   Handcrafted Kitchen Menu
                 </h1>
@@ -60,7 +64,7 @@ export const MenuPage: React.FC = () => {
                 <div className="text-[11px] font-medium text-[#727272] uppercase tracking-wider">
                   Assigned Seating
                 </div>
-                <div className="text-lg font-medium font-mono-num text-[#ff4d00]" data-ui-number>
+                <div className="text-lg font-medium font-mono-num text-[#FF0055]" data-ui-number>
                   Table {activeTable}
                 </div>
               </div>
@@ -76,7 +80,7 @@ export const MenuPage: React.FC = () => {
             )}
           </div>
 
-          {/* Category Filter Pills */}
+          {/* Category Filter Pills (Crisp 2px solid #FF0055 selection) */}
           <div className="flex items-center gap-2.5 overflow-x-auto pb-2 scrollbar-none" data-ui-actions="category-filters">
             {CATEGORIES.map((cat) => (
               <button
@@ -85,7 +89,7 @@ export const MenuPage: React.FC = () => {
                 data-ui-radius="999"
                 className={`px-5 py-2 rounded-full text-[13px] font-medium transition-all shrink-0 cursor-pointer ${
                   activeCategory === cat.id
-                    ? 'bg-[#262626] text-white shadow-xs'
+                    ? 'bg-[#262626] text-white shadow-xs border-selected-crimson'
                     : 'bg-white hover:bg-[#f0f0f0] text-[#727272] border border-[#e5e7eb]'
                 }`}
               >
@@ -113,7 +117,7 @@ export const MenuPage: React.FC = () => {
               key={dish.id}
               onClick={() => setSelectedDish(dish)}
               data-ui-radius="16"
-              className="group bg-white rounded-2xl border border-[#e5e7eb] overflow-hidden shadow-xs card-glow-hover cursor-pointer flex flex-col active:scale-[0.99] select-none"
+              className="group bg-white rounded-2xl border border-[#e5e7eb] overflow-hidden shadow-xs card-glow-hover cursor-pointer flex flex-col active:scale-[0.99] select-none hover:border-[#FF0055]"
             >
               {/* Dish Image with Badges */}
               <div className="relative h-48 sm:h-52 w-full bg-[#f9f9f9] overflow-hidden">
@@ -128,13 +132,13 @@ export const MenuPage: React.FC = () => {
                   }}
                 />
                 {dish.badge && (
-                  <div className="absolute top-3 left-3 px-2.5 py-0.5 rounded-full bg-[#ff4d00] text-white text-[11px] font-mono-num font-medium shadow-xs">
+                  <div className="absolute top-3 left-3 px-2.5 py-0.5 rounded-full bg-[#FF0055] text-white text-[11px] font-mono-num font-medium shadow-xs">
                     {dish.badge}
                   </div>
                 )}
                 {dish.rating && (
                   <div className="absolute top-3 right-3 px-2 py-0.5 rounded-full bg-white/95 text-[#262626] text-[11px] font-mono-num font-medium shadow-xs flex items-center gap-1">
-                    <span className="text-[#ff4d00]">•</span>
+                    <span className="text-[#FF0055]">•</span>
                     <span>{dish.rating}</span>
                   </div>
                 )}
@@ -144,7 +148,7 @@ export const MenuPage: React.FC = () => {
               <div className="p-5 flex-1 flex flex-col justify-between">
                 <div>
                   <div className="flex items-start justify-between gap-3">
-                    <h3 className="text-[16px] font-medium text-[#262626] group-hover:text-[#ff4d00] transition-colors leading-snug">
+                    <h3 className="text-[16px] font-medium text-[#262626] group-hover:text-[#FF0055] transition-colors leading-snug">
                       {dish.name}
                     </h3>
                   </div>
@@ -176,7 +180,7 @@ export const MenuPage: React.FC = () => {
 
                   <span
                     data-ui-radius="999"
-                    className="px-3.5 py-1.5 rounded-full bg-[#f9f9f9] group-hover:bg-[#ff4d00] text-[#262626] group-hover:text-white text-[12px] font-medium transition-all border border-[#e5e7eb] group-hover:border-[#ff4d00]"
+                    className="px-3.5 py-1.5 rounded-full bg-[#f9f9f9] group-hover:bg-[#FF0055] text-[#262626] group-hover:text-white text-[12px] font-medium transition-all border border-[#e5e7eb] group-hover:border-[#FF0055]"
                   >
                     Customize +
                   </span>

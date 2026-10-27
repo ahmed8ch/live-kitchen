@@ -42,7 +42,7 @@ export const OrderTrackerPage: React.FC = () => {
           <Link
             to={activeTable ? `/menu?table=${activeTable}` : '/menu'}
             data-ui-radius="999"
-            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#ff4d00] text-white text-[13px] font-medium transition-all btn-ember-glow"
+            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#FF0055] text-white text-[13px] font-medium transition-all btn-crimson-glow shadow-xs"
           >
             <span>Open Dine-In Menu -&gt;</span>
           </Link>
@@ -53,6 +53,7 @@ export const OrderTrackerPage: React.FC = () => {
 
   const currentStageIndex = STAGES.findIndex((s) => s.key === ticket.status);
   const isCompleted = ticket.status === 'served';
+  const isVerifiedPaid = ticket.paymentStatus === 'verified_paid';
 
   return (
     <div className="flex-1 w-full bg-[#f9f9f9] py-8 sm:py-12 pb-32" data-ui-container="tracker-view">
@@ -69,8 +70,8 @@ export const OrderTrackerPage: React.FC = () => {
             <span>Add More Dishes</span>
           </Link>
 
-          {/* Single-Tab Demo Trigger: Advance Kitchen Stage */}
-          {!isCompleted && (
+          {/* Advance Kitchen Stage button (active if verified) */}
+          {!isCompleted && isVerifiedPaid && (
             <button
               onClick={() => advanceOrderStatus(ticket.id)}
               data-ui-radius="999"
@@ -81,6 +82,30 @@ export const OrderTrackerPage: React.FC = () => {
             </button>
           )}
         </div>
+
+        {/* Warning Banner if pending cashier verification */}
+        {!isVerifiedPaid && (
+          <div className="mb-6 p-4 rounded-2xl bg-[#fff0f3] border-2 border-[#ffd1dc] space-y-2">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#FF0055] animate-ping" />
+              <span className="text-[13px] font-bold text-[#FF0055] font-mono-num">
+                AWAITING CASHIER SETTLEMENT (CHIT #{ticket.cashierChitCode || ticket.id})
+              </span>
+            </div>
+            <p className="text-[12px] text-[#727272]">
+              Kitchen cooking is strictly on hold until payment is confirmed by the front register.
+              Please present your Chit code at the front counter.
+            </p>
+            <div className="pt-1">
+              <Link
+                to={`/settlement/${ticket.id}`}
+                className="text-[12px] font-medium text-[#FF0055] hover:underline"
+              >
+                Go to Bill & Settlement / Pay Online Now -&gt;
+              </Link>
+            </div>
+          </div>
+        )}
 
         {/* Perforated Thermal Order Tracker Container */}
         <div className="thermal-ticket-light p-6 sm:p-8 bg-white shadow-xs mb-6">
@@ -108,7 +133,7 @@ export const OrderTrackerPage: React.FC = () => {
             <span className="text-[12px] font-medium text-[#727272] uppercase tracking-wider">
               Current Kitchen Status:
             </span>
-            <span className="px-3 py-1 rounded-full bg-[#fff8f5] border border-[#fcddcc] text-[#ff4d00] text-[12px] font-mono-num font-medium">
+            <span className="px-3 py-1 rounded-full bg-[#fff0f3] border border-[#ffd1dc] text-[#FF0055] text-[12px] font-mono-num font-medium">
               <ThermalText text={STAGES[currentStageIndex]?.label.toUpperCase() || 'COOKING'} />
             </span>
           </div>
@@ -126,7 +151,7 @@ export const OrderTrackerPage: React.FC = () => {
                     {idx < STAGES.length - 1 && (
                       <div
                         className={`absolute left-3.5 top-8 bottom-0 w-0.5 -mb-6 ${
-                          idx < currentStageIndex ? 'bg-[#ff4d00]' : 'bg-[#e5e7eb]'
+                          idx < currentStageIndex ? 'bg-[#FF0055]' : 'bg-[#e5e7eb]'
                         }`}
                       />
                     )}
@@ -135,9 +160,9 @@ export const OrderTrackerPage: React.FC = () => {
                     <div
                       className={`w-7 h-7 rounded-full flex items-center justify-center text-[12px] font-mono-num shrink-0 z-10 transition-colors ${
                         isPassed
-                          ? 'bg-[#ff4d00] text-white shadow-xs'
+                          ? 'bg-[#FF0055] text-white shadow-xs'
                           : isCurrent
-                          ? 'bg-white border-2 border-[#ff4d00] text-[#ff4d00] btn-ember-glow-sm'
+                          ? 'bg-white border-2 border-[#FF0055] text-[#FF0055] btn-crimson-glow-sm'
                           : 'bg-[#f9f9f9] border border-[#e5e7eb] text-[#949494]'
                       }`}
                       data-ui-number
@@ -157,7 +182,7 @@ export const OrderTrackerPage: React.FC = () => {
                         <span
                           className={`text-[14px] font-medium ${
                             isCurrent
-                              ? 'text-[#ff4d00]'
+                              ? 'text-[#FF0055]'
                               : isPassed
                               ? 'text-[#262626]'
                               : 'text-[#949494]'
@@ -166,7 +191,7 @@ export const OrderTrackerPage: React.FC = () => {
                           {stage.label}
                         </span>
                         {isCurrent && (
-                          <span className="text-[11px] font-mono-num text-[#ff4d00] uppercase tracking-wider">
+                          <span className="text-[11px] font-mono-num text-[#FF0055] uppercase tracking-wider">
                             Active Station
                           </span>
                         )}
@@ -218,7 +243,7 @@ export const OrderTrackerPage: React.FC = () => {
             <Link
               to={`/settlement/${ticket.id}`}
               data-ui-radius="999"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-[#ff4d00] hover:opacity-95 text-white text-[13px] font-medium transition-all btn-ember-glow active:scale-[0.99]"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[13px] font-medium transition-all btn-crimson-glow active:scale-[0.99] shadow-xs"
             >
               <span>{ticket.isPaid ? 'View Fiscal Receipt' : 'Split & Settle Table Bill ->'}</span>
             </Link>

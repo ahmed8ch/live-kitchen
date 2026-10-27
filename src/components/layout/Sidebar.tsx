@@ -34,7 +34,7 @@ export const Sidebar: React.FC = () => {
       to: '/',
       icon: (active) => (
         <svg
-          className={`w-5 h-5 shrink-0 transition-colors ${active ? 'text-[#ff4d00]' : 'text-[#727272]'}`}
+          className={`w-5 h-5 shrink-0 transition-colors ${active ? 'text-[#FF0055]' : 'text-[#727272]'}`}
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -53,7 +53,7 @@ export const Sidebar: React.FC = () => {
       to: `/menu${tableParam}`,
       icon: (active) => (
         <svg
-          className={`w-5 h-5 shrink-0 transition-colors ${active ? 'text-[#ff4d00]' : 'text-[#727272]'}`}
+          className={`w-5 h-5 shrink-0 transition-colors ${active ? 'text-[#FF0055]' : 'text-[#727272]'}`}
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -76,7 +76,7 @@ export const Sidebar: React.FC = () => {
       badge: orders.length > 0 && !orders[0].isPaid ? 'Live' : undefined,
       icon: (active) => (
         <svg
-          className={`w-5 h-5 shrink-0 transition-colors ${active ? 'text-[#ff4d00]' : 'text-[#727272]'}`}
+          className={`w-5 h-5 shrink-0 transition-colors ${active ? 'text-[#FF0055]' : 'text-[#727272]'}`}
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -95,7 +95,7 @@ export const Sidebar: React.FC = () => {
       to: `${settlementTarget}${tableParam}`,
       icon: (active) => (
         <svg
-          className={`w-5 h-5 shrink-0 transition-colors ${active ? 'text-[#ff4d00]' : 'text-[#727272]'}`}
+          className={`w-5 h-5 shrink-0 transition-colors ${active ? 'text-[#FF0055]' : 'text-[#727272]'}`}
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -109,13 +109,35 @@ export const Sidebar: React.FC = () => {
       ),
     },
     {
+      id: 'cashier',
+      label: 'Cashier Station',
+      to: '/cashier',
+      badge: 'POS',
+      icon: (active) => (
+        <svg
+          className={`w-5 h-5 shrink-0 transition-colors ${active ? 'text-[#FF0055]' : 'text-[#727272]'}`}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <rect x="2" y="4" width="20" height="16" rx="2" />
+          <line x1="2" y1="10" x2="22" y2="10" />
+          <line x1="7" y1="15" x2="7.01" y2="15" strokeWidth="2.5" />
+          <line x1="11" y1="15" x2="17" y2="15" strokeWidth="2" />
+        </svg>
+      ),
+    },
+    {
       id: 'kds',
       label: 'Kitchen Pass',
       to: '/kds',
       badge: 'Pass',
       icon: (active) => (
         <svg
-          className={`w-5 h-5 shrink-0 transition-colors ${active ? 'text-[#ff4d00]' : 'text-[#727272]'}`}
+          className={`w-5 h-5 shrink-0 transition-colors ${active ? 'text-[#FF0055]' : 'text-[#727272]'}`}
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -135,7 +157,7 @@ export const Sidebar: React.FC = () => {
       to: '/stand',
       icon: (active) => (
         <svg
-          className={`w-5 h-5 shrink-0 transition-colors ${active ? 'text-[#ff4d00]' : 'text-[#727272]'}`}
+          className={`w-5 h-5 shrink-0 transition-colors ${active ? 'text-[#FF0055]' : 'text-[#727272]'}`}
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -164,10 +186,10 @@ export const Sidebar: React.FC = () => {
           {totalCartCount > 0 && (
             <button
               onClick={() => openCartDrawer()}
-              className="px-3 py-1.5 rounded-full bg-[#fff8f5] border border-[#fcddcc] text-[#ff4d00] text-[12px] font-medium flex items-center gap-1.5"
+              className="px-3 py-1.5 rounded-full bg-[#fff0f3] border border-[#ffd1dc] text-[#FF0055] text-[12px] font-medium flex items-center gap-1.5 cursor-pointer"
             >
               <span>Cart</span>
-              <span className="w-4 h-4 rounded-full bg-[#ff4d00] text-white flex items-center justify-center text-[10px] font-mono-num font-medium">
+              <span className="w-4 h-4 rounded-full bg-[#FF0055] text-white flex items-center justify-center text-[10px] font-mono-num font-medium">
                 {totalCartCount}
               </span>
             </button>
@@ -175,9 +197,8 @@ export const Sidebar: React.FC = () => {
 
           <button
             onClick={() => setMobileDrawerOpen(!mobileDrawerOpen)}
-            className="p-2 rounded-lg text-[#262626] hover:bg-[#e5e7eb] border border-[#e5e7eb] flex items-center justify-center min-w-[36px] min-h-[36px]"
+            className="p-2 rounded-lg text-[#262626] hover:bg-[#e5e7eb] border border-[#e5e7eb] flex items-center justify-center min-w-[36px] min-h-[36px] cursor-pointer"
             aria-label="Toggle navigation drawer"
-            aria-describedby="tip-mobile-drawer"
             title="Toggle navigation drawer"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -187,7 +208,6 @@ export const Sidebar: React.FC = () => {
                 <path d="M4 6h16M4 12h16M4 18h16" />
               )}
             </svg>
-            <span id="tip-mobile-drawer" role="tooltip" className="sr-only">Toggle navigation drawer</span>
           </button>
         </div>
       </header>
@@ -214,7 +234,7 @@ export const Sidebar: React.FC = () => {
 
                 <button
                   onClick={() => setMobileDrawerOpen(false)}
-                  className="w-8 h-8 rounded-full bg-white border border-[#e5e7eb] flex items-center justify-center text-[#727272]"
+                  className="w-8 h-8 rounded-full bg-white border border-[#e5e7eb] flex items-center justify-center text-[#727272] cursor-pointer"
                   aria-label="Close drawer"
                   title="Close drawer"
                 >
@@ -225,9 +245,9 @@ export const Sidebar: React.FC = () => {
               </div>
 
               {activeTable && (
-                <div className="mt-4 p-2.5 rounded-xl bg-[#fff8f5] border border-[#fcddcc] flex items-center justify-between">
+                <div className="mt-4 p-2.5 rounded-xl bg-[#fff0f3] border border-[#ffd1dc] flex items-center justify-between">
                   <span className="text-[12px] text-[#727272]">Table:</span>
-                  <span className="px-2 py-0.5 rounded-md bg-[#ff4d00] text-white text-[11px] font-mono-num font-medium">
+                  <span className="px-2 py-0.5 rounded-md bg-[#FF0055] text-white text-[11px] font-mono-num font-medium">
                     {activeTable}
                   </span>
                 </div>
@@ -242,7 +262,7 @@ export const Sidebar: React.FC = () => {
                     className={({ isActive }) =>
                       `flex items-center justify-between px-3.5 py-2.5 rounded-xl text-[14px] font-medium transition-all ${
                         isActive
-                          ? 'bg-white text-[#ff4d00] border-l-2 border-l-[#ff4d00] shadow-xs'
+                          ? 'bg-white text-[#FF0055] border-l-2 border-l-[#FF0055] shadow-xs'
                           : 'text-[#727272] hover:bg-white hover:text-[#262626]'
                       }`
                     }
@@ -252,7 +272,7 @@ export const Sidebar: React.FC = () => {
                       <span>{item.label}</span>
                     </div>
                     {item.badge && (
-                      <span className="px-2 py-0.5 rounded-full bg-[#fff8f5] border border-[#fcddcc] text-[#ff4d00] text-[10px] font-mono-num font-medium">
+                      <span className="px-2 py-0.5 rounded-full bg-[#fff0f3] border border-[#ffd1dc] text-[#FF0055] text-[10px] font-mono-num font-medium">
                         {item.badge}
                       </span>
                     )}
@@ -269,7 +289,6 @@ export const Sidebar: React.FC = () => {
       )}
 
       {/* Desktop Structural Left Sidebar Rail (DESIGN.md §5.2) */}
-      {/* 220px expanded, 64px collapsed icon rail on --color-vellum */}
       <aside
         data-ui-container="sidebar"
         style={{ backgroundColor: '#f9f9f9' }}
@@ -286,7 +305,7 @@ export const Sidebar: React.FC = () => {
             title="FlameLink Home"
           >
             {isCollapsed ? (
-              <span className="w-8 h-8 rounded-lg bg-white border border-[#e5e7eb] flex items-center justify-center text-[#ff4d00] shadow-xs">
+              <span className="w-8 h-8 rounded-lg bg-white border border-[#e5e7eb] flex items-center justify-center text-[#FF0055] shadow-xs">
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
                   <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 3z" />
                 </svg>
@@ -301,7 +320,6 @@ export const Sidebar: React.FC = () => {
               onClick={() => setIsCollapsed(true)}
               className="w-8 h-8 p-1.5 rounded-lg hover:bg-white text-[#727272] hover:text-[#262626] flex items-center justify-center transition-colors border border-transparent hover:border-[#e5e7eb] cursor-pointer shrink-0"
               aria-label="Collapse navigation sidebar"
-              aria-describedby="tip-collapse-rail"
               title="Collapse navigation sidebar"
             >
               <svg
@@ -313,17 +331,16 @@ export const Sidebar: React.FC = () => {
               >
                 <polyline points="15 18 9 12 15 6" />
               </svg>
-              <span id="tip-collapse-rail" role="tooltip" className="sr-only">Collapse navigation sidebar</span>
             </button>
           )}
         </div>
 
         {/* Table Seating Badge in Sidebar */}
         {activeTable && (
-          <div className="p-2 border-b border-[#e5e7eb] bg-[#fff8f5]">
+          <div className="p-2 border-b border-[#e5e7eb] bg-[#fff0f3]">
             {isCollapsed ? (
               <div
-                className="w-full text-center py-0.5 rounded bg-[#ff4d00] text-white text-[11px] font-mono-num font-medium"
+                className="w-full text-center py-0.5 rounded bg-[#FF0055] text-white text-[11px] font-mono-num font-medium"
                 title={`Table ${activeTable}`}
               >
                 {activeTable.replace('T-', '')}
@@ -331,7 +348,7 @@ export const Sidebar: React.FC = () => {
             ) : (
               <div className="flex items-center justify-between text-[11px]">
                 <span className="text-[#727272]">Table:</span>
-                <span className="px-2 py-0.5 rounded-full bg-[#ff4d00] text-white font-mono-num font-medium">
+                <span className="px-2 py-0.5 rounded-full bg-[#FF0055] text-white font-mono-num font-medium">
                   {activeTable}
                 </span>
               </div>
@@ -353,7 +370,7 @@ export const Sidebar: React.FC = () => {
                 to={item.to}
                 className={`flex items-center ${isCollapsed ? 'justify-center px-2' : 'justify-between px-3'} py-2.5 rounded-lg text-[13px] font-medium transition-all group ${
                   isActive
-                    ? 'bg-white text-[#262626] shadow-xs border-l-2 border-l-[#ff4d00]'
+                    ? 'bg-white text-[#262626] shadow-xs border-l-2 border-l-[#FF0055]'
                     : 'text-[#727272] hover:text-[#262626] hover:bg-white'
                 }`}
                 title={isCollapsed ? item.label : undefined}
@@ -370,7 +387,7 @@ export const Sidebar: React.FC = () => {
                   <span
                     className={`px-1.5 py-0.5 rounded text-[10px] font-mono-num font-medium ${
                       isActive
-                        ? 'bg-[#fff8f5] text-[#ff4d00] border border-[#fcddcc]'
+                        ? 'bg-[#fff0f3] text-[#FF0055] border border-[#ffd1dc]'
                         : 'bg-white border border-[#e5e7eb] text-[#727272]'
                     }`}
                   >
@@ -388,14 +405,14 @@ export const Sidebar: React.FC = () => {
             onClick={() => openCartDrawer()}
             className={`w-full min-h-[44px] flex items-center ${isCollapsed ? 'justify-center p-2' : 'justify-between p-2.5'} rounded-lg transition-all border cursor-pointer ${
               totalCartCount > 0
-                ? 'bg-[#fff8f5] border-[#fcddcc] text-[#262626] shadow-xs hover:border-[#ff4d00]'
+                ? 'bg-[#fff0f3] border-[#ffd1dc] text-[#262626] shadow-xs hover:border-[#FF0055]'
                 : 'bg-[#f9f9f9] border-[#e5e7eb] text-[#727272] hover:text-[#262626]'
             }`}
             title="View Order Cart"
             aria-label="View Order Cart"
           >
             <div className="flex items-center gap-2 min-w-0">
-              <svg className="w-4 h-4 shrink-0 text-[#ff4d00]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg className="w-4 h-4 shrink-0 text-[#FF0055]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="9" cy="21" r="1" />
                 <circle cx="20" cy="21" r="1" />
                 <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
@@ -406,7 +423,7 @@ export const Sidebar: React.FC = () => {
             </div>
 
             {totalCartCount > 0 && (
-              <span className={`px-1.5 py-0.5 rounded-full bg-[#ff4d00] text-white text-[10px] font-mono-num font-medium shrink-0 ${isCollapsed ? 'ml-1' : ''}`}>
+              <span className={`px-1.5 py-0.5 rounded-full bg-[#FF0055] text-white text-[10px] font-mono-num font-medium shrink-0 ${isCollapsed ? 'ml-1' : ''}`}>
                 {totalCartCount}
               </span>
             )}
@@ -418,7 +435,6 @@ export const Sidebar: React.FC = () => {
               onClick={() => setIsCollapsed(false)}
               className="w-full h-8 rounded-lg hover:bg-[#f0f0f0] text-[#727272] hover:text-[#262626] flex items-center justify-center transition-colors cursor-pointer"
               aria-label="Expand navigation rail"
-              aria-describedby="tip-expand-rail"
               title="Expand navigation rail"
             >
               <svg
@@ -430,7 +446,6 @@ export const Sidebar: React.FC = () => {
               >
                 <polyline points="15 18 9 12 15 6" />
               </svg>
-              <span id="tip-expand-rail" role="tooltip" className="sr-only">Expand navigation rail</span>
             </button>
           )}
         </div>

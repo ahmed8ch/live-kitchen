@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useAppStore } from '../store/useAppStore';
 import { PaymentMethod } from '../types/domain';
@@ -10,13 +10,25 @@ const TIP_PERCENTAGES = [0, 10, 12, 15];
 export const SettlementPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const orders = useAppStore((state) => state.orders);
-  const payOrder = useAppStore((state) => state.payOrder);
+  const payOrderOnline = useAppStore((state) => state.payOrderOnline);
+  const verifyCashierPayment = useAppStore((state) => state.verifyCashierPayment);
+  const submitMealReview = useAppStore((state) => state.submitMealReview);
   const activeTable = useAppStore((state) => state.activeTable);
+  const showToast = useAppStore((state) => state.showToast);
 
+  const receiptRef = useRef<HTMLDivElement>(null);
+
+  const [splitMode, setSplitMode] = useState<'equal' | 'itemized'>('equal');
   const [splitWays, setSplitWays] = useState<number>(1);
-  const [tipPercent, setTipPercent] = useState<number>(0);
+  const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>('apple_pay');
   const [isProcessing, setIsProcessing] = useState(false);
+
+  // Post-meal rating & tipping state (appears AFTER payment)
+  const [rating, setRating] = useState<number>(5);
+  const [tipPercent, setTipPercent] = useState<number>(10);
+  const [feedback, setFeedback] = useState<string>('');
+  const [reviewSubmitted, setReviewSubmitted] = useState(false);
 
   // Target ticket or fallback to latest
   const ticket =
@@ -35,13 +47,13 @@ export const SettlementPage: React.FC = () => {
         </div>
         <h2 className="text-xl font-medium text-[#262626]">No Open Ticket to Settle</h2>
         <p className="mt-2 text-[#727272] text-[14px] max-w-sm mx-auto">
-          You currently have no unpaid tickets on file. Order from the dine-in menu to generate an invoice.
+          You currently have no orders on file. Visit the culinary menu to place an order.
         </p>
         <div className="mt-6">
           <Link
             to={activeTable ? `/menu?table=${activeTable}` : '/menu'}
             data-ui-radius="999"
-            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#ff4d00] text-white text-[13px] font-medium transition-all btn-ember-glow"
+            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#FF0055] text-white text-[13px] font-medium transition-all btn-crimson-glow shadow-xs"
           >
             <span>Open Dine-In Menu -&gt;</span>
           </Link>
@@ -50,16 +62,126 @@ export const SettlementPage: React.FC = () => {
     );
   }
 
-  const tipAmount = Math.round((ticket.subtotal * (tipPercent / 100)) * 100) / 100;
-  const grandTotal = Math.round((ticket.total + tipAmount) * 100) / 100;
-  const perPersonAmount = Math.round((grandTotal / splitWays) * 100) / 100;
+  const isVerifiedPaid = ticket.paymentStatus === 'verified_paid';
 
-  const handleSettle = () => {
+  // Itemized split calculation
+  const selectedItems = ticket.items.filter((item) =>
+    selectedItemIds.includes(item.cartItemId)
+  );
+
+  const itemizedSubtotal = selectedItems.reduce((sum, item) => {
+    const modTotal = item.selectedModifiers.reduce((mSum, m) => mSum + m.price, 0);
+    return sum + (item.menuItem.basePrice + modTotal) * item.quantity;
+  }, 0);
+  const itemizedVat = Math.round(itemizedSubtotal * 0.14 * 100) / 100;
+  const itemizedTotal = Math.round((itemizedSubtotal + itemizedVat) * 100) / 100;
+
+  // Equal split calculation
+  const perPersonAmount = Math.round((ticket.total / splitWays) * 100) / 100;
+
+  // Post-meal tip calculation
+  const tipAmount = Math.round((ticket.subtotal * (tipPercent / 100)) * 100) / 100;
+
+  const toggleItemSelection = (cartItemId: string) => {
+    setSelectedItemIds((prev) =>
+      prev.includes(cartItemId) ? prev.filter((id) => id !== cartItemId) : [...prev, cartItemId]
+    );
+  };
+
+  const selectAllItems = () => {
+    setSelectedItemIds(ticket.items.map((i) => i.cartItemId));
+  };
+
+  const handleSettleOnline = () => {
     setIsProcessing(true);
     setTimeout(() => {
-      payOrder(ticket.id, selectedMethod, splitWays, tipAmount);
+      payOrderOnline(ticket.id, selectedMethod, splitWays);
       setIsProcessing(false);
-    }, 500);
+      showToast(`Order #${ticket.id} verified and paid in full!`);
+    }, 600);
+  };
+
+  const handleSimulateCashierVerify = () => {
+    verifyCashierPayment(ticket.id, 'card');
+    showToast(`Cashier verified settlement for Chit #${ticket.cashierChitCode || ticket.id}!`);
+  };
+
+  const handleSubmitReview = (e: React.FormEvent) => {
+    e.preventDefault();
+    submitMealReview(ticket.id, rating, feedback.trim() || undefined, tipAmount);
+    setReviewSubmitted(true);
+  };
+
+  // Export receipt as image (SVG blob -> download)
+  const handleSaveAsImage = () => {
+    const receiptElement = document.getElementById('printable-receipt');
+    if (!receiptElement) return;
+
+    // Build SVG foreignObject data
+    const rect = receiptElement.getBoundingClientRect();
+    const width = rect.width || 420;
+    const height = rect.height || 600;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = width * 2;
+    canvas.height = height * 2;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      window.print();
+      return;
+    }
+
+    ctx.scale(2, 2);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, width, height);
+
+    // Thermal header banner
+    ctx.fillStyle = '#FF0055';
+    ctx.fillRect(0, 0, width, 40);
+
+    ctx.font = 'bold 16px Inter, sans-serif';
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText('FlameLink e-Receipt', 20, 26);
+
+    ctx.font = '12px "Geist Mono", monospace';
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText(`#${ticket.id}`, width - 100, 26);
+
+    // Body content
+    ctx.font = '13px "Geist Mono", monospace';
+    ctx.fillStyle = '#262626';
+    ctx.fillText(`Table: ${ticket.tableNumber || 'Counter'}`, 20, 70);
+    ctx.fillText(`Date: ${new Date(ticket.createdAt).toLocaleDateString()} ${new Date(ticket.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`, 20, 90);
+    ctx.fillText(`Status: ${isVerifiedPaid ? 'PAID IN FULL' : 'PENDING CASHIER'}`, 20, 110);
+
+    let y = 140;
+    ctx.fillText('----------------------------------------------------', 20, y);
+    y += 20;
+
+    ticket.items.forEach((item) => {
+      ctx.fillText(`${item.quantity}x ${item.menuItem.name}`, 20, y);
+      ctx.fillText(`${(item.menuItem.basePrice * item.quantity).toFixed(2)} EGP`, width - 110, y);
+      y += 20;
+    });
+
+    ctx.fillText('----------------------------------------------------', 20, y);
+    y += 20;
+
+    ctx.fillText(`Subtotal: ${ticket.subtotal.toFixed(2)} EGP`, 20, y);
+    y += 18;
+    ctx.fillText(`14% VAT: ${ticket.vatAmount.toFixed(2)} EGP`, 20, y);
+    y += 22;
+
+    ctx.font = 'bold 15px "Geist Mono", monospace';
+    ctx.fillStyle = '#FF0055';
+    ctx.fillText(`Total Paid: ${ticket.total.toFixed(2)} EGP`, 20, y);
+
+    const dataUrl = canvas.toDataURL('image/png');
+    const link = document.createElement('a');
+    link.download = `FlameLink-Receipt-${ticket.id}.png`;
+    link.href = dataUrl;
+    link.click();
+    showToast(`Receipt #${ticket.id} saved as image!`);
   };
 
   return (
@@ -82,8 +204,39 @@ export const SettlementPage: React.FC = () => {
           </span>
         </div>
 
-        {/* Perforated Thermal Ticket Container (DESIGN.md §4.3) */}
-        <div className="thermal-ticket-light p-6 sm:p-8 bg-white shadow-xs">
+        {/* Cashier Chit Notice if payment is pending */}
+        {!isVerifiedPaid && (
+          <div className="mb-6 p-4 rounded-2xl bg-[#fff0f3] border-2 border-[#ffd1dc] space-y-3">
+            <div className="flex items-start justify-between">
+              <div>
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#ffe0e8] text-[#FF0055] text-[11px] font-mono-num font-semibold">
+                  <span>PAYMENT REQUIRED BEFORE COOKING</span>
+                </div>
+                <h3 className="text-lg font-bold text-[#262626] mt-1">
+                  Chit #{ticket.cashierChitCode || ticket.id}
+                </h3>
+                <p className="text-[13px] text-[#727272] mt-0.5">
+                  Present this chit at the front register, or settle online below to fire order to KDS line.
+                </p>
+              </div>
+
+              <button
+                onClick={handleSimulateCashierVerify}
+                className="px-3 py-1.5 rounded-lg bg-white border border-[#ffd1dc] hover:border-[#FF0055] text-[#FF0055] text-[11px] font-mono-num font-medium transition-colors cursor-pointer shadow-xs shrink-0"
+                title="Simulate cashier desk payment confirmation"
+              >
+                Simulate Cashier Stamp
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Perforated Thermal Ticket Container (Wrapped in #printable-receipt for strict print isolation) */}
+        <div
+          id="printable-receipt"
+          ref={receiptRef}
+          className="thermal-ticket-light p-6 sm:p-8 bg-white shadow-xs"
+        >
           {/* Header Tear Band */}
           <div className="flex items-start justify-between pb-6 border-b border-[#e5e7eb]">
             <div>
@@ -128,10 +281,14 @@ export const SettlementPage: React.FC = () => {
                         {item.quantity}x
                       </span>
                       <span className="text-[#262626] font-medium">{item.menuItem.name}</span>
-                      {/* @unit_price ONLY when quantity > 1 (Agent 03 specification) */}
                       {item.quantity > 1 && (
                         <span className="text-[12px] font-mono-num text-[#949494]" data-ui-number>
                           @{unitPrice.toFixed(2)}
+                        </span>
+                      )}
+                      {item.addedBy && (
+                        <span className="text-[11px] font-mono-num text-[#727272]">
+                          ({item.addedBy.name})
                         </span>
                       )}
                     </div>
@@ -175,85 +332,129 @@ export const SettlementPage: React.FC = () => {
               <span className="font-mono-num text-[#262626]" data-ui-number>{ticket.vatAmount.toFixed(2)} EGP</span>
             </div>
 
-            {tipPercent > 0 && (
-              <div className="flex justify-between text-[#727272]">
-                <span>Kitchen Line Gratuity ({tipPercent}%)</span>
-                <span className="font-mono-num text-[#262626]" data-ui-number>+{tipAmount.toFixed(2)} EGP</span>
-              </div>
-            )}
-
             <div className="pt-2 flex justify-between text-[17px] font-medium text-[#262626]">
               <span>Grand Total</span>
-              <span className="font-mono-num font-medium text-[#ff4d00]" data-ui-number>{grandTotal.toFixed(2)} EGP</span>
+              <span className="font-mono-num font-medium text-[#FF0055]" data-ui-number>{ticket.total.toFixed(2)} EGP</span>
             </div>
           </div>
 
-          {/* Gratuity / Tip Selection */}
-          {!ticket.isPaid && (
-            <div className="py-4 border-b border-[#e5e7eb]">
-              <div className="flex items-center justify-between mb-2.5">
-                <span className="text-[12px] font-medium text-[#262626]">Kitchen Line Gratuity</span>
-                <span className="text-[12px] font-mono-num text-[#727272]" data-ui-number>
-                  {tipPercent}% ({tipAmount.toFixed(2)} EGP)
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                {TIP_PERCENTAGES.map((pct) => (
+          {/* ADVANCED BILL SPLITTING ENGINE (Equal Fraction OR By Dish Itemized) */}
+          {!isVerifiedPaid && (
+            <div className="py-4 border-b border-[#e5e7eb] space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-[12px] font-medium text-[#262626]">Split Bill Mode</span>
+                <div className="flex items-center gap-1 bg-[#f9f9f9] p-0.5 rounded-lg border border-[#e5e7eb]">
                   <button
-                    key={pct}
-                    onClick={() => setTipPercent(pct)}
-                    data-ui-radius="999"
-                    className={`flex-1 py-1.5 rounded-full text-[12px] font-mono-num transition-all cursor-pointer ${
-                      tipPercent === pct
-                        ? 'bg-[#262626] text-white font-medium shadow-xs'
-                        : 'bg-[#f9f9f9] hover:bg-[#f0f0f0] text-[#727272] border border-[#e5e7eb]'
+                    onClick={() => setSplitMode('equal')}
+                    className={`px-2.5 py-1 rounded text-[11px] font-medium transition-colors cursor-pointer ${
+                      splitMode === 'equal' ? 'bg-[#262626] text-white' : 'text-[#727272]'
                     }`}
                   >
-                    {pct === 0 ? 'No Tip' : `${pct}%`}
+                    Equal Split
                   </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Split Bill Calculator */}
-          {!ticket.isPaid && (
-            <div className="py-4 border-b border-[#e5e7eb]">
-              <div className="flex items-center justify-between mb-2.5">
-                <span className="text-[12px] font-medium text-[#262626]">Split Bill Between Party</span>
-                <span className="text-[12px] font-mono-num text-[#ff4d00]" data-ui-number>
-                  {perPersonAmount.toFixed(2)} EGP / person
-                </span>
-              </div>
-
-              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
-                {SPLIT_OPTIONS.map((num) => (
                   <button
-                    key={num}
-                    onClick={() => setSplitWays(num)}
-                    data-ui-radius="8"
-                    className={`px-3 py-1.5 rounded-lg text-[12px] font-mono-num transition-all cursor-pointer shrink-0 ${
-                      splitWays === num
-                        ? 'bg-[#ff4d00] text-white font-medium shadow-xs'
-                        : 'bg-[#f9f9f9] hover:bg-[#f0f0f0] text-[#727272] border border-[#e5e7eb]'
+                    onClick={() => {
+                      setSplitMode('itemized');
+                      if (selectedItemIds.length === 0) selectAllItems();
+                    }}
+                    className={`px-2.5 py-1 rounded text-[11px] font-medium transition-colors cursor-pointer ${
+                      splitMode === 'itemized' ? 'bg-[#262626] text-white' : 'text-[#727272]'
                     }`}
                   >
-                    {num === 1 ? '1 Pay All' : `${num} Ways`}
+                    Split by Dish
                   </button>
-                ))}
+                </div>
               </div>
+
+              {splitMode === 'equal' ? (
+                <div className="space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[12px] text-[#727272]">Diners sharing bill:</span>
+                    <span className="text-[13px] font-mono-num font-semibold text-[#FF0055]">
+                      {perPersonAmount.toFixed(2)} EGP / person
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+                    {SPLIT_OPTIONS.map((num) => (
+                      <button
+                        key={num}
+                        onClick={() => setSplitWays(num)}
+                        data-ui-radius="8"
+                        className={`px-3 py-1.5 rounded-lg text-[12px] font-mono-num transition-all cursor-pointer shrink-0 ${
+                          splitWays === num
+                            ? 'bg-[#FF0055] text-white font-medium shadow-xs'
+                            : 'bg-[#f9f9f9] hover:bg-[#f0f0f0] text-[#727272] border border-[#e5e7eb]'
+                        }`}
+                      >
+                        {num === 1 ? '1 Pay All' : `${num} Ways`}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-2.5 bg-[#f9f9f9] p-3 rounded-xl border border-[#e5e7eb]">
+                  <div className="flex items-center justify-between text-[12px]">
+                    <span className="font-medium text-[#262626]">Select Dishes You Consumed:</span>
+                    <button
+                      onClick={selectAllItems}
+                      className="text-[11px] text-[#FF0055] hover:underline cursor-pointer"
+                    >
+                      Select All
+                    </button>
+                  </div>
+
+                  <div className="space-y-1.5 max-h-36 overflow-y-auto">
+                    {ticket.items.map((item) => {
+                      const isSelected = selectedItemIds.includes(item.cartItemId);
+                      const itemPrice = item.menuItem.basePrice * item.quantity;
+
+                      return (
+                        <label
+                          key={item.cartItemId}
+                          className={`flex items-center justify-between p-2 rounded-lg border text-[12px] transition-colors cursor-pointer ${
+                            isSelected
+                              ? 'bg-white border-[#FF0055] text-[#262626]'
+                              : 'bg-white/60 border-[#e5e7eb] text-[#727272]'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={() => toggleItemSelection(item.cartItemId)}
+                              className="accent-[#FF0055] rounded cursor-pointer"
+                            />
+                            <span>{item.quantity}x {item.menuItem.name}</span>
+                          </div>
+                          <span className="font-mono-num font-medium">
+                            {itemPrice.toFixed(2)} EGP
+                          </span>
+                        </label>
+                      );
+                    })}
+                  </div>
+
+                  <div className="pt-2 border-t border-[#e5e7eb] flex items-center justify-between text-[12px]">
+                    <span className="text-[#727272]">Your Share (incl. 14% VAT):</span>
+                    <span className="font-mono-num font-bold text-[#FF0055]">
+                      {itemizedTotal.toFixed(2)} EGP
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
           {/* Settlement Status / Payment Action */}
           <div className="pt-5">
-            {ticket.isPaid ? (
+            {isVerifiedPaid ? (
               <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-center space-y-1">
                 <div className="inline-flex items-center gap-1.5 text-emerald-800 font-medium text-[14px]">
                   <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                     <polyline points="20 6 9 17 4 12" />
                   </svg>
-                  <span>PAID IN FULL</span>
+                  <span>PAID IN FULL // VERIFIED AT REGISTER</span>
                 </div>
                 <div className="text-[12px] font-mono-num text-emerald-700" data-ui-number>
                   Auth: #AUTH-{ticket.id.replace('ORD-', '99')}-ETA • Method: {ticket.paymentMethod?.replace('_', ' ').toUpperCase()}
@@ -261,19 +462,19 @@ export const SettlementPage: React.FC = () => {
               </div>
             ) : (
               <div className="space-y-4">
-                <div className="text-[12px] font-medium text-[#262626]">Select Payment Method:</div>
+                <div className="text-[12px] font-medium text-[#262626]">Select Payment Verification Method:</div>
                 <div className="grid grid-cols-3 gap-2">
                   <button
                     onClick={() => setSelectedMethod('apple_pay')}
                     data-ui-radius="8"
                     className={`p-3 rounded-lg border text-center transition-all cursor-pointer ${
                       selectedMethod === 'apple_pay'
-                        ? 'border-[#ff4d00] bg-[#fff8f5] shadow-xs'
+                        ? 'border-[#FF0055] bg-[#fff0f3] shadow-xs'
                         : 'border-[#e5e7eb] bg-white hover:bg-[#f9f9f9]'
                     }`}
                   >
                     <div className="text-[13px] font-medium text-[#262626]">Apple Pay</div>
-                    <div className="text-[11px] text-[#949494] mt-0.5">Contactless</div>
+                    <div className="text-[11px] text-[#949494] mt-0.5">Instant Auth</div>
                   </button>
 
                   <button
@@ -281,7 +482,7 @@ export const SettlementPage: React.FC = () => {
                     data-ui-radius="8"
                     className={`p-3 rounded-lg border text-center transition-all cursor-pointer ${
                       selectedMethod === 'card'
-                        ? 'border-[#ff4d00] bg-[#fff8f5] shadow-xs'
+                        ? 'border-[#FF0055] bg-[#fff0f3] shadow-xs'
                         : 'border-[#e5e7eb] bg-white hover:bg-[#f9f9f9]'
                     }`}
                   >
@@ -294,26 +495,26 @@ export const SettlementPage: React.FC = () => {
                     data-ui-radius="8"
                     className={`p-3 rounded-lg border text-center transition-all cursor-pointer ${
                       selectedMethod === 'cashier'
-                        ? 'border-[#ff4d00] bg-[#fff8f5] shadow-xs'
+                        ? 'border-[#FF0055] bg-[#fff0f3] shadow-xs'
                         : 'border-[#e5e7eb] bg-white hover:bg-[#f9f9f9]'
                     }`}
                   >
-                    <div className="text-[13px] font-medium text-[#262626]">Cashier</div>
-                    <div className="text-[11px] text-[#949494] mt-0.5">Door Register</div>
+                    <div className="text-[13px] font-medium text-[#262626]">Cashier Desk</div>
+                    <div className="text-[11px] text-[#949494] mt-0.5">Pay at Door</div>
                   </button>
                 </div>
 
                 <button
-                  onClick={handleSettle}
+                  onClick={handleSettleOnline}
                   disabled={isProcessing}
                   data-ui-radius="999"
-                  className="w-full py-3.5 rounded-full bg-[#ff4d00] hover:opacity-95 text-white text-[14px] font-medium transition-all btn-ember-glow active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2"
+                  className="w-full py-3.5 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[14px] font-medium transition-all btn-crimson-glow active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2"
                 >
                   {isProcessing ? (
-                    <span>Authorizing Transaction...</span>
+                    <span>Authorizing Transaction with ETA Gate...</span>
                   ) : (
                     <span>
-                      Settle Bill ({perPersonAmount.toFixed(2)} EGP {splitWays > 1 ? `/ person` : ''}) -&gt;
+                      Settle Bill ({splitMode === 'equal' ? `${perPersonAmount.toFixed(2)} EGP / person` : `${itemizedTotal.toFixed(2)} EGP for selected items`}) -&gt;
                     </span>
                   )}
                 </button>
@@ -322,18 +523,137 @@ export const SettlementPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Print / Download Button */}
-        <div className="mt-6 text-center">
+        {/* POST-MEAL TIPPING & 5-STAR REVIEW (Appears ONLY AFTER payment is settled) */}
+        {isVerifiedPaid && !reviewSubmitted && (
+          <section className="mt-8 bg-white p-6 rounded-2xl border border-[#e5e7eb] shadow-xs animate-in fade-in duration-200">
+            <div className="text-center mb-4">
+              <span className="text-[11px] font-mono-num uppercase tracking-wider text-[#FF0055] bg-[#ffe0e8] px-2.5 py-0.5 rounded-full font-medium">
+                Post-Meal Experience
+              </span>
+              <h3 className="text-lg font-medium text-[#262626] mt-2">
+                Rate Your Flame Dining Experience
+              </h3>
+              <p className="text-[13px] text-[#727272]">
+                Your feedback directly impacts our wood-fire culinary crew and floor team.
+              </p>
+            </div>
+
+            <form onSubmit={handleSubmitReview} className="space-y-4">
+              {/* Star Rating (SVG stars, 0 emojis) */}
+              <div className="flex items-center justify-center gap-2">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    type="button"
+                    onClick={() => setRating(star)}
+                    className="p-1 cursor-pointer transition-transform hover:scale-110"
+                    aria-label={`Rate ${star} stars`}
+                  >
+                    <svg
+                      className={`w-7 h-7 ${star <= rating ? 'text-[#FF0055] fill-[#FF0055]' : 'text-[#e5e7eb]'}`}
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                    >
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                    </svg>
+                  </button>
+                ))}
+              </div>
+
+              {/* Optional Kitchen Gratuity */}
+              <div className="pt-2">
+                <div className="flex items-center justify-between text-[12px] mb-2">
+                  <span className="font-medium text-[#262626]">Optional Kitchen Gratuity</span>
+                  <span className="font-mono-num text-[#727272]">
+                    {tipPercent}% ({tipAmount.toFixed(2)} EGP)
+                  </span>
+                </div>
+                <div className="grid grid-cols-4 gap-2">
+                  {TIP_PERCENTAGES.map((pct) => (
+                    <button
+                      key={pct}
+                      type="button"
+                      onClick={() => setTipPercent(pct)}
+                      className={`py-1.5 rounded-lg text-[12px] font-mono-num transition-colors cursor-pointer ${
+                        tipPercent === pct
+                          ? 'bg-[#262626] text-white font-medium'
+                          : 'bg-[#f9f9f9] border border-[#e5e7eb] text-[#727272] hover:bg-[#f0f0f0]'
+                      }`}
+                    >
+                      {pct === 0 ? 'No Tip' : `${pct}%`}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Feedback Note Input */}
+              <div>
+                <label htmlFor="meal-feedback" className="block text-[12px] font-medium text-[#262626] mb-1">
+                  Culinary Notes & Service Feedback (Optional)
+                </label>
+                <textarea
+                  id="meal-feedback"
+                  value={feedback}
+                  onChange={(e) => setFeedback(e.target.value)}
+                  rows={2}
+                  placeholder="e.g. Burgers were juicy, fries were extra crispy!"
+                  className="w-full px-3 py-2 text-[13px] rounded-lg border border-[#e5e7eb] focus:outline-none focus:border-[#FF0055]"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full py-2.5 rounded-full bg-[#262626] hover:bg-[#1a1a1a] text-white text-[13px] font-medium transition-colors cursor-pointer shadow-xs"
+              >
+                Submit Review & Gratuity -&gt;
+              </button>
+            </form>
+          </section>
+        )}
+
+        {reviewSubmitted && (
+          <div className="mt-6 p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-center text-emerald-800 text-[13px] font-medium">
+            Thank you! Your feedback and gratuity have been credited to the kitchen team.
+          </div>
+        )}
+
+        {/* Print / Download / Share Actions Strip */}
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           <button
             onClick={() => window.print()}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#e5e7eb] bg-white text-[13px] text-[#727272] hover:text-[#262626] transition-colors shadow-xs"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#e5e7eb] bg-white text-[13px] text-[#262626] hover:bg-[#f9f9f9] transition-colors shadow-xs cursor-pointer"
           >
-            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg className="w-4 h-4 text-[#727272]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <polyline points="6 9 6 2 18 2 18 9" />
               <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
               <rect x="6" y="14" width="12" height="8" />
             </svg>
-            <span>Print Fiscal Receipt (PDF)</span>
+            <span>Print Receipt</span>
+          </button>
+
+          <button
+            onClick={() => window.print()}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#e5e7eb] bg-white text-[13px] text-[#262626] hover:bg-[#f9f9f9] transition-colors shadow-xs cursor-pointer"
+          >
+            <svg className="w-4 h-4 text-[#727272]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            <span>Download PDF</span>
+          </button>
+
+          <button
+            onClick={handleSaveAsImage}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#e5e7eb] bg-white text-[13px] text-[#262626] hover:bg-[#f9f9f9] transition-colors shadow-xs cursor-pointer"
+          >
+            <svg className="w-4 h-4 text-[#727272]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+              <circle cx="8.5" cy="8.5" r="1.5" />
+              <polyline points="21 15 16 10 5 21" />
+            </svg>
+            <span>Save / Share as Image</span>
           </button>
         </div>
       </div>

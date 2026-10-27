@@ -71,7 +71,7 @@ export const DishModal: React.FC<DishModalProps> = ({ dish, onClose }) => {
             </svg>
           </button>
           {dish.badge && (
-            <div className="absolute top-3 left-3 px-3 py-1 rounded-full bg-[#ff4d00] text-white text-[11px] font-mono-num font-medium shadow-xs">
+            <div className="absolute top-3 left-3 px-3 py-1 rounded-full bg-[#FF0055] text-white text-[11px] font-mono-num font-medium shadow-xs">
               {dish.badge}
             </div>
           )}
@@ -82,7 +82,7 @@ export const DishModal: React.FC<DishModalProps> = ({ dish, onClose }) => {
           <div>
             <div className="flex items-start justify-between gap-4">
               <h3 className="text-xl font-medium text-[#262626]" data-ui-balance>{dish.name}</h3>
-              <div className="text-lg font-mono-num font-medium text-[#ff4d00] shrink-0" data-ui-number>
+              <div className="text-lg font-mono-num font-medium text-[#FF0055] shrink-0" data-ui-number>
                 {dish.basePrice.toFixed(2)} EGP
               </div>
             </div>
@@ -118,68 +118,67 @@ export const DishModal: React.FC<DishModalProps> = ({ dish, onClose }) => {
                 {dish.modifiers.map((mod) => {
                   const isSelected = selectedModifiers.some((m) => m.id === mod.id);
                   return (
-                    <button
+                    <label
                       key={mod.id}
-                      type="button"
                       onClick={() => toggleModifier(mod)}
-                      data-ui-radius="8"
-                      className={`w-full flex items-center justify-between p-3 rounded-lg border text-left transition-all cursor-pointer ${
+                      className={`flex items-center justify-between p-3 rounded-xl border transition-all cursor-pointer select-none ${
                         isSelected
-                          ? 'border-[#ff4d00] bg-[#fff8f5] shadow-xs'
+                          ? 'border-[#FF0055] bg-[#fff0f3] shadow-xs'
                           : 'border-[#e5e7eb] bg-white hover:bg-[#f9f9f9]'
                       }`}
                     >
                       <div className="flex items-center gap-3">
                         <div
-                          className={`w-4 h-4 rounded-sm border flex items-center justify-center transition-colors ${
+                          className={`w-5 h-5 rounded-md border flex items-center justify-center transition-colors ${
                             isSelected
-                              ? 'bg-[#ff4d00] border-[#ff4d00] text-white'
-                              : 'border-[#c7c7c7] bg-white'
+                              ? 'bg-[#FF0055] border-[#FF0055] text-white'
+                              : 'border-[#d1d5db] bg-white'
                           }`}
                         >
                           {isSelected && (
-                            <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
                               <polyline points="20 6 9 17 4 12" />
                             </svg>
                           )}
                         </div>
-                        <span className="text-[13px] font-medium text-[#262626]">{mod.name}</span>
+                        <span className="text-[14px] text-[#262626] font-medium">
+                          {mod.name}
+                        </span>
                       </div>
-                      <span className="font-mono-num text-[13px] text-[#ff4d00]" data-ui-number>
+
+                      <span className="font-mono-num text-[13px] text-[#FF0055]" data-ui-number>
                         +{mod.price.toFixed(2)} EGP
                       </span>
-                    </button>
+                    </label>
                   );
                 })}
               </div>
             </div>
           )}
 
-          {/* Kitchen Special Instructions */}
+          {/* Special Preparation Instructions Input */}
           <div>
             <label htmlFor="dish-notes" className="block text-[13px] font-medium text-[#262626] mb-1.5">
-              Kitchen Special Instructions
+              Special Kitchen Notes
             </label>
-            <textarea
+            <input
               id="dish-notes"
+              type="text"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="e.g. Extra hot honey glaze, sauce on the side, well-done"
-              rows={2}
-              data-ui-radius="8"
-              className="w-full px-3 py-2 text-[13px] rounded-lg border border-[#e5e7eb] bg-white text-[#262626] placeholder-[#949494] focus:outline-none focus:border-[#ff4d00]"
+              placeholder="e.g. Extra pickles, sauce on the side, well-done"
+              className="w-full px-3 py-2 text-[13px] rounded-lg border border-[#e5e7eb] bg-white text-[#262626] placeholder-[#949494] focus:outline-none focus:border-[#FF0055]"
             />
           </div>
         </div>
 
-        {/* Modal Sticky Footer Action Bar */}
-        <div className="p-4 sm:p-5 border-t border-[#e5e7eb] bg-[#f9f9f9] flex items-center justify-between gap-4 shrink-0">
-          {/* Quantity Stepper */}
-          <div className="flex items-center border border-[#e5e7eb] rounded-full bg-white shadow-xs p-1">
+        {/* Modal Footer Controls */}
+        <div className="p-4 sm:p-5 border-t border-[#e5e7eb] bg-[#f9f9f9] flex items-center gap-3 shrink-0">
+          {/* Quantity Controls */}
+          <div className="flex items-center border border-[#e5e7eb] bg-white rounded-full p-1 shadow-xs">
             <button
               onClick={() => setQuantity(Math.max(1, quantity - 1))}
-              disabled={quantity <= 1}
-              className="w-8 h-8 rounded-full flex items-center justify-center text-[#262626] disabled:opacity-30 hover:bg-[#f0f0f0] transition-colors cursor-pointer"
+              className="w-8 h-8 rounded-full flex items-center justify-center text-[#262626] hover:bg-[#f0f0f0] transition-colors cursor-pointer text-base"
               aria-label="Decrease quantity"
             >
               -
@@ -189,23 +188,21 @@ export const DishModal: React.FC<DishModalProps> = ({ dish, onClose }) => {
             </span>
             <button
               onClick={() => setQuantity(quantity + 1)}
-              className="w-8 h-8 rounded-full flex items-center justify-center text-[#262626] hover:bg-[#f0f0f0] transition-colors cursor-pointer"
+              className="w-8 h-8 rounded-full flex items-center justify-center text-[#262626] hover:bg-[#f0f0f0] transition-colors cursor-pointer text-base"
               aria-label="Increase quantity"
             >
               +
             </button>
           </div>
 
-          {/* Add to Order CTA */}
+          {/* Add to Order Button */}
           <button
             onClick={handleAddToCart}
             data-ui-radius="999"
-            className="flex-1 py-3 px-6 rounded-full bg-[#ff4d00] hover:opacity-95 text-white text-[14px] font-medium transition-all btn-ember-glow active:scale-[0.99] flex items-center justify-between cursor-pointer shadow-xs"
+            className="flex-1 py-3 px-6 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[14px] font-medium transition-all btn-crimson-glow active:scale-[0.99] flex items-center justify-between cursor-pointer shadow-xs"
           >
-            <span>{addedFeedback ? 'Added to Order!' : 'Add to Order'}</span>
-            <span className="font-mono-num font-medium text-[14px]" data-ui-number>
-              {itemTotal.toFixed(2)} EGP
-            </span>
+            <span>{addedFeedback ? 'Added!' : 'Add to Table Order'}</span>
+            <span className="font-mono-num" data-ui-number>{itemTotal.toFixed(2)} EGP</span>
           </button>
         </div>
       </div>

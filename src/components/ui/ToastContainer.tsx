@@ -16,9 +16,9 @@ export const ToastContainer: React.FC = () => {
     >
       <div
         data-ui-radius="8"
-        className="bg-white text-[#262626] pl-4 pr-5 py-3 rounded-lg border border-[#e5e7eb] border-l-4 border-l-[#ff4d00] shadow-lg flex items-center gap-3 max-w-md select-none"
+        className="bg-white text-[#262626] pl-4 pr-5 py-3 rounded-lg border border-[#e5e7eb] border-l-4 border-l-[#FF0055] shadow-lg flex items-center gap-3 max-w-md select-none"
       >
-        <span className="w-5 h-5 rounded-full bg-[#fcddcc] text-[#ff4d00] flex items-center justify-center shrink-0">
+        <span className="w-5 h-5 rounded-full bg-[#ffd1dc] text-[#FF0055] flex items-center justify-center shrink-0">
           <svg
             className="w-3.5 h-3.5"
             viewBox="0 0 24 24"
@@ -36,7 +36,7 @@ export const ToastContainer: React.FC = () => {
         </span>
         <button
           onClick={clearToast}
-          className="ml-auto text-[#949494] hover:text-[#262626] transition-colors p-1"
+          className="ml-auto text-[#949494] hover:text-[#262626] transition-colors p-1 cursor-pointer"
           aria-label="Dismiss toast"
         >
           <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">

@@ -29,14 +29,14 @@ export const TableStandPage: React.FC = () => {
       <div className="max-w-4xl mx-auto px-4 sm:px-6">
         {/* Studio Header */}
         <div className="text-center max-w-xl mx-auto mb-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-[#e5e7eb] text-[11px] font-mono-num font-medium text-[#ff4d00] uppercase mb-3 shadow-xs">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-[#e5e7eb] text-[11px] font-mono-num font-medium text-[#FF0055] uppercase mb-3 shadow-xs">
             Physical Hardware Studio
           </div>
           <h1 className="text-3xl font-medium text-[#262626]" data-ui-balance>
             Acrylic Table Stand Studio
           </h1>
           <p className="mt-2 text-[14px] text-[#616161]" data-ui-pretty>
-            Generate authentic 4×6" acrylic tent table stands. Diners scan with standard camera to bind directly to their table number.
+            Generate authentic 4x6" acrylic tent table stands. Diners scan with standard camera to bind directly to their table number.
           </p>
 
           {/* Table Selector & Custom Input */}
@@ -49,7 +49,7 @@ export const TableStandPage: React.FC = () => {
                 data-ui-radius="8"
                 className={`px-3 py-1 rounded-lg text-[13px] font-mono-num transition-all cursor-pointer ${
                   cleanTable === id
-                    ? 'bg-[#ff4d00] text-white font-medium shadow-xs'
+                    ? 'bg-[#FF0055] text-white font-medium shadow-xs'
                     : 'bg-white hover:bg-[#f0f0f0] text-[#727272] border border-[#e5e7eb]'
                 }`}
               >
@@ -64,7 +64,7 @@ export const TableStandPage: React.FC = () => {
                 onChange={(e) => setTableId(e.target.value)}
                 placeholder="Custom"
                 aria-label="Custom Table Code"
-                className="w-24 px-2.5 py-1 text-[13px] font-mono-num rounded-lg border border-[#e5e7eb] bg-white text-[#262626] focus:outline-none focus:border-[#ff4d00]"
+                className="w-24 px-2.5 py-1 text-[13px] font-mono-num rounded-lg border border-[#e5e7eb] bg-white text-[#262626] focus:outline-none focus:border-[#FF0055]"
               />
             </div>
           </div>
@@ -87,7 +87,7 @@ export const TableStandPage: React.FC = () => {
             <button
               onClick={handleSimulateScan}
               data-ui-radius="999"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#ff4d00] hover:opacity-95 text-white text-[13px] font-medium shadow-xs transition-all btn-ember-glow active:scale-95 cursor-pointer"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[13px] font-medium shadow-xs transition-all btn-crimson-glow active:scale-95 cursor-pointer"
             >
               <span>Simulate Table Scan ({cleanTable}) -&gt;</span>
             </button>
@@ -106,7 +106,7 @@ export const TableStandPage: React.FC = () => {
             {/* Stand Brand Header */}
             <div className="flex items-center justify-between border-b border-[#e5e7eb] pb-3 mb-5">
               <FlameLinkLogo size="sm" />
-              <span className="px-2 py-0.5 rounded-full bg-[#fff8f5] border border-[#fcddcc] text-[#ff4d00] text-[11px] font-mono-num font-medium">
+              <span className="px-2 py-0.5 rounded-full bg-[#fff0f3] border border-[#ffd1dc] text-[#FF0055] text-[11px] font-mono-num font-medium">
                 {cleanTable}
               </span>
             </div>

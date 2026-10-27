@@ -24,27 +24,60 @@ export interface MenuItem {
   modifiers: ModifierOption[];
 }
 
+export interface MemberProfile {
+  id: string;
+  name: string;
+  isHost: boolean;
+  isReadyToPay: boolean;
+  joinedAt: number;
+}
+
 export interface CartItem {
   cartItemId: string;
   menuItem: MenuItem;
   selectedModifiers: ModifierOption[];
   quantity: number;
   notes?: string;
+  addedBy?: {
+    memberId: string;
+    name: string;
+    isHost: boolean;
+  };
 }
 
 export type PaymentMethod = 'apple_pay' | 'card' | 'cashier';
 
+export type PaymentStatus = 'pending_verification' | 'verified_paid';
+
 export interface OrderTicket {
   id: string;
-  tableNumber: string | null; // null if online/unassigned; populated strictly from ?table=XX URL parameter
+  tableNumber: string | null;
+  tablePin?: string;
   items: CartItem[];
   subtotal: number;
-  vatAmount: number; // Strictly 14% ETA VAT rate (0.14)
+  vatAmount: number; // Strictly 14% ETA VAT
   total: number;
   status: OrderStatus;
   isPaid: boolean;
   paymentMethod?: PaymentMethod;
+  paymentStatus: PaymentStatus; // GATE: Only verified_paid tickets reach KDS!
+  cashierChitCode?: string; // e.g. "PAY-401" for in-person cashier verification
   splitCount?: number;
   tipAmount?: number;
+  rating?: number; // Post-meal 5-star review
+  reviewFeedback?: string;
   createdAt: number;
+  paidAt?: number;
+}
+
+export type TableStatus = 'idle' | 'ordering' | 'waiting_for_payment' | 'paid_cooking' | 'ready' | 'served';
+
+export interface TableSession {
+  tableNumber: string;
+  pin: string;
+  hostId: string;
+  members: MemberProfile[];
+  status: TableStatus;
+  activeOrderId?: string;
+  lastUpdated: number;
 }
