@@ -52,12 +52,28 @@ export const KdsPage: React.FC = () => {
         return 'Bump / Served ->';
       case 'served':
         return 'Closed';
+      case 'voided':
+        return 'Voided';
+      default:
+        return 'Action';
     }
   };
 
   // Status-Driven Color Coding for Kitchen Pass Browsing
   const getTicketStatusTheme = (status: OrderStatus, elapsedSeconds: number) => {
-    const isRush = elapsedSeconds > 600 && status !== 'served'; // >10 min rush condition
+    const isRush = elapsedSeconds > 600 && status !== 'served' && status !== 'voided'; // >10 min rush condition
+
+    if (status === 'voided') {
+      return {
+        bg: '#64748b',
+        cardBorder: 'border-2 border-[#475569]',
+        cardShadow: 'shadow-md opacity-60',
+        label: 'VOIDED // CANCELLED',
+        stage: 'VOIDED',
+        buttonClass: 'bg-[#475569] text-white cursor-default',
+        isRush: false,
+      };
+    }
 
     if (status === 'served') {
       return {

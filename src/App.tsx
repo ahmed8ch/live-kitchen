@@ -3,6 +3,7 @@ import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Sidebar } from './components/layout/Sidebar';
 import { ToastContainer } from './components/ui/ToastContainer';
 import { TableLobbyModal } from './components/multiplayer/TableLobbyModal';
+import { AccountModal } from './components/auth/AccountModal';
 import { HomePage } from './pages/HomePage';
 import { MenuPage } from './pages/MenuPage';
 import { OrderTrackerPage } from './pages/OrderTrackerPage';
@@ -111,6 +112,9 @@ export const App: React.FC = () => {
 
       {/* PIN-Protected Multiplayer Table Lobby Modal */}
       <TableLobbyModal />
+
+      {/* Dine-In Profile & Loyalty History Modal */}
+      <AccountModal />
     </div>
   );
 };

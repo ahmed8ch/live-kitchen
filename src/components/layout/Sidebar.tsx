@@ -50,12 +50,10 @@ export const Sidebar: React.FC = () => {
     }
   };
 
-  // Edge Trigger Dwell Delay (120ms to prevent accidental triggers while gesturing)
+  // Edge Trigger Handler (Immediate reveal on edge approach)
   const handleTriggerEnter = () => {
     if (leaveTimerRef.current) clearTimeout(leaveTimerRef.current);
-    hoverTimerRef.current = setTimeout(() => {
-      setIsRevealed(true);
-    }, 120);
+    setIsRevealed(true);
   };
 
   const handleTriggerLeave = () => {
@@ -76,7 +74,7 @@ export const Sidebar: React.FC = () => {
     }, 280);
   };
 
-  // Global Keyboard Shortcut: '[' or Cmd+B / Ctrl+B toggles the dock
+  // Global Edge Detection & Keyboard Shortcuts (Resolves Firefox/Safari mouse lag)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (
@@ -88,13 +86,24 @@ export const Sidebar: React.FC = () => {
       }
     };
 
+    const handleMouseMove = (e: MouseEvent) => {
+      if (isPinned) return;
+      // When cursor approaches within 28px of the left screen edge, reveal dock immediately
+      if (e.clientX <= 28) {
+        if (leaveTimerRef.current) clearTimeout(leaveTimerRef.current);
+        setIsRevealed(true);
+      }
+    };
+
     window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('mousemove', handleMouseMove);
       if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
       if (leaveTimerRef.current) clearTimeout(leaveTimerRef.current);
     };
-  }, []);
+  }, [isPinned]);
 
   const navItems = [
     {
@@ -252,12 +261,12 @@ export const Sidebar: React.FC = () => {
           DESKTOP macOS AUTO-HIDING DOCK (>= 768px Viewports)
           ========================================================================= */}
 
-      {/* Invisible 16px Left-Edge Trigger Sensor (Reveals Dock on Mouse Hover) */}
+      {/* Left-Edge Trigger Sensor (32px wide for seamless Firefox/Safari/Chrome responsiveness) */}
       {!isPinned && (
         <div
           onMouseEnter={handleTriggerEnter}
           onMouseLeave={handleTriggerLeave}
-          className="fixed left-0 top-0 bottom-0 w-4 z-40 hidden md:block"
+          className="fixed left-0 top-0 bottom-0 w-8 z-40 hidden md:block"
           aria-hidden="true"
         />
       )}
@@ -268,7 +277,7 @@ export const Sidebar: React.FC = () => {
           type="button"
           onClick={() => setIsRevealed(true)}
           onMouseEnter={handleTriggerEnter}
-          className="fixed left-0 top-1/2 -translate-y-1/2 h-16 w-1 hover:w-2 rounded-r-full bg-[#FF0055]/30 hover:bg-[#FF0055] transition-all cursor-pointer z-40 hidden md:block shadow-xs"
+          className="fixed left-0 top-1/2 -translate-y-1/2 h-16 w-1.5 hover:w-2.5 rounded-r-full bg-[#FF0055]/30 hover:bg-[#FF0055] transition-all cursor-pointer z-40 hidden md:block shadow-xs"
           title="Hover left edge or click to reveal Navigation Dock (or press '[')"
           aria-label="Reveal Navigation Dock"
         />

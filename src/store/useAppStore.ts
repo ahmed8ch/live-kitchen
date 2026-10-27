@@ -10,6 +10,8 @@ import {
   TableSession,
   TableStatus,
   DinerPaymentRecord,
+  DinerAccount,
+  AccountModalTab,
 } from '../types/domain';
 import { MENU_ITEMS } from '../domain/menuData';
 
@@ -87,6 +89,29 @@ interface AppState {
   syncTableSessions: (sessions: Record<string, TableSession>) => void;
   syncCart: (cart: CartItem[]) => void;
   addSampleOrder: (targetTable?: string) => void;
+  deleteOrder: (orderId: string) => void;
+  voidOrder: (orderId: string, reason?: string) => void;
+
+  // Diner Account & Auth
+  userAccount: DinerAccount | null;
+  savedAccounts: Record<string, DinerAccount>;
+  isAccountModalOpen: boolean;
+  accountModalTab: AccountModalTab;
+  openAccountModal: (tab?: AccountModalTab) => void;
+  closeAccountModal: () => void;
+  setAccountModalTab: (tab: AccountModalTab) => void;
+  signUpDiner: (data: {
+    fullName: string;
+    phone: string;
+    email?: string;
+    pin: string;
+    dietaryTags?: string[];
+  }) => boolean;
+  signInDiner: (phone: string, pin: string) => boolean;
+  signOutDiner: () => void;
+  updateDinerProfile: (data: Partial<DinerAccount>) => void;
+  reorderPastOrder: (orderId: string) => void;
+  reorderSingleItem: (item: CartItem) => void;
 
   // Toast
   showToast: (msg: string) => void;
@@ -165,6 +190,21 @@ const initialTableSessions: Record<string, TableSession> = {
   },
 };
 
+const defaultAccounts: Record<string, DinerAccount> = {
+  '01012345678': {
+    id: 'usr_ahmed_vip',
+    fullName: 'Ahmed Hassan',
+    phone: '01012345678',
+    email: 'ahmed.hassan@example.com',
+    pin: '1234',
+    loyaltyPointsEgp: 185.0,
+    dietaryTags: ['Halal', 'No Seafood'],
+    createdAt: Date.now() - 30 * 86400000,
+    lastLoginAt: Date.now(),
+    orderHistoryIds: [],
+  },
+};
+
 export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
@@ -181,6 +221,22 @@ export const useAppStore = create<AppState>()(
       isPinModalOpen: false,
       pendingJoinTable: null,
       platformFeedback: [],
+
+      // Diner Account & Auth
+      userAccount: null,
+      savedAccounts: defaultAccounts,
+      isAccountModalOpen: false,
+      accountModalTab: 'signin',
+
+      openAccountModal: (tab) =>
+        set({
+          isAccountModalOpen: true,
+          accountModalTab: tab || (get().userAccount ? 'profile' : 'signin'),
+        }),
+
+      closeAccountModal: () => set({ isAccountModalOpen: false }),
+
+      setAccountModalTab: (tab) => set({ accountModalTab: tab }),
 
       showToast: (msg) => {
         set({ toastMessage: msg });
@@ -606,7 +662,7 @@ export const useAppStore = create<AppState>()(
 
       clearTableSession: (tableNumber) => {
         const cleanTable = tableNumber.trim().toUpperCase();
-        const { tableSessions } = get();
+        const { tableSessions, orders } = get();
         const session = tableSessions[cleanTable];
         if (!session) return;
 
@@ -624,7 +680,13 @@ export const useAppStore = create<AppState>()(
           [cleanTable]: clearedSession,
         };
 
+        // CRITICAL BUG FIX: Purge pending/unserved orders for this table so Cashier / POS does not keep matching zombie orders
+        const updatedOrders = orders.filter(
+          (o) => !(o.tableNumber === cleanTable && (o.paymentStatus === 'pending_verification' || o.status !== 'served'))
+        );
+
         set({
+          orders: updatedOrders,
           tableSessions: updatedSessions,
           activeTable: cleanTable === get().activeTable ? null : get().activeTable,
           activeOrderId: cleanTable === get().activeTable ? null : get().activeOrderId,
@@ -632,6 +694,7 @@ export const useAppStore = create<AppState>()(
 
         if (broadcastChannel) {
           broadcastChannel.postMessage({ type: 'SESSIONS_SYNC', tableSessions: updatedSessions });
+          broadcastChannel.postMessage({ type: 'ORDERS_SYNC', orders: updatedOrders });
         }
 
         get().showToast(`Table ${cleanTable} cleared & marked available.`);
@@ -893,6 +956,7 @@ export const useAppStore = create<AppState>()(
           paymentStatus: 'pending_verification',
           cashierChitCode: cashierCode,
           createdAt: Date.now(),
+          dinerAccountId: get().userAccount?.id,
         };
 
         const updatedOrders = [newTicket, ...orders];
@@ -963,9 +1027,28 @@ export const useAppStore = create<AppState>()(
           };
         }
 
+        // Credit 10% loyalty cashback to active diner account
+        const paidTicket = orders.find((o) => o.id === orderId);
+        let updatedUser = get().userAccount;
+        let updatedSavedAccounts = get().savedAccounts;
+        if (paidTicket && updatedUser) {
+          const cashback = Math.round(paidTicket.total * 0.10 * 100) / 100;
+          updatedUser = {
+            ...updatedUser,
+            loyaltyPointsEgp: Math.round((updatedUser.loyaltyPointsEgp + cashback) * 100) / 100,
+            orderHistoryIds: Array.from(new Set([...updatedUser.orderHistoryIds, orderId])),
+          };
+          updatedSavedAccounts = {
+            ...updatedSavedAccounts,
+            [updatedUser.phone]: updatedUser,
+          };
+        }
+
         set({
           orders: updatedOrders,
           tableSessions: updatedSessions,
+          userAccount: updatedUser,
+          savedAccounts: updatedSavedAccounts,
         });
 
         if (broadcastChannel) {
@@ -1010,7 +1093,29 @@ export const useAppStore = create<AppState>()(
           };
         }
 
-        set({ orders: updatedOrders, tableSessions: updatedSessions });
+        // Credit 10% loyalty cashback to active diner account
+        const targetTicket = orders.find((o) => o.id === orderId);
+        let updatedUser = get().userAccount;
+        let updatedSavedAccounts = get().savedAccounts;
+        if (targetTicket && updatedUser) {
+          const cashback = Math.round(targetTicket.total * 0.10 * 100) / 100;
+          updatedUser = {
+            ...updatedUser,
+            loyaltyPointsEgp: Math.round((updatedUser.loyaltyPointsEgp + cashback) * 100) / 100,
+            orderHistoryIds: Array.from(new Set([...updatedUser.orderHistoryIds, orderId])),
+          };
+          updatedSavedAccounts = {
+            ...updatedSavedAccounts,
+            [updatedUser.phone]: updatedUser,
+          };
+        }
+
+        set({
+          orders: updatedOrders,
+          tableSessions: updatedSessions,
+          userAccount: updatedUser,
+          savedAccounts: updatedSavedAccounts,
+        });
 
         if (broadcastChannel) {
           broadcastChannel.postMessage({
@@ -1268,6 +1373,264 @@ export const useAppStore = create<AppState>()(
         get().showToast(`Chit #${nextId} sent to KDS pass for Table ${targetTable}`);
       },
 
+      deleteOrder: (orderId) => {
+        const { orders, tableSessions } = get();
+        const target = orders.find((o) => o.id === orderId);
+        const updatedOrders = orders.filter((o) => o.id !== orderId);
+
+        let updatedSessions = { ...tableSessions };
+        if (target?.tableNumber && updatedSessions[target.tableNumber]) {
+          const tableNum = target.tableNumber;
+          const remainingForTable = updatedOrders.filter((o) => o.tableNumber === tableNum);
+          const hasPending = remainingForTable.some((o) => o.paymentStatus === 'pending_verification');
+          const hasCooking = remainingForTable.some((o) => o.paymentStatus === 'verified_paid' && o.status !== 'served');
+
+          updatedSessions[tableNum] = {
+            ...updatedSessions[tableNum],
+            status: hasPending ? 'waiting_for_payment' : (hasCooking ? 'paid_cooking' : 'idle'),
+            activeOrderId: remainingForTable[0]?.id || undefined,
+            lastUpdated: Date.now(),
+          };
+        }
+
+        set({
+          orders: updatedOrders,
+          tableSessions: updatedSessions,
+          activeOrderId: get().activeOrderId === orderId ? null : get().activeOrderId,
+        });
+
+        if (broadcastChannel) {
+          broadcastChannel.postMessage({ type: 'ORDERS_SYNC', orders: updatedOrders });
+          broadcastChannel.postMessage({ type: 'SESSIONS_SYNC', tableSessions: updatedSessions });
+        }
+        get().showToast(`Order #${orderId} deleted.`);
+      },
+
+      voidOrder: (orderId, reason) => {
+        const { orders, tableSessions } = get();
+        const target = orders.find((o) => o.id === orderId);
+        if (!target) return;
+
+        const updatedOrders = orders.filter((o) => o.id !== orderId);
+
+        let updatedSessions = { ...tableSessions };
+        if (target.tableNumber && updatedSessions[target.tableNumber]) {
+          const tableNum = target.tableNumber;
+          const remainingForTable = updatedOrders.filter((o) => o.tableNumber === tableNum);
+          const hasPending = remainingForTable.some((o) => o.paymentStatus === 'pending_verification');
+          const hasCooking = remainingForTable.some((o) => o.paymentStatus === 'verified_paid' && o.status !== 'served');
+
+          updatedSessions[tableNum] = {
+            ...updatedSessions[tableNum],
+            status: hasPending ? 'waiting_for_payment' : (hasCooking ? 'paid_cooking' : 'idle'),
+            activeOrderId: remainingForTable[0]?.id || undefined,
+            lastUpdated: Date.now(),
+          };
+        }
+
+        set({
+          orders: updatedOrders,
+          tableSessions: updatedSessions,
+          activeOrderId: get().activeOrderId === orderId ? null : get().activeOrderId,
+        });
+
+        if (broadcastChannel) {
+          broadcastChannel.postMessage({ type: 'ORDERS_SYNC', orders: updatedOrders });
+          broadcastChannel.postMessage({ type: 'SESSIONS_SYNC', tableSessions: updatedSessions });
+        }
+        get().showToast(`Order #${orderId} voided${reason ? `: ${reason}` : ''}.`);
+      },
+
+      signUpDiner: (data) => {
+        const phone = data.phone.trim();
+        if (!phone || !data.fullName.trim() || !data.pin.trim()) {
+          get().showToast('Please enter full name, phone number, and a 4-digit PIN.');
+          return false;
+        }
+
+        const id = `usr_${phone.slice(-4)}_${Date.now().toString().slice(-4)}`;
+        const newAccount: DinerAccount = {
+          id,
+          fullName: data.fullName.trim(),
+          phone,
+          email: data.email?.trim() || undefined,
+          pin: data.pin.trim(),
+          loyaltyPointsEgp: 50.0, // 50 EGP welcome bonus
+          dietaryTags: data.dietaryTags || [],
+          createdAt: Date.now(),
+          lastLoginAt: Date.now(),
+          orderHistoryIds: [],
+        };
+
+        const updatedSaved = {
+          ...get().savedAccounts,
+          [phone]: newAccount,
+        };
+
+        const { activeTable, tableSessions, currentMember } = get();
+        let updatedSessions = tableSessions;
+        let updatedMember = currentMember;
+
+        if (activeTable && tableSessions[activeTable]) {
+          const session = tableSessions[activeTable];
+          const existingMember = session.members.find((m) => m.id === currentMember?.id) || session.members[0];
+          if (existingMember) {
+            updatedMember = {
+              ...existingMember,
+              name: newAccount.fullName,
+              accountId: newAccount.id,
+            };
+            const updatedMembers = session.members.map((m) =>
+              m.id === existingMember.id ? updatedMember! : m
+            );
+            updatedSessions = {
+              ...tableSessions,
+              [activeTable]: {
+                ...session,
+                members: updatedMembers,
+                lastUpdated: Date.now(),
+              },
+            };
+          }
+        }
+
+        set({
+          userAccount: newAccount,
+          savedAccounts: updatedSaved,
+          currentMember: updatedMember,
+          tableSessions: updatedSessions,
+          isAccountModalOpen: false,
+        });
+
+        if (broadcastChannel) {
+          broadcastChannel.postMessage({ type: 'SESSIONS_SYNC', tableSessions: updatedSessions });
+        }
+
+        get().showToast(`Welcome, ${newAccount.fullName}! 50.00 EGP welcome reward added.`);
+        return true;
+      },
+
+      signInDiner: (phone, pin) => {
+        const cleanPhone = phone.trim();
+        const cleanPin = pin.trim();
+        const account = get().savedAccounts[cleanPhone];
+        if (!account || account.pin !== cleanPin) {
+          get().showToast('Invalid phone or PIN. Please verify credentials.');
+          return false;
+        }
+
+        const updatedAccount: DinerAccount = {
+          ...account,
+          lastLoginAt: Date.now(),
+        };
+
+        const updatedSaved = {
+          ...get().savedAccounts,
+          [cleanPhone]: updatedAccount,
+        };
+
+        const { activeTable, tableSessions, currentMember } = get();
+        let updatedSessions = tableSessions;
+        let updatedMember = currentMember;
+
+        if (activeTable && tableSessions[activeTable]) {
+          const session = tableSessions[activeTable];
+          const existingMember = session.members.find((m) => m.id === currentMember?.id) || session.members[0];
+          if (existingMember) {
+            updatedMember = {
+              ...existingMember,
+              name: updatedAccount.fullName,
+              accountId: updatedAccount.id,
+            };
+            const updatedMembers = session.members.map((m) =>
+              m.id === existingMember.id ? updatedMember! : m
+            );
+            updatedSessions = {
+              ...tableSessions,
+              [activeTable]: {
+                ...session,
+                members: updatedMembers,
+                lastUpdated: Date.now(),
+              },
+            };
+          }
+        }
+
+        set({
+          userAccount: updatedAccount,
+          savedAccounts: updatedSaved,
+          currentMember: updatedMember,
+          tableSessions: updatedSessions,
+          isAccountModalOpen: false,
+        });
+
+        if (broadcastChannel) {
+          broadcastChannel.postMessage({ type: 'SESSIONS_SYNC', tableSessions: updatedSessions });
+        }
+
+        get().showToast(`Signed in as ${updatedAccount.fullName}`);
+        return true;
+      },
+
+      signOutDiner: () => {
+        set({
+          userAccount: null,
+          isAccountModalOpen: false,
+        });
+        get().showToast('Signed out of Dine-In account.');
+      },
+
+      updateDinerProfile: (data) => {
+        const current = get().userAccount;
+        if (!current) return;
+        const updated: DinerAccount = {
+          ...current,
+          ...data,
+        };
+        const updatedSaved = {
+          ...get().savedAccounts,
+          [updated.phone]: updated,
+        };
+        set({
+          userAccount: updated,
+          savedAccounts: updatedSaved,
+        });
+        get().showToast('Dine-In profile preferences updated.');
+      },
+
+      reorderPastOrder: (orderId) => {
+        const target = get().orders.find((o) => o.id === orderId);
+        if (!target || target.items.length === 0) {
+          get().showToast('No items found for this past order ticket.');
+          return;
+        }
+        const currentCart = get().cart;
+        const reorderedItems: CartItem[] = target.items.map((item) => ({
+          ...item,
+          cartItemId: `cart-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+        }));
+        set({
+          cart: [...currentCart, ...reorderedItems],
+          isCartDrawerOpen: true,
+          isAccountModalOpen: false,
+        });
+        get().showToast(`Re-ordered ${reorderedItems.length} items to table cart.`);
+      },
+
+      reorderSingleItem: (item) => {
+        const currentCart = get().cart;
+        const newItem: CartItem = {
+          ...item,
+          cartItemId: `cart-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+        };
+        set({
+          cart: [...currentCart, newItem],
+          isCartDrawerOpen: true,
+          isAccountModalOpen: false,
+        });
+        get().showToast(`Added ${item.menuItem.name} to cart.`);
+      },
+
       syncOrders: (orders) => set({ orders }),
       syncTableSessions: (tableSessions) => set({ tableSessions }),
       syncCart: (cart) => set({ cart }),
@@ -1285,6 +1648,8 @@ export const useAppStore = create<AppState>()(
         activeOrderId: state.activeOrderId,
         currentMember: state.currentMember,
         tableSessions: state.tableSessions,
+        userAccount: state.userAccount,
+        savedAccounts: state.savedAccounts,
       }),
       onRehydrateStorage: () => (state) => {
         if (!state) return;

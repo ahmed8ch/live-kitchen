@@ -346,13 +346,7 @@ export const FlameLinkLogo: React.FC<FlameLinkLogoProps> = ({
       ? 'text-[26px]'
       : 'text-[18px]';
 
-  const textFlameColor = variant === 'on-dark' ? 'text-white' : 'text-[#262626]';
-  const textLinkColor =
-    variant === 'on-dark'
-      ? 'text-[#FF0055]'
-      : variant === 'monochrome'
-      ? 'text-[#262626]'
-      : 'text-[#FF0055]';
+  const wordmarkColor = variant === 'on-dark' ? 'text-white' : 'text-[#262626]';
 
   const gapClass =
     size === 'sm' ? 'gap-1' : size === 'lg' ? 'gap-2' : size === 'xl' ? 'gap-2.5' : 'gap-1.5';
@@ -364,14 +358,13 @@ export const FlameLinkLogo: React.FC<FlameLinkLogoProps> = ({
         <FlameMark className={iconSize} />
       </span>
 
-      {/* Baseline-Unified Wordmark strictly using Changa font */}
+      {/* Baseline-Unified Wordmark strictly using Changa font in solid Ink */}
       {showWordmark && (
         <span
-          className={`${textSize} font-extrabold tracking-tight leading-none inline-flex items-baseline font-changa`}
+          className={`${textSize} font-extrabold tracking-tight leading-none inline-flex items-baseline font-changa ${wordmarkColor}`}
           style={{ letterSpacing: '-0.02em' }}
         >
-          <span className={textFlameColor}>Flame</span>
-          <span className={textLinkColor}>Link</span>
+          <span>FlameLink</span>
         </span>
       )}
     </span>

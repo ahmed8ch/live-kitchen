@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useAppStore } from '../store/useAppStore';
 import { PaymentMethod } from '../types/domain';
@@ -6,28 +6,130 @@ import { FlameLinkLogo } from '../components/ui/FlameLinkLogo';
 
 const RESTAURANT_TABLES = ['T-01', 'T-02', 'T-03', 'T-04', 'T-05', 'T-06', 'T-08', 'T-12'];
 
+type FilterTab = 'all' | 'waiting' | 'active' | 'cleared';
+
+const VOID_REASONS = [
+  'Guest Walked Out / Cancelled',
+  'Accidental Duplicate Entry',
+  'Kitchen Out of Stock / Cannot Fulfill',
+  'Incorrect Table Number Selected',
+  'Payment Method Declined at Register',
+];
+
 export const CashierPage: React.FC = () => {
   const orders = useAppStore((state) => state.orders);
   const tableSessions = useAppStore((state) => state.tableSessions);
   const verifyCashierPayment = useAppStore((state) => state.verifyCashierPayment);
   const clearTableSession = useAppStore((state) => state.clearTableSession);
+  const voidOrder = useAppStore((state) => state.voidOrder);
+  const deleteOrder = useAppStore((state) => state.deleteOrder);
   const addSampleOrder = useAppStore((state) => state.addSampleOrder);
   const showToast = useAppStore((state) => state.showToast);
 
   const [selectedTableNum, setSelectedTableNum] = useState<string>('T-04');
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>('card');
   const [cashTendered, setCashTendered] = useState<string>('');
+  const [activeTab, setActiveTab] = useState<FilterTab>('all');
+  const [searchQuery, setSearchQuery] = useState<string>('');
 
-  // Verified vs Pending orders
-  const pendingOrders = orders.filter((o) => o.paymentStatus === 'pending_verification');
-  const verifiedOrders = orders.filter((o) => o.paymentStatus === 'verified_paid');
+  // Modals state
+  const [isVoidModalOpen, setIsVoidModalOpen] = useState(false);
+  const [voidTargetOrderId, setVoidTargetOrderId] = useState<string | null>(null);
+  const [selectedVoidReason, setSelectedVoidReason] = useState(VOID_REASONS[0]);
 
+  const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
+  const [receiptOrderId, setReceiptOrderId] = useState<string | null>(null);
+
+  // Filter orders by payment verification status
+  const pendingOrders = orders.filter((o) => o.paymentStatus === 'pending_verification' && o.status !== 'voided');
+  const verifiedOrders = orders.filter((o) => o.paymentStatus === 'verified_paid' && o.status !== 'voided');
   const totalCollectedToday = verifiedOrders.reduce((sum, o) => sum + o.total, 0);
 
-  // Active table session
+  // Active table metadata and order lookup
   const activeSession = tableSessions[selectedTableNum];
   const pendingForTable = pendingOrders.find((o) => o.tableNumber === selectedTableNum);
-  const tableOrder = pendingForTable || orders.find((o) => o.tableNumber === selectedTableNum && o.status !== 'served');
+  const tableOrder =
+    pendingForTable ||
+    orders.find((o) => o.tableNumber === selectedTableNum && o.status !== 'served' && o.status !== 'voided');
+
+  const getTableMeta = (tableNum: string) => {
+    const session = tableSessions[tableNum];
+    const pending = pendingOrders.find((o) => o.tableNumber === tableNum);
+
+    if (pending) {
+      return {
+        status: 'waiting_for_payment' as const,
+        label: 'Waiting for Payment',
+        badgeClass: 'bg-[#fff0f3] text-[#FF0055] border-[#ffd1dc] border-2 font-bold',
+        amount: pending.total,
+        orderId: pending.id,
+        chitCode: pending.cashierChitCode,
+      };
+    }
+
+    const activeCookingOrder = orders.find(
+      (o) =>
+        o.tableNumber === tableNum &&
+        o.paymentStatus === 'verified_paid' &&
+        o.status !== 'served' &&
+        o.status !== 'voided'
+    );
+    if (activeCookingOrder) {
+      return {
+        status: 'paid_cooking' as const,
+        label: activeCookingOrder.status === 'ready' ? 'Ready at Pass' : 'Paid & Cooking',
+        badgeClass:
+          activeCookingOrder.status === 'ready'
+            ? 'bg-emerald-50 text-emerald-800 border-emerald-300 font-bold'
+            : 'bg-blue-50 text-blue-800 border-blue-200 font-medium',
+        amount: activeCookingOrder.total,
+        orderId: activeCookingOrder.id,
+        chitCode: activeCookingOrder.cashierChitCode,
+      };
+    }
+
+    if (session && session.members.length > 0) {
+      return {
+        status: 'ordering' as const,
+        label: 'Ordering',
+        badgeClass: 'bg-amber-50 text-amber-800 border-amber-300 font-medium',
+        amount: undefined,
+        orderId: undefined,
+        chitCode: undefined,
+      };
+    }
+
+    return {
+      status: 'idle' as const,
+      label: 'Cleared',
+      badgeClass: 'bg-[#f9f9f9] text-[#727272] border-[#e5e7eb]',
+      amount: undefined,
+      orderId: undefined,
+      chitCode: undefined,
+    };
+  };
+
+  // Filtered tables based on tabs and search query
+  const filteredTables = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    return RESTAURANT_TABLES.filter((tableNum) => {
+      const meta = getTableMeta(tableNum);
+
+      // Status filter
+      if (activeTab === 'waiting' && meta.status !== 'waiting_for_payment') return false;
+      if (activeTab === 'active' && meta.status !== 'paid_cooking') return false;
+      if (activeTab === 'cleared' && meta.status !== 'idle') return false;
+
+      // Text search
+      if (q) {
+        const matchesTable = tableNum.toLowerCase().includes(q);
+        const matchesChit = meta.chitCode?.toLowerCase().includes(q);
+        const matchesOrder = meta.orderId?.toLowerCase().includes(q);
+        return matchesTable || matchesChit || matchesOrder;
+      }
+      return true;
+    });
+  }, [activeTab, searchQuery, orders, tableSessions]);
 
   const handleConfirmPayment = (orderId: string, chitCode?: string) => {
     verifyCashierPayment(orderId, selectedMethod);
@@ -40,59 +142,33 @@ export const CashierPage: React.FC = () => {
     showToast(`Table ${tableNum} marked Cleared & Available.`);
   };
 
-  const handleCreateSampleOrder = (tableNum: string) => {
-    addSampleOrder(tableNum);
+  const handleOpenVoidModal = (orderId: string) => {
+    setVoidTargetOrderId(orderId);
+    setSelectedVoidReason(VOID_REASONS[0]);
+    setIsVoidModalOpen(true);
   };
 
-  const getTableMeta = (tableNum: string) => {
-    const session = tableSessions[tableNum];
-    const pending = pendingOrders.find((o) => o.tableNumber === tableNum);
-
-    if (pending) {
-      return {
-        status: 'waiting_for_payment',
-        label: 'Waiting for Payment',
-        badgeClass: 'bg-[#fff0f3] text-[#FF0055] border-[#ffd1dc] border-2 font-bold',
-        amount: pending.total,
-      };
-    }
-
-    const activeCookingOrder = orders.find(
-      (o) => o.tableNumber === tableNum && o.paymentStatus === 'verified_paid' && o.status !== 'served'
-    );
-    if (activeCookingOrder) {
-      return {
-        status: 'paid_cooking',
-        label: activeCookingOrder.status === 'ready' ? 'Ready at Pass' : 'Paid & Cooking',
-        badgeClass: activeCookingOrder.status === 'ready'
-          ? 'bg-emerald-50 text-emerald-800 border-emerald-300 font-bold'
-          : 'bg-blue-50 text-blue-800 border-blue-200 font-medium',
-        amount: activeCookingOrder.total,
-      };
-    }
-
-    if (session && session.members.length > 0) {
-      return {
-        status: 'ordering',
-        label: 'Ordering',
-        badgeClass: 'bg-amber-50 text-amber-800 border-amber-300 font-medium',
-        amount: undefined,
-      };
-    }
-
-    return {
-      status: 'idle',
-      label: 'Cleared',
-      badgeClass: 'bg-[#f9f9f9] text-[#727272] border-[#e5e7eb]',
-      amount: undefined,
-    };
+  const handleConfirmVoid = () => {
+    if (!voidTargetOrderId) return;
+    voidOrder(voidTargetOrderId, selectedVoidReason);
+    setIsVoidModalOpen(false);
+    setVoidTargetOrderId(null);
   };
 
+  const handleOpenReceipt = (orderId: string) => {
+    setReceiptOrderId(orderId);
+    setIsReceiptModalOpen(true);
+  };
+
+  // Financial calculations
   const paidDinersList = Object.values(tableOrder?.paidDiners || {});
   const totalPaidOnline = paidDinersList.reduce((sum, d) => sum + d.amount, 0);
   const remainingDue = tableOrder ? Math.max(0, tableOrder.total - totalPaidOnline) : 0;
   const tenderedAmount = parseFloat(cashTendered) || 0;
   const changeDue = tableOrder ? Math.max(0, tenderedAmount - remainingDue) : 0;
+
+  // Selected receipt order details
+  const receiptOrder = orders.find((o) => o.id === receiptOrderId) || tableOrder;
 
   return (
     <div className="flex-1 w-full bg-[#f9f9f9] min-h-screen pb-24" data-ui-container="cashier-station">
@@ -107,7 +183,7 @@ export const CashierPage: React.FC = () => {
                 Cashier Station // Live POS Terminal
               </div>
               <div className="text-[12px] font-mono-num text-[#727272]">
-                Front Register Verification Gate
+                Front Register Verification Gate • Live Kitchen (لايف كيتشن)
               </div>
             </div>
           </div>
@@ -159,39 +235,113 @@ export const CashierPage: React.FC = () => {
               {Object.values(tableSessions).filter((s) => s.members.length > 0).length} Tables Seated
             </div>
             <div className="text-[12px] font-mono-num text-[#727272] mt-1">
-              Real-time multi-party state sync
+              Multi-device table synchronization
             </div>
           </div>
         </section>
 
-        {/* Live Restaurant Tables Status Grid (Interactive - Click any table) */}
-        <section className="bg-white p-6 rounded-2xl border border-[#e5e7eb] shadow-xs">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+        {/* Live Restaurant Tables Matrix & Search Filters */}
+        <section className="bg-white p-6 rounded-2xl border border-[#e5e7eb] shadow-xs space-y-5">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <h2 className="text-lg font-bold text-[#262626]">Live Table Status</h2>
+              <h2 className="text-lg font-bold text-[#262626]">Floor Plan & Table Matrix</h2>
               <p className="text-[13px] text-[#727272]">
-                Click any table to view seated diners, review draft items, ring up cashier settlement, or clear table.
+                Select any table to view seated diners, ring up payment, print thermal chit, or void orders.
               </p>
             </div>
 
             <div className="flex items-center gap-2">
               <button
-                onClick={() => handleCreateSampleOrder(selectedTableNum)}
-                className="px-3 py-1.5 rounded-lg border border-[#ffd1dc] bg-[#fff0f3] text-[#FF0055] text-[12px] font-medium hover:bg-[#ffe0e8] cursor-pointer"
+                type="button"
+                onClick={() => addSampleOrder(selectedTableNum)}
+                className="px-3.5 py-1.5 rounded-full border border-[#ffd1dc] bg-[#fff0f3] text-[#FF0055] text-[12px] font-medium hover:bg-[#ffe0e8] transition-colors"
               >
                 + Test Chit on {selectedTableNum}
               </button>
             </div>
           </div>
 
+          {/* Filter Tabs and Search Bar */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2 border-t border-[#e5e7eb]">
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+              <button
+                type="button"
+                onClick={() => setActiveTab('all')}
+                className={`px-3 py-1.5 rounded-full text-[12px] font-medium transition-colors ${
+                  activeTab === 'all'
+                    ? 'bg-[#262626] text-white'
+                    : 'bg-[#f9f9f9] text-[#727272] hover:bg-[#e5e7eb]'
+                }`}
+              >
+                All Tables ({RESTAURANT_TABLES.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('waiting')}
+                className={`px-3 py-1.5 rounded-full text-[12px] font-medium transition-colors ${
+                  activeTab === 'waiting'
+                    ? 'bg-[#FF0055] text-white font-bold'
+                    : 'bg-[#fff0f3] text-[#FF0055] hover:bg-[#ffd1dc]'
+                }`}
+              >
+                Waiting Payment ({pendingOrders.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('active')}
+                className={`px-3 py-1.5 rounded-full text-[12px] font-medium transition-colors ${
+                  activeTab === 'active'
+                    ? 'bg-[#15803d] text-white font-bold'
+                    : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100'
+                }`}
+              >
+                Active Kitchen ({verifiedOrders.filter((o) => o.status !== 'served').length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('cleared')}
+                className={`px-3 py-1.5 rounded-full text-[12px] font-medium transition-colors ${
+                  activeTab === 'cleared'
+                    ? 'bg-[#64748b] text-white'
+                    : 'bg-[#f9f9f9] text-[#727272] hover:bg-[#e5e7eb]'
+                }`}
+              >
+                Cleared
+              </button>
+            </div>
+
+            {/* Quick Search Input */}
+            <div className="relative w-full sm:w-64">
+              <input
+                type="text"
+                placeholder="Search table, chit #..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-8 pr-3 py-1.5 bg-[#f9f9f9] border border-[#e5e7eb] rounded-lg text-[12px] text-[#262626] focus:outline-hidden focus:border-[#FF0055]"
+              />
+              <svg
+                className="w-4 h-4 absolute left-2.5 top-2.5 text-[#727272]"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+            </div>
+          </div>
+
+          {/* Interactive Table Grid */}
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
-            {RESTAURANT_TABLES.map((tableNum) => {
+            {filteredTables.map((tableNum) => {
               const meta = getTableMeta(tableNum);
               const isSelected = selectedTableNum === tableNum;
 
               return (
                 <button
                   key={tableNum}
+                  type="button"
                   onClick={() => setSelectedTableNum(tableNum)}
                   className={`p-3.5 rounded-xl border text-center transition-all cursor-pointer relative ${meta.badgeClass} ${
                     isSelected ? 'ring-2 ring-[#FF0055] shadow-md' : 'hover:scale-[1.02]'
@@ -230,8 +380,9 @@ export const CashierPage: React.FC = () => {
 
               {getTableMeta(selectedTableNum).status !== 'idle' && (
                 <button
+                  type="button"
                   onClick={() => handleClearTable(selectedTableNum)}
-                  className="px-2.5 py-1 text-[11px] rounded-md bg-gray-100 hover:bg-red-50 hover:text-red-600 text-[#727272] transition-colors cursor-pointer"
+                  className="px-2.5 py-1 text-[11px] rounded-md bg-[#f9f9f9] hover:bg-red-50 hover:text-red-600 text-[#727272] transition-colors border border-[#e5e7eb]"
                 >
                   Clear Table
                 </button>
@@ -253,8 +404,8 @@ export const CashierPage: React.FC = () => {
               </div>
 
               {!activeSession || activeSession.members.length === 0 ? (
-                <div className="text-[13px] text-[#949494] py-3 text-center border border-dashed border-[#e5e7eb] rounded-xl">
-                  Table is currently cleared / empty
+                <div className="text-[13px] text-[#949494] py-4 text-center border border-dashed border-[#e5e7eb] rounded-xl">
+                  Table is currently cleared / available
                 </div>
               ) : (
                 <div className="space-y-1.5">
@@ -267,7 +418,7 @@ export const CashierPage: React.FC = () => {
                         <span className="w-2 h-2 rounded-full bg-[#15803d]" />
                         <span className="font-medium text-[#262626]">{m.name}</span>
                         {m.isHost && (
-                          <span className="text-[10px] uppercase font-mono-num px-1 rounded bg-[#ffe0e8] text-[#FF0055]">
+                          <span className="text-[10px] uppercase font-mono-num px-1.5 py-0.5 rounded-full bg-[#ffe0e8] text-[#FF0055] font-bold">
                             Host
                           </span>
                         )}
@@ -289,7 +440,7 @@ export const CashierPage: React.FC = () => {
                 <h3 className="text-lg font-bold text-[#262626]">
                   Settlement Terminal // Table {selectedTableNum}
                 </h3>
-                <span className="text-[12px] text-[#727272]">
+                <span className="text-[12px] text-[#727272] font-mono-num">
                   {tableOrder ? `Order #${tableOrder.id}` : 'No active order ticket on this table'}
                 </span>
               </div>
@@ -306,20 +457,23 @@ export const CashierPage: React.FC = () => {
 
             {!tableOrder ? (
               <div className="py-12 text-center text-[#727272]">
-                <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-2 text-[#949494]">
+                <div className="w-12 h-12 rounded-full bg-[#f9f9f9] border border-[#e5e7eb] flex items-center justify-center mx-auto mb-2 text-[#727272]">
                   <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <rect x="2" y="4" width="20" height="16" rx="2" />
                     <line x1="2" y1="10" x2="22" y2="10" />
                   </svg>
                 </div>
-                <div className="text-[14px] font-medium text-[#262626]">No unpaid ticket on Table {selectedTableNum}</div>
-                <p className="text-[12px] mt-1">
-                  Once guests submit an order choosing "Pay at Cashier Desk", the ticket will populate here.
+                <div className="text-[14px] font-medium text-[#262626]">
+                  No active chit on Table {selectedTableNum}
+                </div>
+                <p className="text-[12px] mt-1 max-w-sm mx-auto">
+                  Once guests submit an order choosing "Pay at Cashier Desk", the chit will populate here.
                 </p>
                 <div className="mt-4">
                   <button
-                    onClick={() => handleCreateSampleOrder(selectedTableNum)}
-                    className="px-4 py-2 rounded-full bg-[#262626] text-white text-[12px] font-medium hover:bg-black cursor-pointer shadow-xs"
+                    type="button"
+                    onClick={() => addSampleOrder(selectedTableNum)}
+                    className="px-4 py-2 rounded-full bg-[#262626] text-white text-[12px] font-medium hover:bg-black transition-colors shadow-xs"
                   >
                     Add Test Order on {selectedTableNum}
                   </button>
@@ -327,34 +481,68 @@ export const CashierPage: React.FC = () => {
               </div>
             ) : (
               <div className="space-y-4">
-                {/* Status Alert */}
-                <div className="p-3 rounded-xl bg-[#fff0f3] border border-[#ffd1dc] flex items-center justify-between">
+                {/* Status Alert & Quick Action Bar */}
+                <div className="p-3.5 rounded-xl bg-[#fff0f3] border border-[#ffd1dc] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div>
                     <span className="text-[11px] font-mono-num font-semibold text-[#FF0055] uppercase block">
-                      {tableOrder.paymentStatus === 'pending_verification' ? 'WAITING FOR CASHIER SETTLEMENT' : 'PAID & COOKING'}
+                      {tableOrder.paymentStatus === 'pending_verification'
+                        ? 'WAITING FOR CASHIER SETTLEMENT'
+                        : 'PAID & COOKING ON KDS PASS'}
                     </span>
                     <span className="text-[13px] font-mono-num text-[#262626] font-medium">
                       Chit #{tableOrder.cashierChitCode || tableOrder.id}
                     </span>
                   </div>
-                  <span className="text-[12px] font-mono-num text-[#727272]">
-                    {tableOrder.items.reduce((s, i) => s + i.quantity, 0)} items
-                  </span>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleOpenReceipt(tableOrder.id)}
+                      className="px-3 py-1 bg-white border border-[#e5e7eb] hover:bg-[#f9f9f9] text-[#262626] rounded-full text-[11px] font-medium transition-colors"
+                    >
+                      Print Chit
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleOpenVoidModal(tableOrder.id)}
+                      className="px-3 py-1 bg-white border border-red-200 hover:bg-red-50 text-red-600 rounded-full text-[11px] font-medium transition-colors"
+                    >
+                      Void Order
+                    </button>
+                  </div>
                 </div>
 
                 {/* Line Items List */}
                 <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
                   {tableOrder.items.map((item, idx) => (
-                    <div key={item.cartItemId || idx} className="flex justify-between text-[13px] py-1 border-b border-[#f0f0f0]">
+                    <div
+                      key={item.cartItemId || idx}
+                      className="flex justify-between text-[13px] py-1 border-b border-[#f0f0f0]"
+                    >
                       <span className="text-[#262626]">
-                        <strong className="font-mono-num font-bold text-[#111827] mr-1.5">{item.quantity}x</strong>
+                        <strong className="font-mono-num font-bold text-[#111827] mr-1.5">
+                          {item.quantity}x
+                        </strong>
                         {item.menuItem.name}
+                        {item.selectedModifiers.length > 0 && (
+                          <span className="text-[11px] text-[#727272] ml-1.5">
+                            (+{item.selectedModifiers.map((m) => m.name).join(', ')})
+                          </span>
+                        )}
                         {item.addedBy && (
-                          <span className="text-[11px] text-[#727272] ml-1.5">({item.addedBy.name})</span>
+                          <span className="text-[11px] text-[#727272] ml-1.5">
+                            ({item.addedBy.name})
+                          </span>
                         )}
                       </span>
                       <span className="font-mono-num font-medium text-[#262626]">
-                        {(item.menuItem.basePrice * item.quantity).toFixed(2)} EGP
+                        {(
+                          (item.menuItem.basePrice +
+                            item.selectedModifiers.reduce((s, m) => s + m.price, 0)) *
+                          item.quantity
+                        ).toFixed(2)}{' '}
+                        EGP
                       </span>
                     </div>
                   ))}
@@ -364,15 +552,21 @@ export const CashierPage: React.FC = () => {
                 <div className="pt-2 border-t border-[#e5e7eb] space-y-1 text-[12px]">
                   <div className="flex justify-between text-[#727272]">
                     <span>Net Subtotal:</span>
-                    <span className="font-mono-num text-[#262626]">{tableOrder.subtotal.toFixed(2)} EGP</span>
+                    <span className="font-mono-num text-[#262626]">
+                      {tableOrder.subtotal.toFixed(2)} EGP
+                    </span>
                   </div>
                   <div className="flex justify-between text-[#727272]">
                     <span>Taxes (14%):</span>
-                    <span className="font-mono-num text-[#262626]">{tableOrder.vatAmount.toFixed(2)} EGP</span>
+                    <span className="font-mono-num text-[#262626]">
+                      {tableOrder.vatAmount.toFixed(2)} EGP
+                    </span>
                   </div>
                   <div className="flex justify-between text-[15px] font-bold text-[#262626] pt-1 border-t border-[#e5e7eb]">
                     <span>Grand Total:</span>
-                    <span className="font-mono-num text-[#FF0055]">{tableOrder.total.toFixed(2)} EGP</span>
+                    <span className="font-mono-num text-[#FF0055]">
+                      {tableOrder.total.toFixed(2)} EGP
+                    </span>
                   </div>
                 </div>
 
@@ -382,48 +576,109 @@ export const CashierPage: React.FC = () => {
                     <div className="text-[12px] font-medium text-[#262626]">Tender Method:</div>
                     <div className="grid grid-cols-3 gap-2">
                       <button
+                        type="button"
                         onClick={() => setSelectedMethod('card')}
                         className={`p-2 rounded-lg border text-center transition-all cursor-pointer text-[12px] font-medium ${
-                          selectedMethod === 'card' ? 'border-[#FF0055] bg-[#fff0f3] text-[#FF0055]' : 'bg-[#f9f9f9] text-[#727272]'
+                          selectedMethod === 'card'
+                            ? 'border-[#FF0055] bg-[#fff0f3] text-[#FF0055] font-bold'
+                            : 'bg-[#f9f9f9] text-[#727272] border-[#e5e7eb]'
                         }`}
                       >
                         Visa / Meeza POS
                       </button>
                       <button
+                        type="button"
                         onClick={() => setSelectedMethod('cashier')}
                         className={`p-2 rounded-lg border text-center transition-all cursor-pointer text-[12px] font-medium ${
-                          selectedMethod === 'cashier' ? 'border-[#FF0055] bg-[#fff0f3] text-[#FF0055]' : 'bg-[#f9f9f9] text-[#727272]'
+                          selectedMethod === 'cashier'
+                            ? 'border-[#FF0055] bg-[#fff0f3] text-[#FF0055] font-bold'
+                            : 'bg-[#f9f9f9] text-[#727272] border-[#e5e7eb]'
                         }`}
                       >
                         Physical Cash
                       </button>
                       <button
+                        type="button"
                         onClick={() => setSelectedMethod('apple_pay')}
                         className={`p-2 rounded-lg border text-center transition-all cursor-pointer text-[12px] font-medium ${
-                          selectedMethod === 'apple_pay' ? 'border-[#FF0055] bg-[#fff0f3] text-[#FF0055]' : 'bg-[#f9f9f9] text-[#727272]'
+                          selectedMethod === 'apple_pay'
+                            ? 'border-[#FF0055] bg-[#fff0f3] text-[#FF0055] font-bold'
+                            : 'bg-[#f9f9f9] text-[#727272] border-[#e5e7eb]'
                         }`}
                       >
                         Apple Pay
                       </button>
                     </div>
 
+                    {/* Physical Cash Tender Quick Calculator */}
                     {selectedMethod === 'cashier' && (
-                      <div className="p-3 bg-[#f9f9f9] rounded-xl border border-[#e5e7eb] space-y-2">
+                      <div className="p-3.5 bg-[#f9f9f9] rounded-xl border border-[#e5e7eb] space-y-3">
                         <div className="flex items-center justify-between text-[12px]">
                           <span className="font-medium text-[#262626]">Cash Tendered:</span>
-                          <span className="text-[11px] text-[#727272]">Enter bill received</span>
+                          <span className="text-[11px] text-[#727272]">Quick bill presets</span>
                         </div>
+
+                        {/* Presets */}
+                        <div className="flex flex-wrap gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => setCashTendered(remainingDue.toFixed(2))}
+                            className="px-2.5 py-1 bg-white hover:bg-[#e5e7eb] border border-[#e5e7eb] rounded-full text-[11px] font-mono-num font-bold text-[#262626]"
+                          >
+                            Exact ({remainingDue.toFixed(0)})
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setCashTendered('100')}
+                            className="px-2.5 py-1 bg-white hover:bg-[#e5e7eb] border border-[#e5e7eb] rounded-full text-[11px] font-mono-num text-[#262626]"
+                          >
+                            100
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setCashTendered('200')}
+                            className="px-2.5 py-1 bg-white hover:bg-[#e5e7eb] border border-[#e5e7eb] rounded-full text-[11px] font-mono-num text-[#262626]"
+                          >
+                            200
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setCashTendered('500')}
+                            className="px-2.5 py-1 bg-white hover:bg-[#e5e7eb] border border-[#e5e7eb] rounded-full text-[11px] font-mono-num text-[#262626]"
+                          >
+                            500
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setCashTendered('1000')}
+                            className="px-2.5 py-1 bg-white hover:bg-[#e5e7eb] border border-[#e5e7eb] rounded-full text-[11px] font-mono-num text-[#262626]"
+                          >
+                            1000
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const curr = parseFloat(cashTendered) || remainingDue;
+                              setCashTendered((curr + 50).toString());
+                            }}
+                            className="px-2.5 py-1 bg-white hover:bg-[#e5e7eb] border border-[#e5e7eb] rounded-full text-[11px] font-mono-num text-[#262626]"
+                          >
+                            +50
+                          </button>
+                        </div>
+
                         <input
                           type="number"
                           value={cashTendered}
                           onChange={(e) => setCashTendered(e.target.value)}
                           placeholder={`e.g. ${Math.ceil(tableOrder.total / 100) * 100}`}
-                          className="w-full px-3 py-2 rounded-lg border border-[#e5e7eb] bg-white font-mono-num text-[14px] text-[#262626] focus:outline-none focus:border-[#FF0055]"
+                          className="w-full px-3 py-2 rounded-lg border border-[#e5e7eb] bg-white font-mono-num text-[14px] text-[#262626] focus:outline-hidden focus:border-[#FF0055]"
                         />
+
                         {tenderedAmount > 0 && (
-                          <div className="flex items-center justify-between text-[12px] pt-1">
-                            <span className="text-[#727272]">Change to Return:</span>
-                            <span className="font-mono-num font-bold text-[#15803d]">
+                          <div className="flex items-center justify-between text-[13px] pt-1 border-t border-[#e5e7eb]">
+                            <span className="text-[#727272]">Change Due to Guest:</span>
+                            <span className="font-mono-num font-bold text-[#15803d] text-[16px]">
                               {changeDue.toFixed(2)} EGP
                             </span>
                           </div>
@@ -432,8 +687,9 @@ export const CashierPage: React.FC = () => {
                     )}
 
                     <button
+                      type="button"
                       onClick={() => handleConfirmPayment(tableOrder.id, tableOrder.cashierChitCode)}
-                      className="w-full py-3.5 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[14px] font-bold transition-all btn-crimson-glow active:scale-[0.99] cursor-pointer shadow-md flex items-center justify-center gap-2"
+                      className="w-full py-3.5 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[14px] font-bold transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
                     >
                       <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                         <polyline points="20 6 9 17 4 12" />
@@ -494,7 +750,7 @@ export const CashierPage: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-3">
                     <div className="text-right">
                       <span className="font-mono-num font-bold text-[#FF0055] text-[16px]">
                         {order.total.toFixed(2)} EGP
@@ -503,6 +759,15 @@ export const CashierPage: React.FC = () => {
                     </div>
 
                     <button
+                      type="button"
+                      onClick={() => handleOpenVoidModal(order.id)}
+                      className="px-3 py-1.5 rounded-full border border-red-200 text-red-600 hover:bg-red-50 text-[11px] font-medium transition-colors"
+                    >
+                      Void
+                    </button>
+
+                    <button
+                      type="button"
                       onClick={() => handleConfirmPayment(order.id, order.cashierChitCode)}
                       className="px-4 py-2 rounded-full bg-[#FF0055] text-white text-[12px] font-bold hover:opacity-95 transition-all cursor-pointer shadow-xs"
                     >
@@ -515,6 +780,188 @@ export const CashierPage: React.FC = () => {
           )}
         </section>
       </main>
+
+      {/* VOID ORDER MODAL */}
+      {isVoidModalOpen && voidTargetOrderId && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="bg-white border border-[#e5e7eb] rounded-2xl w-full max-w-md p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-[#e5e7eb]">
+              <h3 className="text-[16px] font-bold text-red-600">
+                Void Order #{voidTargetOrderId}
+              </h3>
+              <button
+                type="button"
+                onClick={() => setIsVoidModalOpen(false)}
+                className="w-7 h-7 flex items-center justify-center rounded-full text-[#727272] hover:text-[#262626] hover:bg-[#f9f9f9]"
+                aria-label="Close dialog"
+              >
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+
+            <p className="text-[13px] text-[#727272]">
+              Voiding removes this ticket from the active register and KDS pass. Select the audit reason:
+            </p>
+
+            <div className="space-y-2">
+              {VOID_REASONS.map((reason) => (
+                <label
+                  key={reason}
+                  className={`flex items-center gap-2.5 p-2.5 rounded-lg border text-[12px] cursor-pointer transition-colors ${
+                    selectedVoidReason === reason
+                      ? 'bg-red-50 border-red-300 text-red-900 font-medium'
+                      : 'bg-[#f9f9f9] border-[#e5e7eb] text-[#262626]'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="voidReason"
+                    value={reason}
+                    checked={selectedVoidReason === reason}
+                    onChange={(e) => setSelectedVoidReason(e.target.value)}
+                    className="accent-red-600"
+                  />
+                  <span>{reason}</span>
+                </label>
+              ))}
+            </div>
+
+            <div className="flex items-center justify-between pt-2 border-t border-[#e5e7eb]">
+              <button
+                type="button"
+                onClick={() => {
+                  if (voidTargetOrderId) {
+                    deleteOrder(voidTargetOrderId);
+                    setIsVoidModalOpen(false);
+                    setVoidTargetOrderId(null);
+                  }
+                }}
+                className="px-3 py-1.5 text-red-600 hover:bg-red-50 rounded-full text-[12px] font-medium transition-colors border border-transparent hover:border-red-200"
+              >
+                Delete Permanently
+              </button>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsVoidModalOpen(false)}
+                  className="px-4 py-2 border border-[#e5e7eb] rounded-full text-[12px] font-medium text-[#727272] hover:bg-[#f9f9f9]"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleConfirmVoid}
+                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-full text-[12px] font-bold shadow-xs"
+                >
+                  Confirm Void Order
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* THERMAL RECEIPT MODAL */}
+      {isReceiptModalOpen && receiptOrder && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="bg-white border border-[#e5e7eb] rounded-2xl w-full max-w-sm p-6 shadow-2xl space-y-4 font-mono-num text-[12px]">
+            <div className="text-center space-y-1 pb-3 border-b border-dashed border-[#262626]">
+              <div className="font-bold text-[16px] tracking-wider text-[#262626]">
+                LIVE KITCHEN (لايف كيتشن)
+              </div>
+              <div className="text-[11px] text-[#727272]">
+                Port Said, Egypt • Wood-Fired Kitchen
+              </div>
+              <div className="text-[11px] text-[#727272]">
+                Front Register POS Terminal
+              </div>
+            </div>
+
+            <div className="flex justify-between text-[#727272] text-[11px]">
+              <span>Chit: #{receiptOrder.cashierChitCode || receiptOrder.id}</span>
+              <span>Table: {receiptOrder.tableNumber || 'Counter'}</span>
+            </div>
+            <div className="text-[#727272] text-[11px]">
+              Date: {new Date(receiptOrder.createdAt).toLocaleDateString()} {new Date(receiptOrder.createdAt).toLocaleTimeString()}
+            </div>
+
+            {/* Receipt Items */}
+            <div className="py-2 border-y border-dashed border-[#262626] space-y-1.5">
+              {receiptOrder.items.map((item, idx) => (
+                <div key={idx} className="flex justify-between">
+                  <span>
+                    {item.quantity}x {item.menuItem.name}
+                  </span>
+                  <span>
+                    {(
+                      (item.menuItem.basePrice +
+                        item.selectedModifiers.reduce((s, m) => s + m.price, 0)) *
+                      item.quantity
+                    ).toFixed(2)}{' '}
+                    EGP
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            {/* Totals */}
+            <div className="space-y-1 text-[11px]">
+              <div className="flex justify-between">
+                <span>Subtotal:</span>
+                <span>{receiptOrder.subtotal.toFixed(2)} EGP</span>
+              </div>
+              <div className="flex justify-between">
+                <span>VAT (14%):</span>
+                <span>{receiptOrder.vatAmount.toFixed(2)} EGP</span>
+              </div>
+              <div className="flex justify-between font-bold text-[14px] text-[#262626] pt-1 border-t border-[#e5e7eb]">
+                <span>Total:</span>
+                <span>{receiptOrder.total.toFixed(2)} EGP</span>
+              </div>
+              <div className="flex justify-between text-[11px] text-[#727272] pt-1">
+                <span>Status:</span>
+                <span>{receiptOrder.isPaid ? 'PAID IN FULL' : 'PENDING CASHIER'}</span>
+              </div>
+            </div>
+
+            <div className="text-center pt-2 text-[10px] text-[#727272] border-t border-dashed border-[#262626]">
+              Thank you for dining at Live Kitchen!
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setIsReceiptModalOpen(false)}
+                className="px-4 py-2 border border-[#e5e7eb] rounded-full text-[12px] font-sans text-[#727272] hover:bg-[#f9f9f9]"
+              >
+                Close
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  window.print();
+                }}
+                className="px-4 py-2 bg-[#262626] hover:bg-black text-white rounded-full text-[12px] font-sans font-medium"
+              >
+                Print Chit
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

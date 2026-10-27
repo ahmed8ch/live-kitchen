@@ -1,4 +1,4 @@
-export type OrderStatus = 'received' | 'cooking' | 'ready' | 'served';
+export type OrderStatus = 'received' | 'cooking' | 'ready' | 'served' | 'voided';
 
 export type MenuCategory = 'burgers' | 'steaks' | 'pizzas' | 'pastas' | 'drinks';
 
@@ -30,6 +30,7 @@ export interface MemberProfile {
   isHost: boolean;
   isReadyToPay: boolean;
   joinedAt: number;
+  accountId?: string;
 }
 
 export interface CartItem {
@@ -78,6 +79,8 @@ export interface OrderTicket {
   reviewFeedback?: string;
   createdAt: number;
   paidAt?: number;
+  dinerAccountId?: string;
+  voidReason?: string;
 }
 
 export type TableStatus = 'idle' | 'ordering' | 'waiting_for_payment' | 'paid_cooking' | 'ready' | 'served';
@@ -91,3 +94,18 @@ export interface TableSession {
   activeOrderId?: string;
   lastUpdated: number;
 }
+
+export interface DinerAccount {
+  id: string;
+  fullName: string;
+  phone: string;
+  email?: string;
+  pin: string; // 4-digit fast PIN
+  loyaltyPointsEgp: number; // 10% cashback earned on settled orders
+  dietaryTags: string[]; // e.g. ['Gluten-Free', 'Halal', 'Dairy-Free', 'Nut Allergy']
+  createdAt: number;
+  lastLoginAt: number;
+  orderHistoryIds: string[];
+}
+
+export type AccountModalTab = 'signin' | 'signup' | 'profile' | 'history';

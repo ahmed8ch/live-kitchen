@@ -25,6 +25,8 @@ export const MenuPage: React.FC = () => {
   const [selectedDish, setSelectedDish] = useState<MenuItem | null>(null);
 
   const activeTable = useAppStore((state) => state.activeTable);
+  const userAccount = useAppStore((state) => state.userAccount);
+  const openAccountModal = useAppStore((state) => state.openAccountModal);
 
   useEffect(() => {
     flushPendingHostToasts();
@@ -54,16 +56,42 @@ export const MenuPage: React.FC = () => {
               </p>
             </div>
 
-            {activeTable && (
-              <div className="sm:text-right bg-[#f9f9f9] px-4 py-2 rounded-xl border border-[#e5e7eb] shrink-0">
-                <div className="text-[10px] font-mono-num uppercase tracking-wider text-[#727272]">
-                  Table Seating
+            <div className="flex items-center gap-3">
+              {/* Dine-In Account / Loyalty Pill */}
+              <button
+                type="button"
+                onClick={() => openAccountModal()}
+                className="px-3.5 py-2 rounded-xl border border-[#e5e7eb] bg-[#f9f9f9] hover:bg-[#f0f0f0] transition-colors flex items-center gap-2.5 text-left shrink-0"
+              >
+                <div className="w-7 h-7 rounded-full bg-[#FF0055]/10 flex items-center justify-center text-[#FF0055] shrink-0 font-bold text-xs">
+                  {userAccount ? userAccount.fullName.charAt(0).toUpperCase() : 'G'}
                 </div>
-                <div className="text-base font-mono-num font-bold text-[#FF0055]">
-                  Table {activeTable}
+                <div>
+                  <div className="text-[10px] font-mono-num uppercase tracking-wider text-[#727272]">
+                    {userAccount ? 'Diner Profile' : 'Guest / Sign In'}
+                  </div>
+                  <div className="text-[12px] font-bold text-[#262626] font-mono-num flex items-center gap-1">
+                    {userAccount ? userAccount.fullName : '10% Cashback'}
+                    {userAccount && (
+                      <span className="text-[#FF0055] text-[10px] font-medium">
+                        ({userAccount.loyaltyPointsEgp.toFixed(0)} EGP)
+                      </span>
+                    )}
+                  </div>
                 </div>
-              </div>
-            )}
+              </button>
+
+              {activeTable && (
+                <div className="sm:text-right bg-[#f9f9f9] px-4 py-2 rounded-xl border border-[#e5e7eb] shrink-0">
+                  <div className="text-[10px] font-mono-num uppercase tracking-wider text-[#727272]">
+                    Table Seating
+                  </div>
+                  <div className="text-base font-mono-num font-bold text-[#FF0055]">
+                    Table {activeTable}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Category Filter Pills (2px solid #FF0055 selected state) */}
