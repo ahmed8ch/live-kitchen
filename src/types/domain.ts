@@ -22,6 +22,7 @@ export interface MenuItem {
   prepTime?: string;
   tags?: string[];
   modifiers: ModifierOption[];
+  station?: 'grill' | 'oven' | 'fry' | 'pantry' | 'expo';
 }
 
 export interface MemberProfile {
@@ -74,6 +75,7 @@ export interface OrderTicket {
   splitStrategy?: 'host_pays_all' | 'split_by_diner' | 'equal_split';
   splitCount?: number;
   paidDiners?: Record<string, DinerPaymentRecord>; // Itemized diner settlements
+  settledCartItemIds?: string[]; // Itemized dish IDs already settled
   tipAmount?: number;
   rating?: number; // Post-meal 5-star review
   reviewFeedback?: string;

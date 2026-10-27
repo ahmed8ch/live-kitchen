@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo } from 'react';
+import React, { useState, useRef, useMemo, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAppStore } from '../store/useAppStore';
 import { PaymentMethod } from '../types/domain';
@@ -25,11 +25,28 @@ export const SettlementPage: React.FC = () => {
 
   const receiptRef = useRef<HTMLDivElement>(null);
 
+  // Dynamic ticket lookup: by URL param, or current active order, or latest in store
+  const ticket = id && id !== 'active'
+    ? orders.find((o) => o.id === id)
+    : activeOrderId
+    ? orders.find((o) => o.id === activeOrderId)
+    : orders[0];
+
   const [splitMode, setSplitMode] = useState<'by_diner' | 'equal' | 'itemized'>('by_diner');
   const [splitWays, setSplitWays] = useState<number>(1);
   const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>('apple_pay');
   const [isProcessing, setIsProcessing] = useState(false);
+
+  // Sync splitMode when ticket splitStrategy is defined
+  useEffect(() => {
+    if (ticket?.splitStrategy === 'equal_split') {
+      setSplitMode('equal');
+      if (ticket.splitCount) setSplitWays(ticket.splitCount);
+    } else if (ticket?.splitStrategy === 'split_by_diner') {
+      setSplitMode('by_diner');
+    }
+  }, [ticket?.id, ticket?.splitStrategy, ticket?.splitCount]);
 
   // Post-meal rating & tipping state (Happy Yellow #FBBF24)
   const [showRatingForm, setShowRatingForm] = useState(false);
@@ -37,13 +54,6 @@ export const SettlementPage: React.FC = () => {
   const [tipPercent, setTipPercent] = useState<number>(10);
   const [feedback, setFeedback] = useState<string>('');
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
-
-  // Dynamic ticket lookup: by URL param, or current active order, or latest in store
-  const ticket = id && id !== 'active'
-    ? orders.find((o) => o.id === id)
-    : activeOrderId
-    ? orders.find((o) => o.id === activeOrderId)
-    : orders[0];
 
   if (!ticket) {
     return (
@@ -126,7 +136,7 @@ export const SettlementPage: React.FC = () => {
       }
 
       groups[memberId].items.push(item);
-      const modTotal = item.selectedModifiers.reduce((mSum, m) => mSum + m.price, 0);
+      const modTotal = (item.selectedModifiers || []).reduce((mSum, m) => mSum + (m?.price || 0), 0);
       groups[memberId].subtotal += (item.menuItem.basePrice + modTotal) * item.quantity;
     });
 
@@ -151,7 +161,7 @@ export const SettlementPage: React.FC = () => {
   );
 
   const itemizedSubtotal = selectedItems.reduce((sum, item) => {
-    const modTotal = item.selectedModifiers.reduce((mSum, m) => mSum + m.price, 0);
+    const modTotal = (item.selectedModifiers || []).reduce((mSum, m) => mSum + (m?.price || 0), 0);
     return sum + (item.menuItem.basePrice + modTotal) * item.quantity;
   }, 0);
   const itemizedVat = Math.round(itemizedSubtotal * 0.14 * 100) / 100;

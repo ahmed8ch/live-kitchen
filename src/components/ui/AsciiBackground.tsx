@@ -17,22 +17,40 @@ export const AsciiBackground: React.FC<AsciiBackgroundProps> = ({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    let animationFrameId: number;
+    let animationFrameId: number = 0;
     let mouseX = -1000;
     let mouseY = -1000;
     let frame = 0;
+    let isVisible = true;
 
     const spacing = 22;
     const CHARS = ['·', ':', '+', '•', '¤', '#'];
 
     const handleResize = () => {
       if (!canvas.parentElement) return;
-      canvas.width = canvas.parentElement.offsetWidth;
-      canvas.height = canvas.parentElement.offsetHeight;
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.parentElement.getBoundingClientRect();
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      canvas.style.width = `${rect.width}px`;
+      canvas.style.height = `${rect.height}px`;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     };
 
     handleResize();
     window.addEventListener('resize', handleResize);
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        isVisible = entry ? entry.isIntersecting : true;
+        if (isVisible && !animationFrameId) {
+          animationFrameId = requestAnimationFrame(render);
+        }
+      },
+      { threshold: 0.05 }
+    );
+    observer.observe(canvas);
 
     const handleMouseMove = (e: MouseEvent) => {
       const rect = canvas.getBoundingClientRect();
@@ -49,9 +67,13 @@ export const AsciiBackground: React.FC<AsciiBackgroundProps> = ({
     window.addEventListener('mouseleave', handleMouseLeave);
 
     const render = () => {
+      if (!isVisible) {
+        animationFrameId = 0;
+        return;
+      }
       frame++;
-      const w = canvas.width;
-      const h = canvas.height;
+      const w = canvas.parentElement?.offsetWidth || (canvas.width / (window.devicePixelRatio || 1));
+      const h = canvas.parentElement?.offsetHeight || (canvas.height / (window.devicePixelRatio || 1));
       ctx.clearRect(0, 0, w, h);
 
       const cols = Math.ceil(w / spacing);
@@ -124,6 +146,7 @@ export const AsciiBackground: React.FC<AsciiBackgroundProps> = ({
 
     return () => {
       cancelAnimationFrame(animationFrameId);
+      observer.disconnect();
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseleave', handleMouseLeave);

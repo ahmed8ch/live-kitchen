@@ -138,7 +138,12 @@ export const CompanionPage: React.FC = () => {
           <div className="mt-6 flex flex-col gap-2.5">
             <button
               type="button"
-              onClick={() => initCompanionSession(cleanTable)}
+              onClick={() => {
+                useAppStore.setState({
+                  hasLeftTables: { ...hasLeftTables, [cleanTable]: false },
+                });
+                initCompanionSession(cleanTable);
+              }}
               className="w-full py-2.5 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[13px] font-bold transition-all btn-crimson-glow shadow-xs cursor-pointer"
             >
               Join Table {cleanTable} as Guest Diner

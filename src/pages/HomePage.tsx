@@ -259,8 +259,8 @@ export const HomePage: React.FC = () => {
       <section id="flow" className="py-14 md:py-18 bg-[#f9f9f9] border-b border-[#e5e7eb]">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-8">
-            <div className="text-[11px] font-mono-num uppercase tracking-wider text-[#949494]">
-              Operational Architecture
+            <div className="text-[11px] uppercase tracking-wider text-[#949494] font-medium">
+              Table-to-Kitchen Flow
             </div>
             <h2 className="text-2xl font-bold text-[#262626]" data-ui-balance>
               4-Stage Dine-In Flow
@@ -270,7 +270,7 @@ export const HomePage: React.FC = () => {
           {/* Clean Bento Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-[#e5e7eb] border border-[#e5e7eb] rounded-2xl overflow-hidden shadow-xs relative">
             {/* Cell 1 */}
-            <div className="bg-white p-6 sm:p-7 flex flex-col justify-between relative group">
+            <div className="bg-white p-6 sm:p-7 flex flex-col justify-between relative group hover:bg-[#fafafa] transition-colors">
               <div>
                 <div className="w-8 h-8 rounded-full bg-[#f9f9f9] border border-[#e5e7eb] text-[#FF0055] flex items-center justify-center font-mono-num font-bold text-[13px] mb-4">
                   01
@@ -282,13 +282,13 @@ export const HomePage: React.FC = () => {
                   First diner scans table QR; assigns private 4-digit PIN. Companions enter PIN to join table pool.
                 </p>
               </div>
-              <div className="mt-6 pt-4 border-t border-[#f0f0f0] text-[11px] font-mono-num text-[#949494]">
-                Table Session Bound
+              <div className="mt-6 pt-4 border-t border-[#f0f0f0] text-[11px] text-[#949494]">
+                Table PIN Assigned
               </div>
             </div>
 
             {/* Cell 2 */}
-            <div className="bg-white p-6 sm:p-7 flex flex-col justify-between relative group">
+            <div className="bg-white p-6 sm:p-7 flex flex-col justify-between relative group hover:bg-[#fafafa] transition-colors">
               <div>
                 <div className="w-8 h-8 rounded-full bg-[#f9f9f9] border border-[#e5e7eb] text-[#FF0055] flex items-center justify-center font-mono-num font-bold text-[13px] mb-4">
                   02
@@ -300,31 +300,31 @@ export const HomePage: React.FC = () => {
                   Each guest selects rare temps, sides, and kitchen notes. Cart items track which seated diner ordered each plate.
                 </p>
               </div>
-              <div className="mt-6 pt-4 border-t border-[#f0f0f0] text-[11px] font-mono-num text-[#949494]">
-                Attributed Diner Items
+              <div className="mt-6 pt-4 border-t border-[#f0f0f0] text-[11px] text-[#949494]">
+                Itemized per Guest
               </div>
             </div>
 
             {/* Cell 3 */}
-            <div className="bg-white p-6 sm:p-7 flex flex-col justify-between relative group">
+            <div className="bg-white p-6 sm:p-7 flex flex-col justify-between relative group hover:bg-[#fafafa] transition-colors">
               <div>
                 <div className="w-8 h-8 rounded-full bg-[#f9f9f9] border border-[#e5e7eb] text-[#FF0055] flex items-center justify-center font-mono-num font-bold text-[13px] mb-4">
                   03
                 </div>
                 <h3 className="text-[16px] font-bold text-[#262626]">
-                  The Payment Gate
+                  Pre-Payment &amp; Settlement
                 </h3>
                 <p className="mt-2 text-[13px] text-[#727272] leading-relaxed">
                   Equal split or Split by Diner. Orders remain Draft until verified online or at cashier. Zero unpaid food wastage.
                 </p>
               </div>
-              <div className="mt-6 pt-4 border-t border-[#f0f0f0] text-[11px] font-mono-num text-[#949494]">
+              <div className="mt-6 pt-4 border-t border-[#f0f0f0] text-[11px] text-[#949494]">
                 Equal &amp; Itemized Split
               </div>
             </div>
 
             {/* Cell 4 */}
-            <div className="bg-white p-6 sm:p-7 flex flex-col justify-between relative group">
+            <div className="bg-white p-6 sm:p-7 flex flex-col justify-between relative group hover:bg-[#fafafa] transition-colors">
               <div>
                 <div className="w-8 h-8 rounded-full bg-[#f9f9f9] border border-[#e5e7eb] text-[#FF0055] flex items-center justify-center font-mono-num font-bold text-[13px] mb-4">
                   04
@@ -333,10 +333,10 @@ export const HomePage: React.FC = () => {
                   Thermal Kitchen Pass
                 </h3>
                 <p className="mt-2 text-[13px] text-[#727272] leading-relaxed">
-                  Verified orders fire instantly to KDS wall pass. Color-coded ticket states (<span className="text-sky-600 font-bold">New</span>, <span className="text-amber-600 font-bold">Grill</span>, <span className="text-emerald-600 font-bold">Pass</span>).
+                  Verified orders fire instantly to KDS wall pass. Color-coded ticket states (<span className="text-[#FF0055] font-bold">New</span>, <span className="text-amber-600 font-bold">Grill</span>, <span className="text-emerald-600 font-bold">Pass</span>).
                 </p>
               </div>
-              <div className="mt-6 pt-4 border-t border-[#f0f0f0] text-[11px] font-mono-num text-[#949494]">
+              <div className="mt-6 pt-4 border-t border-[#f0f0f0] text-[11px] text-[#949494]">
                 Direct Kitchen Ticket
               </div>
             </div>
@@ -348,8 +348,8 @@ export const HomePage: React.FC = () => {
       <section id="roi" className="py-14 bg-white border-b border-[#e5e7eb]">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-8">
-            <div className="text-[11px] font-mono-num uppercase tracking-wider text-[#949494]">
-              Restaurant Unit Economics
+            <div className="text-[11px] uppercase tracking-wider text-[#949494] font-medium">
+              Table Economics
             </div>
             <h2 className="text-2xl font-bold text-[#262626]">
               Turnover Speed &amp; Revenue Modeling
@@ -395,10 +395,10 @@ export const HomePage: React.FC = () => {
             {/* Projected Output Card */}
             <div className="bg-[#f9f9f9] border border-[#e5e7eb] rounded-2xl p-6 sm:p-8 space-y-6">
               <div className="flex items-center justify-between pb-4 border-b border-[#e5e7eb]">
-                <span className="text-[12px] font-mono-num uppercase text-[#949494]">
+                <span className="text-[12px] uppercase text-[#949494] font-medium">
                   Monthly Growth Projection
                 </span>
-                <span className="px-2.5 py-0.5 rounded-full bg-[#fff0f3] border border-[#ffd1dc] text-[#FF0055] text-[11px] font-mono-num font-bold">
+                <span className="px-2.5 py-0.5 rounded-full bg-[#fff0f3] border border-[#ffd1dc] text-[#FF0055] text-[11px] font-bold">
                   High-Capacity Dining
                 </span>
               </div>
@@ -408,19 +408,21 @@ export const HomePage: React.FC = () => {
                 <div className="text-3xl sm:text-4xl font-mono-num font-bold text-[#262626] mt-1">
                   +{monthlyRevenueUplift.toLocaleString()} EGP
                 </div>
-                <div className="text-[12px] text-[#949494] mt-1 font-mono-num">
+                <div className="text-[12px] text-[#727272] mt-1">
                   Based on +{extraDailyParties} extra table seatings/day @ {avgCheck} EGP check
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4 pt-4 border-t border-[#e5e7eb] text-[13px]">
                 <div>
-                  <div className="text-[#949494] text-[11px] font-mono-num uppercase">Service Speed</div>
+                  <div className="text-[#949494] text-[11px] uppercase font-medium">Service Speed</div>
                   <div className="font-bold text-[#262626] mt-0.5">Faster Table Turnover</div>
                 </div>
                 <div>
-                  <div className="text-[#949494] text-[11px] font-mono-num uppercase">Hardware Capital</div>
-                  <div className="font-bold text-[#15803d] mt-0.5">0 EGP (No Hardware Leases)</div>
+                  <div className="text-[#949494] text-[11px] uppercase font-medium">Hardware Capital</div>
+                  <div className="font-bold text-[#15803d] mt-0.5">
+                    <span className="font-mono-num" data-ui-number>0 EGP</span> (No Hardware Leases)
+                  </div>
                 </div>
               </div>
             </div>
@@ -433,11 +435,11 @@ export const HomePage: React.FC = () => {
         <div className="max-w-2xl mx-auto px-4 sm:px-6">
           <div className="bg-white rounded-2xl border border-[#e5e7eb] p-6 sm:p-9 shadow-xs space-y-6">
             <div>
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#fff0f3] text-[#FF0055] border border-[#ffd1dc] text-[11px] font-mono-num font-bold uppercase tracking-wider mb-2">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#fff0f3] text-[#FF0055] border border-[#ffd1dc] text-[11px] font-bold uppercase tracking-wider mb-2">
                 FlameLink Direct Platform Desk
               </div>
               <h2 className="text-2xl font-bold text-[#262626]">
-                Inquiries, Suggestions & Issue Reports
+                Inquiries, Suggestions &amp; Issue Reports
               </h2>
               <p className="text-[13px] text-[#616161] mt-1">
                 Have a question about deploying FlameLink, a feature recommendation, or experiencing an operational issue? Send a direct dispatch to our platform engineering desk.
@@ -474,7 +476,7 @@ export const HomePage: React.FC = () => {
                       value={contactName}
                       onChange={(e) => setContactName(e.target.value)}
                       placeholder="e.g. Tarek Mansour"
-                      className="w-full px-3.5 py-2.5 text-[13px] rounded-lg border border-[#e5e7eb] bg-white text-[#262626] focus:outline-none focus:border-[#FF0055]"
+                      className="w-full px-3.5 py-2.5 text-[13px] rounded-lg border border-[#e5e7eb] bg-white text-[#262626] focus:outline-none focus:border-[#FF0055] focus:ring-2 focus:ring-[#FF0055]/15 transition-all"
                     />
                   </div>
 
@@ -489,7 +491,7 @@ export const HomePage: React.FC = () => {
                       value={contactPhone}
                       onChange={(e) => setContactPhone(e.target.value)}
                       placeholder="0100 000 0000 or email"
-                      className="w-full px-3.5 py-2.5 text-[13px] rounded-lg border border-[#e5e7eb] bg-white text-[#262626] focus:outline-none focus:border-[#FF0055]"
+                      className="w-full px-3.5 py-2.5 text-[13px] rounded-lg border border-[#e5e7eb] bg-white text-[#262626] focus:outline-none focus:border-[#FF0055] focus:ring-2 focus:ring-[#FF0055]/15 transition-all"
                     />
                   </div>
                 </div>
@@ -503,12 +505,12 @@ export const HomePage: React.FC = () => {
                       id="fb-category"
                       value={category}
                       onChange={(e) => setCategory(e.target.value)}
-                      className="w-full px-3.5 py-2.5 text-[13px] rounded-lg border border-[#e5e7eb] bg-white text-[#262626] focus:outline-none focus:border-[#FF0055]"
+                      className="w-full px-3.5 py-2.5 text-[13px] rounded-lg border border-[#e5e7eb] bg-white text-[#262626] focus:outline-none focus:border-[#FF0055] focus:ring-2 focus:ring-[#FF0055]/15 transition-all"
                     >
                       <option value="Platform Inquiry">Platform Inquiry / Partnership</option>
-                      <option value="Feature Suggestion">Feature Suggestion & Ideas</option>
+                      <option value="Feature Suggestion">Feature Suggestion &amp; Ideas</option>
                       <option value="Bug / Issue Report">Bug / Operational Issue Report</option>
-                      <option value="Enterprise Hardware">Enterprise Hardware & Setup</option>
+                      <option value="Enterprise Hardware">Enterprise Hardware &amp; Setup</option>
                     </select>
                   </div>
 
@@ -520,7 +522,7 @@ export const HomePage: React.FC = () => {
                       id="fb-priority"
                       value={priority}
                       onChange={(e) => setPriority(e.target.value)}
-                      className="w-full px-3.5 py-2.5 text-[13px] rounded-lg border border-[#e5e7eb] bg-white text-[#262626] focus:outline-none focus:border-[#FF0055]"
+                      className="w-full px-3.5 py-2.5 text-[13px] rounded-lg border border-[#e5e7eb] bg-white text-[#262626] focus:outline-none focus:border-[#FF0055] focus:ring-2 focus:ring-[#FF0055]/15 transition-all"
                     >
                       <option value="Normal">Normal Inquiry</option>
                       <option value="High">High (Live Restaurant Operation)</option>
@@ -540,14 +542,14 @@ export const HomePage: React.FC = () => {
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     placeholder="Describe your suggestion, inquiry, or any problem you observed..."
-                    className="w-full px-3.5 py-2.5 text-[13px] rounded-lg border border-[#e5e7eb] bg-white text-[#262626] focus:outline-none focus:border-[#FF0055]"
+                    className="w-full px-3.5 py-2.5 text-[13px] rounded-lg border border-[#e5e7eb] bg-white text-[#262626] focus:outline-none focus:border-[#FF0055] focus:ring-2 focus:ring-[#FF0055]/15 transition-all"
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={isSubmittingForm}
-                  className="w-full py-3.5 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[13px] font-bold btn-crimson-glow transition-all active:scale-[0.99] cursor-pointer shadow-xs disabled:opacity-50"
+                  className="w-full py-3.5 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[13px] font-bold btn-crimson-glow transition-all active:scale-95 cursor-pointer shadow-xs disabled:opacity-50"
                 >
                   {isSubmittingForm ? 'Sending Message to Supabase...' : 'Send Message to Platform Team ->'}
                 </button>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAppStore } from '../../store/useAppStore';
 import { PaymentMethod } from '../../types/domain';
@@ -25,6 +25,19 @@ export const CartDrawer: React.FC = () => {
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>('apple_pay');
   const [splitStrategy, setSplitStrategy] = useState<'host_pays_all' | 'split_by_diner' | 'equal_split'>('host_pays_all');
   const [showPaymentChoice, setShowPaymentChoice] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Close on Escape key
+  useEffect(() => {
+    if (!isCartDrawerOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        closeCartDrawer();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isCartDrawerOpen, closeCartDrawer]);
 
   if (!isCartDrawerOpen) {
     return null;
@@ -85,9 +98,15 @@ export const CartDrawer: React.FC = () => {
   };
 
   const handleFinalizeCheckout = (method: PaymentMethod) => {
-    const ticket = createOrder(method, splitStrategy);
-    const query = activeTable ? `?table=${activeTable}` : '';
-    navigate(`/settlement/${ticket.id}${query}`);
+    if (isSubmitting || cart.length === 0) return;
+    setIsSubmitting(true);
+    try {
+      const ticket = createOrder(method, splitStrategy);
+      const query = activeTable ? `?table=${activeTable}` : '';
+      navigate(`/settlement/${ticket.id}${query}`);
+    } catch {
+      setIsSubmitting(false);
+    }
   };
 
   const handleToggleMyReady = () => {
@@ -97,6 +116,9 @@ export const CartDrawer: React.FC = () => {
 
   return (
     <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Order Cart Drawer"
       className="fixed inset-0 z-50 flex justify-end bg-black/45 backdrop-blur-xs animate-in fade-in duration-200"
       onClick={closeCartDrawer}
     >
@@ -438,9 +460,12 @@ export const CartDrawer: React.FC = () => {
                   </button>
                   <button
                     onClick={() => handleFinalizeCheckout(selectedMethod)}
-                    className="flex-2 py-2.5 rounded-full bg-[#FF0055] text-white text-[12px] font-bold hover:opacity-95 cursor-pointer shadow-xs btn-crimson-glow"
+                    disabled={isSubmitting}
+                    className={`flex-2 py-2.5 rounded-full bg-[#FF0055] text-white text-[12px] font-bold shadow-xs btn-crimson-glow ${
+                      isSubmitting ? 'opacity-70 cursor-not-allowed' : 'hover:opacity-95 cursor-pointer'
+                    }`}
                   >
-                    Submit Table Order -&gt;
+                    <span>{isSubmitting ? 'Submitting...' : 'Submit Table Order ->'}</span>
                   </button>
                 </div>
               </div>

@@ -17,15 +17,14 @@ export const OrderTrackerPage: React.FC = () => {
   const navigate = useNavigate();
 
   const orders = useAppStore((state) => state.orders);
-  const advanceOrderStatus = useAppStore((state) => state.advanceOrderStatus);
   const activeTable = useAppStore((state) => state.activeTable);
   const orderAgain = useAppStore((state) => state.orderAgain);
 
-  // Target ticket or fallback to latest order
+  // Target ticket prioritized by active table, then route id, then latest order
   const ticket =
-    id === 'active' || id === 'demo' || !id
-      ? orders[0]
-      : orders.find((o) => o.id === id) || orders[0];
+    id && id !== 'active' && id !== 'demo'
+      ? orders.find((o) => o.id === id) || (activeTable ? orders.find((o) => o.tableNumber === activeTable) : orders[0]) || orders[0]
+      : (activeTable ? orders.find((o) => o.tableNumber === activeTable) : orders[0]) || orders[0];
 
   const handleOrderAgain = () => {
     orderAgain();
@@ -86,16 +85,12 @@ export const OrderTrackerPage: React.FC = () => {
             </button>
           </div>
 
-          {/* Advance Kitchen Stage button (active if verified) */}
+          {/* Live Kitchen Status Indicator (Diner View) */}
           {!isCompleted && isVerifiedPaid && (
-            <button
-              onClick={() => advanceOrderStatus(ticket.id)}
-              data-ui-radius="999"
-              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white hover:bg-[#f0f0f0] border border-[#e5e7eb] text-[12px] font-mono-num text-[#262626] transition-all cursor-pointer shadow-xs"
-              title="Test the real-time kitchen state progression"
-            >
-              <span>Advance Stage -&gt;</span>
-            </button>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#fff0f3] border border-[#ffd1dc] text-[12px] font-mono-num text-[#FF0055]">
+              <span className="w-2 h-2 rounded-full bg-[#FF0055] animate-pulse" />
+              <span>Station Active: {STAGES[currentStageIndex]?.label || 'Cooking'}</span>
+            </div>
           )}
         </div>
 
@@ -139,7 +134,7 @@ export const OrderTrackerPage: React.FC = () => {
                 {ticket.tableNumber ? `Table ${ticket.tableNumber}` : 'Online Guest'}
               </span>
               <span className="text-[15px] font-mono-num font-medium text-[#262626]" data-ui-number>
-                #<ThermalText text={ticket.id} durationMs={350} />
+                #<ThermalText text={ticket.cashierChitCode || ticket.id} durationMs={350} />
               </span>
             </div>
           </div>

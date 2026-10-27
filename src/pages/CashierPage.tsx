@@ -148,6 +148,10 @@ export const CashierPage: React.FC = () => {
   }, [activeTab, searchQuery, orders, tableSessions]);
 
   const handleConfirmPayment = (orderId: string, chitCode?: string) => {
+    if (selectedMethod === 'cashier' && cashTendered.trim() !== '' && tenderedAmount < remainingDue) {
+      showToast(`Tendered amount (${tenderedAmount.toFixed(2)} EGP) is less than amount due (${remainingDue.toFixed(2)} EGP).`);
+      return;
+    }
     verifyCashierPayment(orderId, selectedMethod);
     setCashTendered('');
     showToast(`Payment confirmed for Chit #${chitCode || orderId}. Fired to KDS pass.`);
@@ -968,23 +972,29 @@ export const CashierPage: React.FC = () => {
         </div>
       )}
 
-      {/* THERMAL RECEIPT MODAL */}
+      {/* THERMAL RECEIPT MODAL WITH ETA TAX COMPLIANCE & PRINT CAPABILITY */}
       {isReceiptModalOpen && receiptOrder && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs"
           role="dialog"
           aria-modal="true"
         >
-          <div className="bg-white border border-[#e5e7eb] rounded-2xl w-full max-w-sm p-6 shadow-2xl space-y-4 font-mono-num text-[12px]">
+          <div
+            id="printable-receipt"
+            className="bg-white border border-[#e5e7eb] rounded-2xl w-full max-w-sm p-6 shadow-2xl space-y-4 font-mono-num text-[12px]"
+          >
             <div className="text-center space-y-1 pb-3 border-b border-dashed border-[#262626]">
               <div className="font-bold text-[16px] tracking-wider text-[#262626]">
                 LIVE KITCHEN (لايف كيتشن)
               </div>
               <div className="text-[11px] text-[#727272]">
-                Port Said, Egypt • Wood-Fired Kitchen
+                Port Said - El-Gomhoria St., adjacent to El-Montazah Park
               </div>
               <div className="text-[11px] text-[#727272]">
-                Front Register POS Terminal
+                Egyptian Tax Authority Registration: 849-204-118
+              </div>
+              <div className="text-[10px] text-[#949494]">
+                Register: Terminal POS-REG-01 • Cashier Pass
               </div>
             </div>
 
@@ -997,49 +1007,84 @@ export const CashierPage: React.FC = () => {
             </div>
 
             {/* Receipt Items */}
-            <div className="py-2 border-y border-dashed border-[#262626] space-y-1.5">
-              {receiptOrder.items.map((item, idx) => (
-                <div key={idx} className="flex justify-between">
-                  <span>
-                    {item.quantity}x {item.menuItem.name}
-                  </span>
-                  <span>
-                    {(
-                      (item.menuItem.basePrice +
-                        item.selectedModifiers.reduce((s, m) => s + m.price, 0)) *
-                      item.quantity
-                    ).toFixed(2)}{' '}
-                    EGP
-                  </span>
-                </div>
-              ))}
+            <div className="py-2 border-y border-dashed border-[#262626] space-y-2">
+              {receiptOrder.items.map((item, idx) => {
+                const modTotal = (item.selectedModifiers || []).reduce((s, m) => s + m.price, 0);
+                const itemTotal = (item.menuItem.basePrice + modTotal) * item.quantity;
+                return (
+                  <div key={idx} className="space-y-0.5">
+                    <div className="flex justify-between">
+                      <span className="font-medium">
+                        {item.quantity}x {item.menuItem.name}
+                      </span>
+                      <span>{itemTotal.toFixed(2)} EGP</span>
+                    </div>
+                    {item.selectedModifiers && item.selectedModifiers.length > 0 && (
+                      <div className="pl-4 text-[10px] text-[#727272]">
+                        + {item.selectedModifiers.map((m) => m.name).join(', ')}
+                      </div>
+                    )}
+                    {item.notes && (
+                      <div className="pl-4 text-[10px] text-[#727272] italic">
+                        &quot;{item.notes}&quot;
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
 
             {/* Totals */}
             <div className="space-y-1 text-[11px]">
               <div className="flex justify-between">
-                <span>Subtotal:</span>
+                <span>Subtotal (Net of Tax):</span>
                 <span>{receiptOrder.subtotal.toFixed(2)} EGP</span>
               </div>
               <div className="flex justify-between">
-                <span>VAT (14%):</span>
+                <span>Taxes &amp; Fees (14% VAT):</span>
                 <span>{receiptOrder.vatAmount.toFixed(2)} EGP</span>
               </div>
               <div className="flex justify-between font-bold text-[14px] text-[#262626] pt-1 border-t border-[#e5e7eb]">
-                <span>Total:</span>
+                <span>Total Bill:</span>
                 <span>{receiptOrder.total.toFixed(2)} EGP</span>
               </div>
+
+              {/* Companion online deductions */}
+              {receiptOrder.paidDiners && Object.keys(receiptOrder.paidDiners).length > 0 && (
+                <div className="pt-1 border-t border-dashed border-[#e5e7eb] space-y-0.5 text-emerald-700">
+                  {Object.values(receiptOrder.paidDiners).map((rec) => (
+                    <div key={rec.memberId} className="flex justify-between">
+                      <span>Less: Settled by {rec.name} ({rec.paymentMethod.replace('_', ' ').toUpperCase()})</span>
+                      <span>-{rec.amount.toFixed(2)} EGP</span>
+                    </div>
+                  ))}
+                  <div className="flex justify-between font-bold text-[#262626] pt-0.5">
+                    <span>Balance Settled at Register:</span>
+                    <span>
+                      {Math.max(
+                        0,
+                        receiptOrder.total -
+                          Object.values(receiptOrder.paidDiners).reduce((s, d) => s + d.amount, 0)
+                      ).toFixed(2)}{' '}
+                      EGP
+                    </span>
+                  </div>
+                </div>
+              )}
+
               <div className="flex justify-between text-[11px] text-[#727272] pt-1">
-                <span>Status:</span>
-                <span>{receiptOrder.isPaid ? 'PAID IN FULL' : 'PENDING CASHIER'}</span>
+                <span>Fiscal Status:</span>
+                <span className="font-bold text-[#15803d]">
+                  {receiptOrder.isPaid ? 'PAID IN FULL // FISCALIZED' : 'AWAITING PAYMENT'}
+                </span>
               </div>
             </div>
 
             <div className="text-center pt-2 text-[10px] text-[#727272] border-t border-dashed border-[#262626]">
-              Thank you for dining at Live Kitchen!
+              Thank you for dining at Live Kitchen! • شكرا لزيارتكم
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-2">
+            <div className="no-print flex items-center justify-end gap-2 pt-2">
               <button
                 type="button"
                 onClick={() => setIsReceiptModalOpen(false)}

@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAppStore } from '../store/useAppStore';
-import { OrderStatus } from '../types/domain';
-import { ThermalText } from '../components/ui/ThermalText';
+import { OrderStatus, OrderTicket } from '../types/domain';
 
 export const KdsPage: React.FC = () => {
   const orders = useAppStore((state) => state.orders);
@@ -10,6 +9,7 @@ export const KdsPage: React.FC = () => {
   const addSampleOrder = useAppStore((state) => state.addSampleOrder);
 
   const [statusFilter, setStatusFilter] = useState<'active' | OrderStatus>('active');
+  const [stationFilter, setStationFilter] = useState<'all' | 'grill' | 'oven' | 'fry' | 'pantry'>('all');
   const [currentTime, setCurrentTime] = useState(Date.now());
 
   // Live stopwatch timer ticker
@@ -27,16 +27,23 @@ export const KdsPage: React.FC = () => {
   const servedTickets = verifiedOrders.filter((o) => o.status === 'served');
 
   const filteredOrders = verifiedOrders.filter((o) => {
-    if (statusFilter === 'active') return o.status !== 'served';
-    return o.status === statusFilter;
+    if (statusFilter === 'active' ? o.status === 'served' : o.status !== statusFilter) {
+      return false;
+    }
+    if (stationFilter !== 'all') {
+      const hasItemForStation = o.items.some((item) => item.menuItem.station === stationFilter);
+      if (!hasItemForStation) return false;
+    }
+    return true;
   });
 
-  const getElapsedSeconds = (createdAt: number) => {
-    return Math.max(0, Math.floor((currentTime - createdAt) / 1000));
+  const getElapsedSeconds = (ticket: OrderTicket) => {
+    const baseline = ticket.paidAt || ticket.createdAt;
+    return Math.max(0, Math.floor((currentTime - baseline) / 1000));
   };
 
-  const formatElapsed = (createdAt: number) => {
-    const elapsedSeconds = getElapsedSeconds(createdAt);
+  const formatElapsed = (ticket: OrderTicket) => {
+    const elapsedSeconds = getElapsedSeconds(ticket);
     const mins = Math.floor(elapsedSeconds / 60);
     const secs = elapsedSeconds % 60;
     return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
@@ -232,6 +239,23 @@ export const KdsPage: React.FC = () => {
           >
             Served ({servedTickets.length})
           </button>
+
+          <div className="w-[1px] h-4 bg-[#2d3748] mx-1 shrink-0" />
+
+          {/* Station Filters */}
+          {(['all', 'grill', 'oven', 'fry', 'pantry'] as const).map((st) => (
+            <button
+              key={st}
+              onClick={() => setStationFilter(st)}
+              className={`px-2.5 py-1 rounded-full text-[11px] font-mono-num uppercase tracking-wider transition-all cursor-pointer shrink-0 ${
+                stationFilter === st
+                  ? 'bg-[#FF0055] text-white font-bold shadow-xs'
+                  : 'bg-[#1e2532] text-[#94a3b8] hover:text-white'
+              }`}
+            >
+              {st === 'all' ? 'All Stations' : st}
+            </button>
+          ))}
         </div>
 
         {/* Live Clock & Queue Stack Indicator */}
@@ -268,7 +292,7 @@ export const KdsPage: React.FC = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 items-start">
             {filteredOrders.map((ticket) => {
-              const elapsedSeconds = getElapsedSeconds(ticket.createdAt);
+              const elapsedSeconds = getElapsedSeconds(ticket);
               const theme = getTicketStatusTheme(ticket.status, elapsedSeconds);
 
               return (
@@ -289,7 +313,7 @@ export const KdsPage: React.FC = () => {
                       <span>{theme.label}</span>
                     </div>
                     <span className="text-white font-mono-num text-[14px]" data-ui-number>
-                      {formatElapsed(ticket.createdAt)}
+                      {formatElapsed(ticket)}
                     </span>
                   </div>
 
@@ -300,7 +324,7 @@ export const KdsPage: React.FC = () => {
                         {ticket.tableNumber ? `TABLE ${ticket.tableNumber}` : 'ONLINE ORDER'}
                       </div>
                       <div className="text-[13px] font-mono-num text-[#64748b] mt-1.5" data-ui-number>
-                        CHIT #{ticket.id} • {ticket.items.reduce((s, i) => s + i.quantity, 0)} ITEMS
+                        CHIT #{ticket.cashierChitCode || ticket.id} • {ticket.items.reduce((s, i) => s + i.quantity, 0)} ITEMS
                       </div>
                     </div>
 
@@ -309,7 +333,7 @@ export const KdsPage: React.FC = () => {
                         FIRED
                       </span>
                       <span className="text-[13px] font-mono-num font-semibold text-[#111827]">
-                        {new Date(ticket.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        {new Date(ticket.paidAt || ticket.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </span>
                     </div>
                   </div>
@@ -317,7 +341,7 @@ export const KdsPage: React.FC = () => {
                   {/* Notch Divider Tear Line */}
                   <div className="thermal-tear-line my-1" />
 
-                  {/* Ticket Items: 20px Dish Font, 18px Bold Modifiers (Agent 06 spec) */}
+                  {/* Ticket Items: Instant Readability for Cooks */}
                   <div className="px-5 py-4 space-y-5 flex-1 bg-white">
                     {ticket.items.map((item, idx) => (
                       <div key={item.cartItemId || idx} className="space-y-1.5 border-b border-dashed border-[#e2e8f0] pb-3 last:border-b-0 last:pb-0">
@@ -327,7 +351,7 @@ export const KdsPage: React.FC = () => {
                               {item.quantity}x
                             </span>
                             <span className="text-[20px] font-bold text-[#111827] leading-snug">
-                              <ThermalText text={item.menuItem.name} durationMs={idx === 0 ? 220 : 0} />
+                              {item.menuItem.name}
                             </span>
                           </div>
                         </div>

@@ -746,6 +746,10 @@ export const useAppStore = create<AppState>()(
             // Otherwise remove their unpaid items from the draft order
             const remainingItems = ticket.items.filter((item) => item.addedBy?.memberId !== memberId);
             if (remainingItems.length === 0) {
+              if (updatedSessions[cleanTable]) {
+                updatedSessions[cleanTable].status = 'ordering';
+                updatedSessions[cleanTable].activeOrderId = undefined;
+              }
               return {
                 ...ticket,
                 items: [],
@@ -824,6 +828,10 @@ export const useAppStore = create<AppState>()(
 
             const remainingItems = ticket.items.filter((item) => item.addedBy?.memberId !== targetMemberId);
             if (remainingItems.length === 0) {
+              if (updatedSessions[cleanTable]) {
+                updatedSessions[cleanTable].status = 'ordering';
+                updatedSessions[cleanTable].activeOrderId = undefined;
+              }
               return {
                 ...ticket,
                 items: [],
@@ -850,6 +858,8 @@ export const useAppStore = create<AppState>()(
           })
           .filter((t) => t.items.length > 0);
 
+        const isTargetLocal = currentMember?.id === targetMemberId || companionMember?.id === targetMemberId;
+
         set({
           tableSessions: updatedSessions,
           cart: updatedCart,
@@ -857,12 +867,14 @@ export const useAppStore = create<AppState>()(
           currentMember: currentMember?.id === targetMemberId ? null : currentMember,
           activeTablePin: currentMember?.id === targetMemberId ? null : get().activeTablePin,
           companionMember: companionMember?.id === targetMemberId ? null : companionMember,
+          hasLeftTables: isTargetLocal ? { ...get().hasLeftTables, [cleanTable]: true } : get().hasLeftTables,
         });
 
         if (broadcastChannel) {
           broadcastChannel.postMessage({ type: 'SESSIONS_SYNC', tableSessions: updatedSessions });
           broadcastChannel.postMessage({ type: 'CART_SYNC', cart: updatedCart, tableNumber: cleanTable });
           broadcastChannel.postMessage({ type: 'ORDERS_SYNC', orders: updatedOrders });
+          broadcastChannel.postMessage({ type: 'MEMBER_REMOVED', targetMemberId, tableNumber: cleanTable });
         }
 
         get().showToast(`Removed ${target?.name || 'Diner'} from Table ${cleanTable}`);
@@ -1371,6 +1383,7 @@ export const useAppStore = create<AppState>()(
         let isNowReady = false;
 
         set((state) => {
+          let updatedSessions = state.tableSessions;
           const updated = state.orders.map((ticket) => {
             if (ticket.id !== orderId) return ticket;
             let nextStatus: OrderTicket['status'] = ticket.status;
@@ -1379,7 +1392,27 @@ export const useAppStore = create<AppState>()(
               nextStatus = 'ready';
               isNowReady = true;
               notifiedTable = ticket.tableNumber;
-            } else if (ticket.status === 'ready') nextStatus = 'served';
+            } else if (ticket.status === 'ready') {
+              nextStatus = 'served';
+            }
+
+            // Sync TableSession status with KDS bump
+            if (ticket.tableNumber && updatedSessions[ticket.tableNumber]) {
+              const currentSession = updatedSessions[ticket.tableNumber];
+              let nextTableStatus: TableStatus = currentSession.status;
+              if (nextStatus === 'ready') nextTableStatus = 'ready';
+              else if (nextStatus === 'served') nextTableStatus = 'served';
+              if (nextTableStatus !== currentSession.status) {
+                updatedSessions = {
+                  ...updatedSessions,
+                  [ticket.tableNumber]: {
+                    ...currentSession,
+                    status: nextTableStatus,
+                    lastUpdated: Date.now(),
+                  },
+                };
+              }
+            }
 
             return { ...ticket, status: nextStatus };
           });
@@ -1388,13 +1421,14 @@ export const useAppStore = create<AppState>()(
             broadcastChannel.postMessage({
               type: 'STATUS_UPDATED',
               orders: updated,
+              tableSessions: updatedSessions,
               orderId,
               isNowReady,
               notifiedTable,
             });
           }
 
-          return { orders: updated };
+          return { orders: updated, tableSessions: updatedSessions };
         });
 
         if (isNowReady && notifiedTable) {
@@ -1700,30 +1734,62 @@ export const useAppStore = create<AppState>()(
           get().showToast('No items found for this past order ticket.');
           return;
         }
+        const activeUser = get().currentMember || get().companionMember || {
+          id: 'diner-self',
+          name: get().userAccount?.fullName || 'You',
+          isHost: true,
+          isReadyToPay: false,
+          joinedAt: Date.now(),
+        };
         const currentCart = get().cart;
         const reorderedItems: CartItem[] = target.items.map((item) => ({
           ...item,
-          cartItemId: `cart-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+          cartItemId: `cart-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+          addedBy: {
+            memberId: activeUser.id,
+            name: activeUser.name,
+            isHost: Boolean(activeUser.isHost),
+          },
         }));
+        const nextCart = [...currentCart, ...reorderedItems];
         set({
-          cart: [...currentCart, ...reorderedItems],
+          cart: nextCart,
           isCartDrawerOpen: true,
           isAccountModalOpen: false,
         });
+        if (broadcastChannel && get().activeTable) {
+          broadcastChannel.postMessage({ type: 'CART_SYNC', cart: nextCart, tableNumber: get().activeTable });
+        }
         get().showToast(`Re-ordered ${reorderedItems.length} items to table cart.`);
       },
 
       reorderSingleItem: (item) => {
         const currentCart = get().cart;
+        const activeUser = get().currentMember || get().companionMember || {
+          id: 'diner-self',
+          name: get().userAccount?.fullName || 'You',
+          isHost: true,
+          isReadyToPay: false,
+          joinedAt: Date.now(),
+        };
         const newItem: CartItem = {
           ...item,
-          cartItemId: `cart-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+          cartItemId: `cart-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+          addedBy: {
+            memberId: activeUser.id,
+            name: activeUser.name,
+            isHost: Boolean(activeUser.isHost),
+          },
         };
+        const nextCart = [...currentCart, newItem];
         set({
-          cart: [...currentCart, newItem],
+          cart: nextCart,
           isCartDrawerOpen: true,
           isAccountModalOpen: false,
         });
+        if (broadcastChannel && get().activeTable) {
+          broadcastChannel.postMessage({ type: 'CART_SYNC', cart: nextCart, tableNumber: get().activeTable });
+        }
         get().showToast(`Added ${item.menuItem.name} to cart.`);
       },
 
@@ -1875,8 +1941,23 @@ if (broadcastChannel) {
     }
     if (data.type === 'STATUS_UPDATED') {
       store.syncOrders(data.orders);
+      if (data.tableSessions) store.syncTableSessions(data.tableSessions);
       if (data.isNowReady && store.activeTable === data.notifiedTable) {
         store.showToast(`Your food is ready at the pass! Server on the way.`);
+      }
+    }
+    if (data.type === 'MEMBER_REMOVED') {
+      const isTargetMe =
+        store.currentMember?.id === data.targetMemberId ||
+        store.companionMember?.id === data.targetMemberId;
+      if (isTargetMe) {
+        useAppStore.setState({
+          currentMember: null,
+          companionMember: null,
+          activeTablePin: null,
+          hasLeftTables: { ...store.hasLeftTables, [data.tableNumber]: true },
+        });
+        store.showToast(`You have been removed from Table ${data.tableNumber}.`);
       }
     }
     if (data.type === 'ORDER_AGAIN') {

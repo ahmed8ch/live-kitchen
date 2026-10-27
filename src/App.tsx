@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation, Link } from 'react-router-dom';
 import { Sidebar } from './components/layout/Sidebar';
 import { ToastContainer } from './components/ui/ToastContainer';
 import { TableLobbyModal } from './components/multiplayer/TableLobbyModal';
@@ -18,7 +18,9 @@ import { FlameLinkLogo } from './components/ui/FlameLinkLogo';
 export const App: React.FC = () => {
   const location = useLocation();
   const setActiveTable = useAppStore((state) => state.setActiveTable);
-  const isKds = location.pathname === '/kds';
+  const isKds = location.pathname.startsWith('/kds');
+  const isStand = location.pathname.startsWith('/stand');
+  const isCashier = location.pathname.startsWith('/cashier');
 
   // Ingest ?table=XX from URL on mount
   useEffect(() => {
@@ -53,8 +55,8 @@ export const App: React.FC = () => {
           </Routes>
         </main>
 
-        {/* Global Master Footer (Sole Single Footer across all non-KDS routes) */}
-        {!isKds && (
+        {/* Global Master Footer (Rendered across consumer dining pages; hidden on staff and print views) */}
+        {!isKds && !isStand && !isCashier && (
           <footer className="border-t border-[#e5e7eb] bg-[#f9f9f9] py-14 mt-auto select-none">
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 pb-8 border-b border-[#e5e7eb]">
@@ -70,33 +72,33 @@ export const App: React.FC = () => {
               {/* Sitemap Grid */}
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-8 text-[13px]">
                 <div className="space-y-3">
-                  <span className="font-bold text-[#262626] uppercase font-mono-num text-[11px] block tracking-wider">
+                  <span className="font-bold text-[#262626] uppercase text-[11px] block tracking-wider font-medium">
                     Dine-In Operations
                   </span>
                   <ul className="space-y-2 text-[#727272]">
-                    <li><a href="/menu" className="hover:text-[#FF0055] transition-colors">Customer Menu</a></li>
-                    <li><a href="/companion" className="hover:text-[#FF0055] transition-colors">Companion Order</a></li>
-                    <li><a href="/stand" className="hover:text-[#FF0055] transition-colors">Table QR Stand</a></li>
+                    <li><Link to="/menu" className="hover:text-[#FF0055] transition-colors">Customer Menu</Link></li>
+                    <li><Link to="/companion" className="hover:text-[#FF0055] transition-colors">Companion Order</Link></li>
+                    <li><Link to="/stand" className="hover:text-[#FF0055] transition-colors">Table QR Stand</Link></li>
                   </ul>
                 </div>
 
                 <div className="space-y-3">
-                  <span className="font-bold text-[#262626] uppercase font-mono-num text-[11px] block tracking-wider">
+                  <span className="font-bold text-[#262626] uppercase text-[11px] block tracking-wider font-medium">
                     Kitchen Systems
                   </span>
                   <ul className="space-y-2 text-[#727272]">
-                    <li><a href="/kds" className="hover:text-[#FF0055] transition-colors">Kitchen Pass (KDS)</a></li>
-                    <li><a href="/cashier" className="hover:text-[#FF0055] transition-colors">Cashier POS Terminal</a></li>
-                    <li><a href="/tracker" className="hover:text-[#FF0055] transition-colors">Live Order Tracking</a></li>
+                    <li><Link to="/kds" className="hover:text-[#FF0055] transition-colors">Kitchen Pass (KDS)</Link></li>
+                    <li><Link to="/cashier" className="hover:text-[#FF0055] transition-colors">Cashier POS Terminal</Link></li>
+                    <li><Link to="/tracker" className="hover:text-[#FF0055] transition-colors">Live Order Tracking</Link></li>
                   </ul>
                 </div>
 
                 <div className="space-y-3">
-                  <span className="font-bold text-[#262626] uppercase font-mono-num text-[11px] block tracking-wider">
+                  <span className="font-bold text-[#262626] uppercase text-[11px] block tracking-wider font-medium">
                     Financials
                   </span>
                   <ul className="space-y-2 text-[#727272]">
-                    <li><a href="/settlement" className="hover:text-[#FF0055] transition-colors">Itemized Bill Split</a></li>
+                    <li><Link to="/settlement" className="hover:text-[#FF0055] transition-colors">Itemized Bill Split</Link></li>
                     <li><span className="text-[#949494]">Digital Receipt &amp; Split</span></li>
                     <li><span className="text-[#949494]">Apple Pay &amp; Meeza</span></li>
                   </ul>

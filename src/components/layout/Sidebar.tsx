@@ -203,7 +203,14 @@ export const Sidebar: React.FC = () => {
     return 1;
   };
 
-  const visibleNavItems = navItems;
+  // Separate consumer dining navigation from back-office staff links when seated at tables
+  const isDineInRoute = ['/menu', '/companion', '/guest-order', '/tracker', '/settlement'].some(
+    (path) => location.pathname.startsWith(path)
+  );
+
+  const visibleNavItems = isDineInRoute
+    ? navItems.filter((item) => ['home', 'menu', 'companion', 'tracker', 'settlement'].includes(item.id))
+    : navItems;
 
   const isDockVisible = isPinned || isRevealed;
 
@@ -213,7 +220,7 @@ export const Sidebar: React.FC = () => {
           MOBILE TOP BAR & SLIDE-IN DRAWER (< 768px Viewports)
           ========================================================================= */}
       <header className="md:hidden h-14 w-full bg-[#f9f9f9] border-b border-[#e5e7eb] px-4 flex items-center justify-between sticky top-0 z-40 select-none">
-        <Link to="/" className="inline-flex items-center min-h-[36px] min-w-[36px]">
+        <Link to="/" className="inline-flex items-center min-h-[44px] min-w-[44px]">
           <FlameLinkLogo size="md" />
         </Link>
 
@@ -261,7 +268,7 @@ export const Sidebar: React.FC = () => {
                       to={item.to}
                       onClick={() => setMobileDrawerOpen(false)}
                       className={({ isActive }) =>
-                        `flex items-center justify-between px-3.5 py-2.5 rounded-xl text-[13px] transition-[background-color,color,border-color,box-shadow] duration-150 ${
+                        `flex items-center justify-between px-3.5 py-3 min-h-[44px] rounded-xl text-[13px] active:scale-95 transition-[background-color,color,border-color,box-shadow] duration-150 ${
                           isActive
                             ? 'bg-[#fff0f3] text-[#FF0055] font-semibold border border-[#ffd1dc]/80 shadow-[0_1px_2px_rgba(255,0,85,0.06)]'
                             : 'text-[#727272] hover:bg-white hover:text-[#262626] border border-transparent'
@@ -283,7 +290,7 @@ export const Sidebar: React.FC = () => {
               </nav>
             </div>
 
-            <div className="pt-4 border-t border-[#e5e7eb] text-[11px] font-mono-num text-[#949494]">
+            <div className="pt-4 border-t border-[#e5e7eb] text-[11px] text-[#949494]">
               Live Kitchen | Dine-In OS
             </div>
           </div>
@@ -380,7 +387,7 @@ export const Sidebar: React.FC = () => {
                   }}
                   className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-150 ease-out cursor-pointer active:scale-95 ${
                     isActive
-                      ? 'bg-[#fff0f3] text-[#FF0055] font-semibold border border-[#ffd1dc] shadow-[0_0_0_1px_rgba(255,0,85,0.14),0_3px_10px_rgba(255,0,85,0.12)]'
+                      ? 'bg-[#fff0f3] text-[#FF0055] font-semibold border border-[#ffd1dc]/90 shadow-xs'
                       : 'text-[#727272] hover:text-[#262626] hover:bg-[#f5f5f5] hover:border-[#e5e7eb] border border-transparent'
                   }`}
                   aria-label={item.label}
@@ -391,7 +398,7 @@ export const Sidebar: React.FC = () => {
                 {/* Instantaneous Clarity Tooltip (macOS Pill anchored to right) */}
                 <div
                   role="tooltip"
-                  className="absolute left-[calc(100%+14px)] px-2.5 py-1 rounded-md bg-[#262626] text-white text-[11px] font-mono-num font-medium whitespace-nowrap shadow-xl opacity-0 scale-95 pointer-events-none group-hover:opacity-100 group-hover:scale-100 transition-all duration-100 ease-out z-50 flex items-center gap-1.5"
+                  className="absolute left-[calc(100%+14px)] px-2.5 py-1 rounded-md bg-[#262626] text-white text-[11px] font-medium whitespace-nowrap shadow-xl opacity-0 scale-95 pointer-events-none group-hover:opacity-100 group-hover:scale-100 transition-all duration-100 ease-out z-50 flex items-center gap-1.5"
                 >
                   <span>{item.label}</span>
                   {item.badge && (
