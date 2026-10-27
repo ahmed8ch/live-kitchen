@@ -1,19 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAppStore } from '../store/useAppStore';
-
-// ASCII thermal characters ordered by visual density
-const ASCII_RAMP = [' ', '·', ':', '+', '*', '#'];
+import { AsciiSwellDots } from '../components/ui/AsciiSwellDots';
+import { FlameLinkLogo } from '../components/ui/FlameLinkLogo';
 
 export const HomePage: React.FC = () => {
   const activeTable = useAppStore((state) => state.activeTable);
   const addSampleOrder = useAppStore((state) => state.addSampleOrder);
+  const showToast = useAppStore((state) => state.showToast);
 
   const menuLink = activeTable ? `/menu?table=${activeTable}` : '/menu';
 
-  // Interactive Thermal Flame ASCII Matrix State
-  const [mousePos, setMousePos] = useState<{ x: number; y: number } | null>(null);
-  const [asciiTick, setAsciiTick] = useState<number>(0);
+  // Live Conduit State
   const [isFiringDemo, setIsFiringDemo] = useState<boolean>(false);
   const [conduitText, setConduitText] = useState<string>('··:++*##*++:·· 142MS');
 
@@ -21,47 +19,11 @@ export const HomePage: React.FC = () => {
   const [tableCount, setTableCount] = useState<number>(24);
   const [avgCheck, setAvgCheck] = useState<number>(380);
 
-  // Animation ticker for thermal flame ASCII wave
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setAsciiTick((prev) => (prev + 1) % 1000);
-    }, 120);
-    return () => clearInterval(interval);
-  }, []);
-
-  // Compute 7x32 ASCII matrix
-  const rows = 7;
-  const cols = 32;
-  const asciiMatrix: string[] = [];
-
-  for (let r = 0; r < rows; r++) {
-    let rowStr = '';
-    for (let c = 0; c < cols; c++) {
-      let intensity = 0;
-      // Ambient thermal wave
-      const wave = Math.sin((c * 0.4) + (asciiTick * 0.2) + (r * 0.5));
-      if (wave > 0.4) intensity = 1;
-      if (wave > 0.7) intensity = 2;
-
-      // Mouse heat radiation
-      if (mousePos) {
-        const dx = c - mousePos.x;
-        const dy = r - mousePos.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < 3.5) {
-          intensity = Math.min(ASCII_RAMP.length - 1, intensity + Math.floor((3.5 - dist) * 1.5) + 1);
-        }
-      }
-
-      // Base bottom coals heat
-      if (r === rows - 1 && Math.random() > 0.3) {
-        intensity = Math.max(intensity, 2);
-      }
-
-      rowStr += ASCII_RAMP[Math.min(ASCII_RAMP.length - 1, intensity)];
-    }
-    asciiMatrix.push(rowStr);
-  }
+  // Contact Form State
+  const [restaurantName, setRestaurantName] = useState('');
+  const [contactEmail, setContactEmail] = useState('');
+  const [contactTables, setContactTables] = useState('20');
+  const [pilotSubmitted, setPilotSubmitted] = useState(false);
 
   const handleFireDemoOrder = () => {
     setIsFiringDemo(true);
@@ -130,37 +92,9 @@ export const HomePage: React.FC = () => {
             </Link>
           </div>
 
-          {/* Interactive Thermal Flame ASCII Matrix (DESIGN.md §4.1) */}
+          {/* Interactive ASCII Swell Dots Engine (4.32.8) */}
           <div className="mt-12 max-w-xl mx-auto">
-            <div
-              className="bg-[#262626] text-[#ff8da1] p-4 rounded-lg border border-[#383838] shadow-lg text-left relative overflow-hidden font-mono-num text-[11px] sm:text-[13px] leading-tight tracking-widest cursor-crosshair"
-              onMouseMove={(e) => {
-                const rect = e.currentTarget.getBoundingClientRect();
-                const relX = (e.clientX - rect.left) / rect.width;
-                const relY = (e.clientY - rect.top) / rect.height;
-                setMousePos({
-                  x: Math.floor(relX * cols),
-                  y: Math.floor(relY * rows),
-                });
-              }}
-              onMouseLeave={() => setMousePos(null)}
-            >
-              <div className="flex items-center justify-between text-[10px] text-[#949494] pb-2 mb-2 border-b border-[#383838] font-mono-num uppercase">
-                <span>[ THERMAL FLAME SENSOR MATRIX ]</span>
-                <span className="text-[#FF0055] font-semibold">ACTIVE // 800°C LINE</span>
-              </div>
-              <pre className="font-mono m-0 overflow-hidden select-none">
-                {asciiMatrix.map((line, i) => (
-                  <div key={i} className="whitespace-pre">
-                    {line}
-                  </div>
-                ))}
-              </pre>
-              <div className="pt-2 mt-2 border-t border-[#383838] flex items-center justify-between text-[10px] text-[#949494]">
-                <span>Hover cursor to deflect flame line heat</span>
-                <span className="font-mono-num">FPS: 60 • RTT: 1.2ms</span>
-              </div>
-            </div>
+            <AsciiSwellDots />
           </div>
         </div>
       </section>
@@ -421,6 +355,186 @@ export const HomePage: React.FC = () => {
           </div>
         </div>
       </section>
+
+      {/* Cloudflare-Inspired Crimson Edge Architecture Banner */}
+      <section className="bg-[#FF0055] text-white py-14 px-4 sm:px-6 select-none relative overflow-hidden">
+        <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8 relative z-10">
+          <div className="space-y-2 text-center md:text-left">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 text-white text-[11px] font-mono-num font-bold uppercase tracking-wider">
+              <span>Cloudflare-Class Performance</span>
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+              Sub-150ms Synchronization from Table to Pass
+            </h2>
+            <p className="text-white/85 text-[14px] max-w-xl">
+              Zero tablet leasing fees. Zero mandatory account creation. Instant WebSockets keep all seated diner phones in lockstep with the kitchen expo chit printer.
+            </p>
+          </div>
+
+          <div className="bg-white/10 backdrop-blur-xs border border-white/20 p-6 rounded-2xl shrink-0 text-center space-y-3 min-w-[240px]">
+            <FlameLinkLogo size="lg" variant="on-dark" className="justify-center" />
+            <div className="pt-2 border-t border-white/15 text-[11px] font-mono-num text-white/90">
+              99.99% Uptime • Zero Data Leaks
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Pilot Restaurant Onboarding Contact Form */}
+      <section className="py-14 bg-white border-b border-[#e5e7eb]">
+        <div className="max-w-xl mx-auto px-4 sm:px-6">
+          <div className="bg-[#f9f9f9] rounded-2xl border border-[#e5e7eb] p-6 sm:p-8 shadow-xs">
+            <div className="text-[11px] font-mono-num uppercase tracking-wider text-[#949494]">
+              Restaurant Partner Pilot
+            </div>
+            <h2 className="text-xl font-bold text-[#262626] mt-1">
+              Request a 14-Day Dining Room Pilot
+            </h2>
+            <p className="mt-1 text-[13px] text-[#616161]">
+              Get pre-printed acrylic table stands and zero-hardware kitchen pass access for your restaurant.
+            </p>
+
+            {pilotSubmitted ? (
+              <div className="mt-6 p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-center space-y-1">
+                <div className="text-emerald-800 font-bold text-[14px]">
+                  Pilot Request Received
+                </div>
+                <div className="text-emerald-700 text-[12px]">
+                  Our dining operations team will reach out to {contactEmail} within 2 hours.
+                </div>
+              </div>
+            ) : (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (!restaurantName || !contactEmail) return;
+                  setPilotSubmitted(true);
+                  showToast(`Pilot request for "${restaurantName}" received!`);
+                }}
+                className="mt-6 space-y-4"
+              >
+                <div>
+                  <label htmlFor="hp-restaurant-name" className="block text-[12px] font-semibold text-[#262626] mb-1">
+                    Restaurant Name
+                  </label>
+                  <input
+                    id="hp-restaurant-name"
+                    type="text"
+                    required
+                    value={restaurantName}
+                    onChange={(e) => setRestaurantName(e.target.value)}
+                    placeholder="e.g. Port Said Grill House"
+                    className="w-full px-3.5 py-2.5 text-[13px] rounded-lg border border-[#e5e7eb] bg-white text-[#262626] focus:outline-none focus:border-[#FF0055]"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label htmlFor="hp-work-email" className="block text-[12px] font-semibold text-[#262626] mb-1">
+                      Manager Email
+                    </label>
+                    <input
+                      id="hp-work-email"
+                      type="email"
+                      required
+                      value={contactEmail}
+                      onChange={(e) => setContactEmail(e.target.value)}
+                      placeholder="manager@restaurant.eg"
+                      className="w-full px-3.5 py-2.5 text-[13px] rounded-lg border border-[#e5e7eb] bg-white text-[#262626] focus:outline-none focus:border-[#FF0055]"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="hp-table-count" className="block text-[12px] font-semibold text-[#262626] mb-1">
+                      Dining Table Count
+                    </label>
+                    <input
+                      id="hp-table-count"
+                      type="number"
+                      min="4"
+                      max="200"
+                      value={contactTables}
+                      onChange={(e) => setContactTables(e.target.value)}
+                      className="w-full px-3.5 py-2.5 text-[13px] font-mono-num rounded-lg border border-[#e5e7eb] bg-white text-[#262626] focus:outline-none focus:border-[#FF0055]"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full py-3 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[13px] font-bold btn-crimson-glow transition-all active:scale-[0.99] cursor-pointer shadow-xs"
+                >
+                  Submit Pilot Application -&gt;
+                </button>
+              </form>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* Comprehensive Home Page Footer */}
+      <footer className="bg-[#f9f9f9] border-t border-[#e5e7eb] py-12 text-[#727272] select-none">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 space-y-8">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-8 border-b border-[#e5e7eb]">
+            <FlameLinkLogo size="md" />
+            <div className="flex items-center gap-2 text-[12px] font-mono-num">
+              <span className="w-2 h-2 rounded-full bg-[#15803d]" />
+              <span>All Systems Operational • ETA 14% VAT Engine Active</span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 text-[12px]">
+            <div className="space-y-2">
+              <span className="font-bold text-[#262626] uppercase font-mono-num text-[11px] block">
+                Dine-In Operations
+              </span>
+              <ul className="space-y-1.5">
+                <li><Link to="/menu" className="hover:text-[#FF0055]">Customer Menu</Link></li>
+                <li><Link to="/companion" className="hover:text-[#FF0055]">Guest Companion POV</Link></li>
+                <li><Link to="/stand" className="hover:text-[#FF0055]">Acrylic Table Stands</Link></li>
+              </ul>
+            </div>
+
+            <div className="space-y-2">
+              <span className="font-bold text-[#262626] uppercase font-mono-num text-[11px] block">
+                Kitchen Systems
+              </span>
+              <ul className="space-y-1.5">
+                <li><Link to="/kds" className="hover:text-[#FF0055]">Kitchen Pass (KDS)</Link></li>
+                <li><Link to="/cashier" className="hover:text-[#FF0055]">Cashier POS Terminal</Link></li>
+                <li><Link to="/tracker" className="hover:text-[#FF0055]">Live Order Tracking</Link></li>
+              </ul>
+            </div>
+
+            <div className="space-y-2">
+              <span className="font-bold text-[#262626] uppercase font-mono-num text-[11px] block">
+                Financials
+              </span>
+              <ul className="space-y-1.5">
+                <li><Link to="/settlement" className="hover:text-[#FF0055]">Itemized Bill Split</Link></li>
+                <li><span className="text-[#949494]">ETA Fiscal Invoicing</span></li>
+                <li><span className="text-[#949494]">Apple Pay & Meeza</span></li>
+              </ul>
+            </div>
+
+            <div className="space-y-2">
+              <span className="font-bold text-[#262626] uppercase font-mono-num text-[11px] block">
+                Platform
+              </span>
+              <ul className="space-y-1.5">
+                <li><span className="text-[#949494]">FlameLink OS v2.0</span></li>
+                <li><span className="text-[#949494]">Changa Brand Typography</span></li>
+                <li><span className="text-[#949494]">Zero Tablet Capital</span></li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="pt-6 border-t border-[#e5e7eb] flex flex-col sm:flex-row items-center justify-between text-[11px] font-mono-num text-[#949494] gap-2">
+            <span>FlameLink Dine-In Operating System</span>
+            <span>Zero Slop • High-Velocity Table Self-Ordering</span>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };

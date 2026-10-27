@@ -30,11 +30,33 @@ export const TableLobbyModal: React.FC = () => {
   const existingSession = tableSessions[targetTable];
   const isNewSession = !existingSession || existingSession.members.length === 0;
 
+  // Set of names already taken by active table diners
+  const takenNames = new Set(
+    (existingSession?.members || []).map((m) =>
+      m.name.replace(/\s*\(Host\)$/, '').trim().toLowerCase()
+    )
+  );
+
+  // Auto-select the first untaken identity when modal opens
+  React.useEffect(() => {
+    const firstUntaken = ANIMAL_IDENTITIES.find(
+      (a) => !takenNames.has(a.name.toLowerCase())
+    );
+    if (firstUntaken) {
+      setSelectedAnimal(firstUntaken.name);
+    }
+  }, [pendingJoinTable, existingSession]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
     const displayName = customName.trim() || selectedAnimal;
+
+    if (!isNewSession && takenNames.has(displayName.toLowerCase())) {
+      setError(`Identity "${displayName}" is already seated at Table ${targetTable}. Please choose an untaken identity.`);
+      return;
+    }
 
     if (isNewSession) {
       initTableSession(targetTable, displayName, selectedAnimal);
@@ -95,24 +117,35 @@ export const TableLobbyModal: React.FC = () => {
               Select Your Diner Identity:
             </label>
             <div className="grid grid-cols-3 gap-2">
-              {ANIMAL_IDENTITIES.map((animal) => (
-                <button
-                  key={animal.id}
-                  type="button"
-                  onClick={() => setSelectedAnimal(animal.name)}
-                  className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer text-[12px] font-medium flex items-center justify-center gap-1.5 ${
-                    selectedAnimal === animal.name
-                      ? `${animal.color} border-2 shadow-xs ring-2 ring-[#FF0055]/20 font-bold`
-                      : 'border-[#e5e7eb] bg-[#f9f9f9] text-[#727272] hover:bg-white'
-                  }`}
-                >
-                  <span
-                    className="w-2.5 h-2.5 rounded-full shrink-0"
-                    style={{ backgroundColor: animal.dot }}
-                  />
-                  <span className="truncate">{animal.name}</span>
-                </button>
-              ))}
+              {ANIMAL_IDENTITIES.map((animal) => {
+                const isTaken = !isNewSession && takenNames.has(animal.name.toLowerCase());
+                return (
+                  <button
+                    key={animal.id}
+                    type="button"
+                    disabled={isTaken}
+                    onClick={() => !isTaken && setSelectedAnimal(animal.name)}
+                    className={`p-2.5 rounded-xl border text-center transition-all text-[12px] font-medium flex items-center justify-center gap-1.5 ${
+                      isTaken
+                        ? 'border-[#e5e7eb] bg-[#f0f0f0] text-[#949494] opacity-50 cursor-not-allowed line-through'
+                        : selectedAnimal === animal.name
+                        ? `${animal.color} border-2 shadow-xs ring-2 ring-[#FF0055]/20 font-bold cursor-pointer`
+                        : 'border-[#e5e7eb] bg-[#f9f9f9] text-[#727272] hover:bg-white cursor-pointer'
+                    }`}
+                  >
+                    <span
+                      className="w-2.5 h-2.5 rounded-full shrink-0"
+                      style={{ backgroundColor: isTaken ? '#d1d5db' : animal.dot }}
+                    />
+                    <span className="truncate">{animal.name}</span>
+                    {isTaken && (
+                      <span className="text-[9px] font-mono-num uppercase tracking-wider text-[#949494] no-underline">
+                        (Taken)
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </div>
 

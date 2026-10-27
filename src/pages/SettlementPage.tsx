@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAppStore } from '../store/useAppStore';
 import { PaymentMethod } from '../types/domain';
@@ -15,15 +15,18 @@ export const SettlementPage: React.FC = () => {
   const orders = useAppStore((state) => state.orders);
   const activeOrderId = useAppStore((state) => state.activeOrderId);
   const payOrderOnline = useAppStore((state) => state.payOrderOnline);
+  const payDinerShare = useAppStore((state) => state.payDinerShare);
   const verifyCashierPayment = useAppStore((state) => state.verifyCashierPayment);
   const submitMealReview = useAppStore((state) => state.submitMealReview);
   const orderAgain = useAppStore((state) => state.orderAgain);
   const activeTable = useAppStore((state) => state.activeTable);
+  const currentMember = useAppStore((state) => state.currentMember);
+  const companionMember = useAppStore((state) => state.companionMember);
   const showToast = useAppStore((state) => state.showToast);
 
   const receiptRef = useRef<HTMLDivElement>(null);
 
-  const [splitMode, setSplitMode] = useState<'equal' | 'itemized'>('equal');
+  const [splitMode, setSplitMode] = useState<'by_diner' | 'equal' | 'itemized'>('by_diner');
   const [splitWays, setSplitWays] = useState<number>(1);
   const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>('apple_pay');
@@ -71,6 +74,71 @@ export const SettlementPage: React.FC = () => {
 
   const isVerifiedPaid = ticket.paymentStatus === 'verified_paid';
 
+  // Dynamic grouping by seated diner who ordered each item
+  const effectiveMember = currentMember || companionMember;
+  const dinerGroups = useMemo(() => {
+    const groups: Record<
+      string,
+      {
+        memberId: string;
+        name: string;
+        isHost: boolean;
+        isCurrentUser: boolean;
+        items: typeof ticket.items;
+        subtotal: number;
+        vatAmount: number;
+        total: number;
+        isPaid: boolean;
+        paymentRecord?: {
+          memberId: string;
+          name: string;
+          amount: number;
+          paidAt: number;
+          paymentMethod: PaymentMethod;
+        };
+      }
+    > = {};
+
+    ticket.items.forEach((item) => {
+      const memberId = item.addedBy?.memberId || 'host-diner';
+      const memberName = item.addedBy?.name || 'Table Diner';
+      const isHost = item.addedBy?.isHost || false;
+
+      if (!groups[memberId]) {
+        groups[memberId] = {
+          memberId,
+          name: memberName,
+          isHost,
+          isCurrentUser: effectiveMember?.id === memberId,
+          items: [],
+          subtotal: 0,
+          vatAmount: 0,
+          total: 0,
+          isPaid: Boolean(ticket.paidDiners?.[memberId]),
+          paymentRecord: ticket.paidDiners?.[memberId],
+        };
+      }
+
+      groups[memberId].items.push(item);
+      const modTotal = item.selectedModifiers.reduce((mSum, m) => mSum + m.price, 0);
+      groups[memberId].subtotal += (item.menuItem.basePrice + modTotal) * item.quantity;
+    });
+
+    Object.values(groups).forEach((g) => {
+      g.subtotal = Math.round(g.subtotal * 100) / 100;
+      g.vatAmount = Math.round(g.subtotal * 0.14 * 100) / 100;
+      g.total = Math.round((g.subtotal + g.vatAmount) * 100) / 100;
+    });
+
+    return Object.values(groups);
+  }, [ticket, effectiveMember]);
+
+  const totalPaidShares = Object.values(ticket.paidDiners || {}).reduce(
+    (sum, record) => sum + record.amount,
+    0
+  );
+  const remainingTableBalance = Math.max(0, Math.round((ticket.total - totalPaidShares) * 100) / 100);
+
   // Itemized split calculation
   const selectedItems = ticket.items.filter((item) =>
     selectedItemIds.includes(item.cartItemId)
@@ -97,6 +165,15 @@ export const SettlementPage: React.FC = () => {
 
   const selectAllItems = () => {
     setSelectedItemIds(ticket.items.map((i) => i.cartItemId));
+  };
+
+  const handlePayDinerShare = (memberId: string, amount: number) => {
+    setIsProcessing(true);
+    setTimeout(() => {
+      payDinerShare(ticket.id, memberId, selectedMethod, amount);
+      setIsProcessing(false);
+      showToast(`Share of ${amount.toFixed(2)} EGP paid successfully.`);
+    }, 450);
   };
 
   const handleSettleOnline = () => {
@@ -360,6 +437,14 @@ export const SettlementPage: React.FC = () => {
                 <span className="text-[12px] font-medium text-[#262626]">Split Bill Mode</span>
                 <div className="flex items-center gap-1 bg-[#f9f9f9] p-0.5 rounded-lg border border-[#e5e7eb]">
                   <button
+                    onClick={() => setSplitMode('by_diner')}
+                    className={`px-2.5 py-1 rounded text-[11px] font-medium transition-colors cursor-pointer ${
+                      splitMode === 'by_diner' ? 'bg-[#262626] text-white' : 'text-[#727272]'
+                    }`}
+                  >
+                    Split by Diner
+                  </button>
+                  <button
                     onClick={() => setSplitMode('equal')}
                     className={`px-2.5 py-1 rounded text-[11px] font-medium transition-colors cursor-pointer ${
                       splitMode === 'equal' ? 'bg-[#262626] text-white' : 'text-[#727272]'
@@ -376,12 +461,121 @@ export const SettlementPage: React.FC = () => {
                       splitMode === 'itemized' ? 'bg-[#262626] text-white' : 'text-[#727272]'
                     }`}
                   >
-                    Split by Dish
+                    Custom Dishes
                   </button>
                 </div>
               </div>
 
-              {splitMode === 'equal' ? (
+              {/* SPLIT BY DINER (PAY FOR WHAT YOU ORDERED) */}
+              {splitMode === 'by_diner' && (
+                <div className="space-y-4">
+                  {/* Table Balance Progress Banner */}
+                  <div className="p-3.5 rounded-xl bg-[#f9f9f9] border border-[#e5e7eb] space-y-2">
+                    <div className="flex items-center justify-between text-[12px]">
+                      <span className="text-[#727272]">Remaining Table Balance:</span>
+                      <span className="font-mono-num font-bold text-[#FF0055] text-[15px]">
+                        {remainingTableBalance.toFixed(2)} EGP
+                      </span>
+                    </div>
+                    <div className="w-full bg-[#e5e7eb] h-1.5 rounded-full overflow-hidden">
+                      <div
+                        className="bg-[#15803d] h-full transition-all duration-300"
+                        style={{
+                          width: `${Math.min(100, Math.round((totalPaidShares / ticket.total) * 100))}%`,
+                        }}
+                      />
+                    </div>
+                    <div className="flex justify-between text-[11px] font-mono-num text-[#727272]">
+                      <span>Settled: {totalPaidShares.toFixed(2)} EGP</span>
+                      <span>Total: {ticket.total.toFixed(2)} EGP</span>
+                    </div>
+                  </div>
+
+                  {/* Seated Diners Cards List */}
+                  <div className="space-y-3">
+                    {dinerGroups.map((group) => (
+                      <div
+                        key={group.memberId}
+                        className={`p-4 rounded-xl border transition-all ${
+                          group.isPaid
+                            ? 'bg-emerald-50/50 border-emerald-200'
+                            : 'bg-white border-[#e5e7eb] shadow-xs'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between pb-2 border-b border-[#f0f0f0]">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[13px] font-bold text-[#262626]">
+                              {group.name}
+                            </span>
+                            {group.isCurrentUser && (
+                              <span className="px-2 py-0.5 rounded-full bg-[#FF0055]/10 text-[#FF0055] text-[10px] font-mono-num font-bold">
+                                You
+                              </span>
+                            )}
+                          </div>
+
+                          {group.isPaid ? (
+                            <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-mono-num font-bold">
+                              PAID
+                            </span>
+                          ) : (
+                            <span className="text-[11px] font-mono-num text-[#727272]">
+                              {group.items.length} {group.items.length === 1 ? 'dish' : 'dishes'}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Diner's exact ordered items */}
+                        <div className="py-2.5 space-y-1.5 text-[12px]">
+                          {group.items.map((item) => (
+                            <div key={item.cartItemId} className="flex justify-between text-[#262626]">
+                              <span>{item.quantity}x {item.menuItem.name}</span>
+                              <span className="font-mono-num text-[#727272]">
+                                {(item.menuItem.basePrice * item.quantity).toFixed(2)} EGP
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Financial calculations for this diner */}
+                        <div className="pt-2 border-t border-[#f0f0f0] space-y-1 text-[11px]">
+                          <div className="flex justify-between text-[#727272]">
+                            <span>Subtotal:</span>
+                            <span className="font-mono-num">{group.subtotal.toFixed(2)} EGP</span>
+                          </div>
+                          <div className="flex justify-between text-[#727272]">
+                            <span>ETA 14% VAT:</span>
+                            <span className="font-mono-num">{group.vatAmount.toFixed(2)} EGP</span>
+                          </div>
+                          <div className="flex justify-between text-[13px] font-bold text-[#262626] pt-1">
+                            <span>Total Share:</span>
+                            <span className="font-mono-num text-[#FF0055]">{group.total.toFixed(2)} EGP</span>
+                          </div>
+                        </div>
+
+                        {/* CTA or Paid Stamp */}
+                        <div className="mt-3 pt-2">
+                          {group.isPaid ? (
+                            <div className="py-1.5 px-3 rounded-lg bg-emerald-100/70 border border-emerald-200 text-center text-emerald-800 text-[11px] font-mono-num font-bold">
+                              PAID // {group.total.toFixed(2)} EGP via {group.paymentRecord?.paymentMethod?.toUpperCase() || 'ONLINE'}
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => handlePayDinerShare(group.memberId, group.total)}
+                              disabled={isProcessing}
+                              className="w-full py-2.5 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[12px] font-bold transition-all btn-crimson-glow cursor-pointer shadow-xs flex items-center justify-center gap-1.5"
+                            >
+                              <span>Pay My Share ({group.total.toFixed(2)} EGP) -&gt;</span>
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {splitMode === 'equal' && (
                 <div className="space-y-2.5">
                   <div className="flex items-center justify-between">
                     <span className="text-[12px] text-[#727272]">Diners sharing bill:</span>
@@ -407,7 +601,9 @@ export const SettlementPage: React.FC = () => {
                     ))}
                   </div>
                 </div>
-              ) : (
+              )}
+
+              {splitMode === 'itemized' && (
                 <div className="space-y-2.5 bg-[#f9f9f9] p-3 rounded-xl border border-[#e5e7eb]">
                   <div className="flex items-center justify-between text-[12px]">
                     <span className="font-medium text-[#262626]">Select Dishes You Consumed:</span>
@@ -422,7 +618,8 @@ export const SettlementPage: React.FC = () => {
                   <div className="space-y-1.5 max-h-36 overflow-y-auto">
                     {ticket.items.map((item) => {
                       const isSelected = selectedItemIds.includes(item.cartItemId);
-                      const itemPrice = item.menuItem.basePrice * item.quantity;
+                      const modTotal = item.selectedModifiers.reduce((mSum, m) => mSum + m.price, 0);
+                      const itemPrice = (item.menuItem.basePrice + modTotal) * item.quantity;
 
                       return (
                         <label
@@ -526,7 +723,11 @@ export const SettlementPage: React.FC = () => {
                     <span>Authorizing Transaction...</span>
                   ) : (
                     <span>
-                      Settle Bill ({splitMode === 'equal' ? `${perPersonAmount.toFixed(2)} EGP / person` : `${itemizedTotal.toFixed(2)} EGP`}) -&gt;
+                      {splitMode === 'by_diner'
+                        ? `Settle Full Remaining Balance (${remainingTableBalance.toFixed(2)} EGP) ->`
+                        : splitMode === 'equal'
+                        ? `Settle Equal Share (${perPersonAmount.toFixed(2)} EGP / person) ->`
+                        : `Settle Selected Dishes (${itemizedTotal.toFixed(2)} EGP) ->`}
                     </span>
                   )}
                 </button>

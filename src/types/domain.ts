@@ -49,6 +49,14 @@ export type PaymentMethod = 'apple_pay' | 'card' | 'cashier';
 
 export type PaymentStatus = 'pending_verification' | 'verified_paid';
 
+export interface DinerPaymentRecord {
+  memberId: string;
+  name: string;
+  amount: number;
+  paidAt: number;
+  paymentMethod: PaymentMethod;
+}
+
 export interface OrderTicket {
   id: string;
   tableNumber: string | null;
@@ -63,6 +71,7 @@ export interface OrderTicket {
   paymentStatus: PaymentStatus; // GATE: Only verified_paid tickets reach KDS!
   cashierChitCode?: string; // e.g. "PAY-401" for in-person cashier verification
   splitCount?: number;
+  paidDiners?: Record<string, DinerPaymentRecord>; // Itemized diner settlements
   tipAmount?: number;
   rating?: number; // Post-meal 5-star review
   reviewFeedback?: string;

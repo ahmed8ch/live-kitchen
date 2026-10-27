@@ -4,6 +4,7 @@ interface FlameLinkLogoProps {
   className?: string;
   size?: 'sm' | 'md' | 'lg' | 'xl';
   showWordmark?: boolean;
+  variant?: 'default' | 'on-dark' | 'monochrome';
 }
 
 export const FlameMark: React.FC<{ className?: string }> = ({ className = 'w-6 h-6' }) => {
@@ -12,7 +13,7 @@ export const FlameMark: React.FC<{ className?: string }> = ({ className = 'w-6 h
 
   return (
     <svg
-      className={className}
+      className={`${className} transition-all duration-300 ease-out group-hover:scale-105 group-hover:drop-shadow-[0_0_12px_rgba(255,0,85,0.6)] transform-gpu`}
       viewBox="0 0 2650 3429"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
@@ -332,6 +333,7 @@ export const FlameLinkLogo: React.FC<FlameLinkLogoProps> = ({
   className = '',
   size = 'md',
   showWordmark = true,
+  variant = 'default',
 }) => {
   const iconSize =
     size === 'sm' ? 'w-5 h-6' : size === 'lg' ? 'w-8 h-9' : size === 'xl' ? 'w-10 h-12' : 'w-6 h-7';
@@ -344,21 +346,29 @@ export const FlameLinkLogo: React.FC<FlameLinkLogoProps> = ({
       ? 'text-[26px]'
       : 'text-[18px]';
 
+  const textFlameColor = variant === 'on-dark' ? 'text-white' : 'text-[#262626]';
+  const textLinkColor =
+    variant === 'on-dark'
+      ? 'text-[#FF0055]'
+      : variant === 'monochrome'
+      ? 'text-[#262626]'
+      : 'text-[#FF0055]';
+
   return (
-    <span className={`inline-flex items-center gap-2.5 select-none ${className}`}>
-      {/* Exact Vector SVG Mark */}
+    <span className={`group inline-flex items-center gap-2.5 select-none transition-transform duration-200 cursor-pointer ${className}`}>
+      {/* Exact Vector SVG Mark with Flame Hover Animation */}
       <span className="flex items-center justify-center shrink-0">
         <FlameMark className={iconSize} />
       </span>
 
-      {/* Baseline-Unified Wordmark — styling applies strictly to the name FlameLink */}
+      {/* Baseline-Unified Wordmark strictly using Changa font */}
       {showWordmark && (
         <span
-          className={`${textSize} font-extrabold tracking-tight leading-none inline-flex items-baseline font-sans`}
-          style={{ letterSpacing: '-0.03em' }}
+          className={`${textSize} font-extrabold tracking-tight leading-none inline-flex items-baseline font-changa`}
+          style={{ letterSpacing: '-0.02em' }}
         >
-          <span className="text-[#262626]">Flame</span>
-          <span className="text-[#FF0055]">Link</span>
+          <span className={textFlameColor}>Flame</span>
+          <span className={textLinkColor}>Link</span>
         </span>
       )}
     </span>

@@ -10,6 +10,7 @@ import { SettlementPage } from './pages/SettlementPage';
 import { KdsPage } from './pages/KdsPage';
 import { CashierPage } from './pages/CashierPage';
 import { TableStandPage } from './pages/TableStandPage';
+import { CompanionPage } from './pages/CompanionPage';
 import { useAppStore } from './store/useAppStore';
 import { FlameLinkLogo } from './components/ui/FlameLinkLogo';
 
@@ -38,6 +39,8 @@ export const App: React.FC = () => {
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/menu" element={<MenuPage />} />
+            <Route path="/companion" element={<CompanionPage />} />
+            <Route path="/guest-order" element={<CompanionPage />} />
             <Route path="/tracker" element={<OrderTrackerPage />} />
             <Route path="/order/:id" element={<OrderTrackerPage />} />
             <Route path="/settlement" element={<SettlementPage />} />

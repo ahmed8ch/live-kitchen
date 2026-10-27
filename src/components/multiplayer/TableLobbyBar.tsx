@@ -126,7 +126,7 @@ export const TableLobbyBar: React.FC = () => {
           ))}
         </div>
 
-        {/* Right: Guest Ready Toggle & Join Table Action */}
+        {/* Right: Seated Actions (Zero redundant join button) */}
         <div className="flex items-center gap-2">
           {!isHost && currentMember && (
             <button
@@ -141,12 +141,22 @@ export const TableLobbyBar: React.FC = () => {
             </button>
           )}
 
-          <button
-            onClick={() => openPinModal(activeTable)}
-            className="px-2.5 py-1 text-[11px] font-mono-num text-[#727272] hover:text-[#262626] bg-white rounded-md border border-[#e5e7eb] transition-colors cursor-pointer"
-          >
-            Join Table
-          </button>
+          {isHost && (
+            <a
+              href={`/companion?table=${activeTable}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-3 py-1 text-[11px] font-mono-num text-[#262626] hover:text-[#FF0055] bg-white rounded-full border border-[#e5e7eb] hover:border-[#ffd1dc] transition-colors cursor-pointer shadow-xs"
+              title="Open Companion Guest POV in a separate window or tab to test multiplayer ordering"
+            >
+              <span>+ Companion Tab</span>
+              <svg className="w-3 h-3 text-[#727272]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                <polyline points="15 3 21 3 21 9" />
+                <line x1="10" y1="14" x2="21" y2="3" />
+              </svg>
+            </a>
+          )}
         </div>
       </div>
     </div>

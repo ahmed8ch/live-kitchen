@@ -9,6 +9,7 @@ import {
   MemberProfile,
   TableSession,
   TableStatus,
+  DinerPaymentRecord,
 } from '../types/domain';
 import { MENU_ITEMS } from '../domain/menuData';
 
@@ -43,11 +44,18 @@ interface AppState {
   closePinModal: () => void;
   clearTableSession: (tableNumber: string) => void;
 
+  // Companion (2nd Diner POV) actions
+  companionMember: MemberProfile | null;
+  initCompanionSession: (tableNumber: string) => MemberProfile;
+  addToCartAsCompanion: (menuItem: MenuItem, selectedModifiers: ModifierOption[], quantity: number, notes?: string) => void;
+  toggleCompanionReady: (tableNumber: string) => void;
+
   // The Payment Gate & Order actions
   createOrder: (paymentMethod: PaymentMethod) => OrderTicket;
   verifyCashierPayment: (orderId: string, paymentMethod?: PaymentMethod) => void;
   advanceOrderStatus: (orderId: string) => void;
   payOrderOnline: (orderId: string, method: PaymentMethod, splitCount?: number) => void;
+  payDinerShare: (orderId: string, memberId: string, method: PaymentMethod, amount: number) => void;
   orderAgain: () => void;
   submitMealReview: (orderId: string, rating: number, feedback?: string, tipAmount?: number) => void;
   syncOrders: (orders: OrderTicket[]) => void;
@@ -141,6 +149,7 @@ export const useAppStore = create<AppState>()(
       activeTablePin: null,
       activeOrderId: null,
       currentMember: null,
+      companionMember: null,
       tableSessions: initialTableSessions,
       orders: [], // 0 hardcoded orders - all flow dynamically from live cart
       toastMessage: null,
@@ -265,9 +274,22 @@ export const useAppStore = create<AppState>()(
           return false;
         }
 
+        // Compute taken identities to guarantee collision-free assignment
+        const takenNames = new Set(
+          session.members.map((m) => m.name.replace(/\s*\(Host\)$/, '').trim().toLowerCase())
+        );
+
+        const ROSTER = ['Orange Fox', 'Golden Eagle', 'Blue Falcon', 'Emerald Owl', 'Silver Wolf', 'Red Panda'];
+        let finalName = memberName.trim() || avatar;
+
+        if (takenNames.has(finalName.toLowerCase())) {
+          const nextAvailable = ROSTER.find((name) => !takenNames.has(name.toLowerCase()));
+          finalName = nextAvailable || `${finalName} #${session.members.length + 1}`;
+        }
+
         const newGuestMember: MemberProfile = {
           id: `guest-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-          name: memberName.trim() || avatar,
+          name: finalName,
           isHost: false,
           isReadyToPay: false,
           joinedAt: Date.now(),
@@ -304,6 +326,117 @@ export const useAppStore = create<AppState>()(
 
         get().showToast(`Joined Table ${cleanTable} as ${newGuestMember.name}`);
         return true;
+      },
+
+      initCompanionSession: (tableNumber: string) => {
+        const cleanTable = tableNumber.trim().toUpperCase();
+        const { tableSessions, companionMember } = get();
+        let session = tableSessions[cleanTable];
+
+        // If table doesn't exist yet, initialize it
+        if (!session) {
+          session = {
+            tableNumber: cleanTable,
+            pin: '1004',
+            hostId: 'host-demo',
+            members: [
+              {
+                id: 'host-demo',
+                name: 'Red Panda (Host)',
+                isHost: true,
+                isReadyToPay: false,
+                joinedAt: Date.now() - 300000,
+              },
+            ],
+            status: 'ordering',
+            lastUpdated: Date.now(),
+          };
+        }
+
+        // If companionMember is already set and seated in this session, return it
+        if (companionMember && session.members.some((m) => m.id === companionMember.id)) {
+          return companionMember;
+        }
+
+        // Find taken identities
+        const takenNames = new Set(
+          session.members.map((m) => m.name.replace(/\s*\(Host\)$/, '').trim().toLowerCase())
+        );
+        const ROSTER = ['Orange Fox', 'Golden Eagle', 'Blue Falcon', 'Emerald Owl', 'Silver Wolf', 'Red Panda'];
+        const nextAvailable = ROSTER.find((name) => !takenNames.has(name.toLowerCase())) || 'Orange Fox';
+
+        const newCompanion: MemberProfile = {
+          id: `companion-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+          name: nextAvailable,
+          isHost: false,
+          isReadyToPay: false,
+          joinedAt: Date.now(),
+        };
+
+        const updatedSession: TableSession = {
+          ...session,
+          members: [...session.members, newCompanion],
+          lastUpdated: Date.now(),
+        };
+
+        const updatedSessions = {
+          ...tableSessions,
+          [cleanTable]: updatedSession,
+        };
+
+        set({
+          tableSessions: updatedSessions,
+          companionMember: newCompanion,
+        });
+
+        if (broadcastChannel) {
+          broadcastChannel.postMessage({
+            type: 'GUEST_JOINED',
+            tableSessions: updatedSessions,
+            guestName: newCompanion.name,
+            tableNumber: cleanTable,
+          });
+        }
+
+        return newCompanion;
+      },
+
+      addToCartAsCompanion: (menuItem, selectedModifiers, quantity, notes) => {
+        const { companionMember, activeTable, cart } = get();
+        if (!companionMember) return;
+
+        const newItem: CartItem = {
+          cartItemId: `cart-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+          menuItem,
+          selectedModifiers,
+          quantity,
+          notes,
+          addedBy: {
+            memberId: companionMember.id,
+            name: companionMember.name,
+            isHost: false,
+          },
+        };
+
+        const nextCart = [...cart, newItem];
+        set({ cart: nextCart });
+        get().showToast(`Added ${quantity}x ${menuItem.name} (${companionMember.name})`);
+
+        if (broadcastChannel && activeTable) {
+          broadcastChannel.postMessage({ type: 'CART_SYNC', cart: nextCart, tableNumber: activeTable });
+        }
+      },
+
+      toggleCompanionReady: (tableNumber: string) => {
+        const cleanTable = tableNumber.trim().toUpperCase();
+        const { companionMember } = get();
+        if (!companionMember) return;
+        get().setMemberReadyToPay(cleanTable, companionMember.id, !companionMember.isReadyToPay);
+        set((state) => ({
+          companionMember: state.companionMember
+            ? { ...state.companionMember, isReadyToPay: !state.companionMember.isReadyToPay }
+            : null,
+        }));
       },
 
       setMemberReadyToPay: (tableNumber, memberId, isReady) => {
@@ -658,6 +791,71 @@ export const useAppStore = create<AppState>()(
         get().showToast(`Order #${orderId} paid in full via ${method.toUpperCase()}!`);
       },
 
+      payDinerShare: (orderId, memberId, method, amount) => {
+        const { orders, tableSessions } = get();
+        let targetTable: string | null = null;
+        let allDinersSettled = false;
+
+        const updatedOrders = orders.map((ticket) => {
+          if (ticket.id !== orderId) return ticket;
+          targetTable = ticket.tableNumber;
+
+          const currentPaid = ticket.paidDiners || {};
+          const memberName =
+            ticket.items.find((i) => i.addedBy?.memberId === memberId)?.addedBy?.name || 'Diner';
+
+          const updatedPaid: Record<string, DinerPaymentRecord> = {
+            ...currentPaid,
+            [memberId]: {
+              memberId,
+              name: memberName,
+              amount,
+              paidAt: Date.now(),
+              paymentMethod: method,
+            },
+          };
+
+          const totalPaidSoFar = Object.values(updatedPaid).reduce((sum, r) => sum + r.amount, 0);
+          const remaining = Math.max(0, ticket.total - totalPaidSoFar);
+          const isNowFullyPaid = remaining <= 0.05;
+
+          if (isNowFullyPaid) {
+            allDinersSettled = true;
+          }
+
+          return {
+            ...ticket,
+            paidDiners: updatedPaid,
+            isPaid: isNowFullyPaid,
+            paymentStatus: isNowFullyPaid ? ('verified_paid' as const) : ticket.paymentStatus,
+            paidAt: isNowFullyPaid ? Date.now() : ticket.paidAt,
+            paymentMethod: isNowFullyPaid ? method : ticket.paymentMethod,
+          };
+        });
+
+        let updatedSessions = tableSessions;
+        if (allDinersSettled && targetTable && tableSessions[targetTable]) {
+          updatedSessions = {
+            ...tableSessions,
+            [targetTable]: {
+              ...tableSessions[targetTable],
+              status: 'paid_cooking',
+              lastUpdated: Date.now(),
+            },
+          };
+        }
+
+        set({ orders: updatedOrders, tableSessions: updatedSessions });
+
+        if (broadcastChannel) {
+          broadcastChannel.postMessage({
+            type: allDinersSettled ? 'ORDER_PAID' : 'DINER_SHARE_PAID',
+            orders: updatedOrders,
+            tableSessions: updatedSessions,
+          });
+        }
+      },
+
       // Loopback: Order Again button keeps table session intact and clears cart
       orderAgain: () => {
         set({ cart: [], isCartDrawerOpen: false, activeOrderId: null });
@@ -852,7 +1050,7 @@ if (broadcastChannel) {
         store.showToast(`Your food is ready at the pass! Server on the way.`);
       }
     }
-    if (data.type === 'ORDER_CREATED' || data.type === 'ORDER_PAID') {
+    if (data.type === 'ORDER_CREATED' || data.type === 'ORDER_PAID' || data.type === 'DINER_SHARE_PAID') {
       if (data.orders) store.syncOrders(data.orders);
       if (data.tableSessions) store.syncTableSessions(data.tableSessions);
     }

@@ -1,19 +1,25 @@
 import React, { useState } from 'react';
 import { NavLink, useLocation, Link } from 'react-router-dom';
+import {
+  Home,
+  UtensilsCrossed,
+  Users,
+  Package,
+  Receipt,
+  Building,
+  ChefHat,
+  QrCode,
+  PanelLeftClose,
+  PanelLeftOpen,
+  ShoppingCart,
+  X,
+  Menu as MenuIcon,
+} from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 import { FlameLinkLogo } from '../ui/FlameLinkLogo';
 
-interface NavItem {
-  id: string;
-  label: string;
-  to: string;
-  badge?: string;
-  icon: (active: boolean) => React.ReactNode;
-}
-
 export const Sidebar: React.FC = () => {
-  // Collapsed by default per user directive
-  const [isCollapsed, setIsCollapsed] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const location = useLocation();
 
@@ -22,164 +28,73 @@ export const Sidebar: React.FC = () => {
   const cart = useAppStore((state) => state.cart);
   const openCartDrawer = useAppStore((state) => state.openCartDrawer);
 
-  const trackerTarget = orders.length > 0 ? `/order/${orders[0].id}` : '/order/active';
+  const trackerTarget = orders.length > 0 ? `/order/${orders[0].id}` : '/tracker';
   const settlementTarget = orders.length > 0 ? `/settlement/${orders[0].id}` : '/settlement';
   const tableParam = activeTable ? `?table=${activeTable}` : '';
   const totalCartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
-  const navItems: NavItem[] = [
+  const navItems = [
     {
       id: 'home',
       label: 'Overview',
       to: '/',
-      icon: (active) => (
-        <svg
-          className={`w-5 h-5 shrink-0 transition-colors ${active ? 'text-[#FF0055]' : 'text-[#727272]'}`}
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.8"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-          <polyline points="9 22 9 12 15 12 15 22" />
-        </svg>
-      ),
+      icon: Home,
     },
     {
       id: 'menu',
-      label: 'Dine-In Menu',
+      label: 'Dine-In Menu (Host)',
       to: `/menu${tableParam}`,
-      icon: (active) => (
-        <svg
-          className={`w-5 h-5 shrink-0 transition-colors ${active ? 'text-[#FF0055]' : 'text-[#727272]'}`}
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.8"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M18 8h1a4 4 0 0 1 0 8h-1" />
-          <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" />
-          <line x1="6" y1="1" x2="6" y2="4" />
-          <line x1="10" y1="1" x2="10" y2="4" />
-          <line x1="14" y1="1" x2="14" y2="4" />
-        </svg>
-      ),
+      badge: activeTable ? activeTable : undefined,
+      icon: UtensilsCrossed,
+    },
+    {
+      id: 'companion',
+      label: 'Companion POV (Guest)',
+      to: `/companion${tableParam}`,
+      badge: 'Guest',
+      icon: Users,
     },
     {
       id: 'tracker',
       label: 'Order Tracker',
       to: `${trackerTarget}${tableParam}`,
       badge: orders.length > 0 && !orders[0].isPaid ? 'Live' : undefined,
-      icon: (active) => (
-        <svg
-          className={`w-5 h-5 shrink-0 transition-colors ${active ? 'text-[#FF0055]' : 'text-[#727272]'}`}
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.8"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <circle cx="12" cy="12" r="10" />
-          <polyline points="12 6 12 12 16 14" />
-        </svg>
-      ),
+      icon: Package,
     },
     {
       id: 'settlement',
-      label: 'Table Bill',
+      label: 'Table Bill & Split',
       to: `${settlementTarget}${tableParam}`,
-      icon: (active) => (
-        <svg
-          className={`w-5 h-5 shrink-0 transition-colors ${active ? 'text-[#FF0055]' : 'text-[#727272]'}`}
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.8"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <rect x="2" y="5" width="20" height="14" rx="2" />
-          <line x1="2" y1="10" x2="22" y2="10" />
-        </svg>
-      ),
+      icon: Receipt,
     },
     {
       id: 'cashier',
       label: 'Cashier Station',
       to: '/cashier',
       badge: 'POS',
-      icon: (active) => (
-        <svg
-          className={`w-5 h-5 shrink-0 transition-colors ${active ? 'text-[#FF0055]' : 'text-[#727272]'}`}
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.8"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <rect x="2" y="4" width="20" height="16" rx="2" />
-          <line x1="2" y1="10" x2="22" y2="10" />
-          <line x1="7" y1="15" x2="7.01" y2="15" strokeWidth="2.5" />
-          <line x1="11" y1="15" x2="17" y2="15" strokeWidth="2" />
-        </svg>
-      ),
+      icon: Building,
     },
     {
       id: 'kds',
       label: 'Kitchen Pass',
       to: '/kds',
       badge: 'Pass',
-      icon: (active) => (
-        <svg
-          className={`w-5 h-5 shrink-0 transition-colors ${active ? 'text-[#FF0055]' : 'text-[#727272]'}`}
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.8"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <rect x="2" y="3" width="20" height="14" rx="2" />
-          <line x1="8" y1="21" x2="16" y2="21" />
-          <line x1="12" y1="17" x2="12" y2="21" />
-        </svg>
-      ),
+      icon: ChefHat,
     },
     {
       id: 'stand',
-      label: 'QR Stand',
+      label: 'Acrylic QR Stand',
       to: '/stand',
-      icon: (active) => (
-        <svg
-          className={`w-5 h-5 shrink-0 transition-colors ${active ? 'text-[#FF0055]' : 'text-[#727272]'}`}
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.8"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <rect x="3" y="3" width="7" height="7" />
-          <rect x="14" y="3" width="7" height="7" />
-          <rect x="14" y="14" width="7" height="7" />
-          <rect x="3" y="14" width="7" height="7" />
-        </svg>
-      ),
+      icon: QrCode,
     },
   ];
 
   return (
     <>
-      {/* Mobile Bar (Small screens only: Brand + Drawer Button) */}
+      {/* Mobile Bar: Brand + Quick Cart Drawer */}
       <header className="md:hidden h-14 w-full bg-[#f9f9f9] border-b border-[#e5e7eb] px-4 flex items-center justify-between sticky top-0 z-40">
         <Link to="/" className="inline-flex items-center min-h-[36px] min-w-[36px]">
-          <FlameLinkLogo size="sm" />
+          <FlameLinkLogo size="md" />
         </Link>
 
         <div className="flex items-center gap-2">
@@ -199,15 +114,8 @@ export const Sidebar: React.FC = () => {
             onClick={() => setMobileDrawerOpen(!mobileDrawerOpen)}
             className="p-2 rounded-lg text-[#262626] hover:bg-[#e5e7eb] border border-[#e5e7eb] flex items-center justify-center min-w-[36px] min-h-[36px] cursor-pointer"
             aria-label="Toggle navigation drawer"
-            title="Toggle navigation drawer"
           >
-            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              {mobileDrawerOpen ? (
-                <path d="M18 6L6 18M6 6l12 12" />
-              ) : (
-                <path d="M4 6h16M4 12h16M4 18h16" />
-              )}
-            </svg>
+            {mobileDrawerOpen ? <X className="w-5 h-5" /> : <MenuIcon className="w-5 h-5" />}
           </button>
         </div>
       </header>
@@ -224,53 +132,46 @@ export const Sidebar: React.FC = () => {
           >
             <div>
               <div className="flex items-center justify-between pb-4 border-b border-[#e5e7eb]">
-                <Link
-                  to="/"
-                  onClick={() => setMobileDrawerOpen(false)}
-                  className="inline-flex items-center min-h-[36px]"
-                >
-                  <FlameLinkLogo size="md" />
+                <Link to="/" onClick={() => setMobileDrawerOpen(false)}>
+                  <FlameLinkLogo size="lg" />
                 </Link>
-
                 <button
                   onClick={() => setMobileDrawerOpen(false)}
                   className="w-8 h-8 rounded-full bg-white border border-[#e5e7eb] flex items-center justify-center text-[#727272] cursor-pointer"
                   aria-label="Close drawer"
-                  title="Close drawer"
                 >
-                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <path d="M18 6L6 18M6 6l12 12" />
-                  </svg>
+                  <X className="w-4 h-4" />
                 </button>
               </div>
 
-
-
-              <nav className="mt-5 space-y-1.5" data-ui-actions="nav">
-                {navItems.map((item) => (
-                  <NavLink
-                    key={item.id}
-                    to={item.to}
-                    onClick={() => setMobileDrawerOpen(false)}
-                    className={({ isActive }) =>
-                      `flex items-center justify-between px-3.5 py-2.5 rounded-xl text-[14px] font-medium transition-all ${
-                        isActive
-                          ? 'bg-white text-[#FF0055] border-l-2 border-l-[#FF0055] shadow-xs'
-                          : 'text-[#727272] hover:bg-white hover:text-[#262626]'
-                      }`
-                    }
-                  >
-                    <div className="flex items-center gap-3">
-                      {item.icon(false)}
-                      <span>{item.label}</span>
-                    </div>
-                    {item.badge && (
-                      <span className="px-2 py-0.5 rounded-full bg-[#fff0f3] border border-[#ffd1dc] text-[#FF0055] text-[10px] font-mono-num font-medium">
-                        {item.badge}
-                      </span>
-                    )}
-                  </NavLink>
-                ))}
+              <nav className="mt-5 space-y-1.5">
+                {navItems.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <NavLink
+                      key={item.id}
+                      to={item.to}
+                      onClick={() => setMobileDrawerOpen(false)}
+                      className={({ isActive }) =>
+                        `flex items-center justify-between px-3.5 py-2.5 rounded-xl text-[13px] font-medium transition-all ${
+                          isActive
+                            ? 'bg-white text-[#FF0055] border-l-2 border-l-[#FF0055] shadow-xs font-bold'
+                            : 'text-[#727272] hover:bg-white hover:text-[#262626]'
+                        }`
+                      }
+                    >
+                      <div className="flex items-center gap-3">
+                        <Icon className="w-4 h-4 shrink-0" />
+                        <span>{item.label}</span>
+                      </div>
+                      {item.badge && (
+                        <span className="px-2 py-0.5 rounded-full bg-[#fff0f3] border border-[#ffd1dc] text-[#FF0055] text-[10px] font-mono-num font-medium">
+                          {item.badge}
+                        </span>
+                      )}
+                    </NavLink>
+                  );
+                })}
               </nav>
             </div>
 
@@ -281,54 +182,48 @@ export const Sidebar: React.FC = () => {
         </div>
       )}
 
-      {/* Desktop Structural Left Sidebar Rail (DESIGN.md §5.2) */}
+      {/* Desktop Structural Left Sidebar Rail (Cloudflare-engulfing aesthetic) */}
       <aside
         data-ui-container="sidebar"
-        style={{ backgroundColor: '#f9f9f9' }}
-        className={`hidden md:flex flex-col border-r border-[#e5e7eb] sticky top-0 h-screen transition-all duration-200 z-30 shrink-0 ${
-          isCollapsed ? 'w-16' : 'w-[220px]'
-        }`}
+        className={`${
+          isOpen ? 'w-64' : 'w-16'
+        } hidden md:flex flex-col border-r border-[#e5e7eb] bg-[#f9f9f9] sticky top-0 h-screen transition-all duration-300 ease-in-out z-30 shrink-0 select-none shadow-[1px_0_10px_rgba(0,0,0,0.02)]`}
       >
-        {/* Top Wordmark Area */}
-        <div className={`h-16 flex items-center border-b border-[#e5e7eb] px-3 ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
+        {/* Top Wordmark & Collapse Trigger Header (Bigger Logo on top + Flame Animation) */}
+        <div
+          className={`h-16 flex items-center border-b border-[#e5e7eb] px-3 ${
+            isOpen ? 'justify-between' : 'justify-center'
+          } bg-white transition-all`}
+        >
           <Link
             to="/"
-            className="inline-flex items-center justify-center min-h-[36px] min-w-[36px] group select-none"
+            className="inline-flex items-center justify-center group select-none transition-transform"
             aria-label="FlameLink Home"
             title="FlameLink Home"
           >
-            {isCollapsed ? (
-              <FlameLinkLogo size="md" showWordmark={false} />
+            {isOpen ? (
+              <FlameLinkLogo size="lg" showWordmark={true} />
             ) : (
-              <FlameLinkLogo size="md" />
+              <FlameLinkLogo size="lg" showWordmark={false} />
             )}
           </Link>
 
-          {!isCollapsed && (
+          {isOpen && (
             <button
-              onClick={() => setIsCollapsed(true)}
-              className="w-8 h-8 p-1.5 rounded-lg hover:bg-white text-[#727272] hover:text-[#262626] flex items-center justify-center transition-colors border border-transparent hover:border-[#e5e7eb] cursor-pointer shrink-0"
+              onClick={() => setIsOpen(false)}
+              className="w-7 h-7 rounded-lg hover:bg-[#f9f9f9] text-[#727272] hover:text-[#262626] flex items-center justify-center transition-colors border border-transparent hover:border-[#e5e7eb] cursor-pointer shrink-0"
               aria-label="Collapse navigation sidebar"
-              title="Collapse navigation sidebar"
+              title="Collapse sidebar"
             >
-              <svg
-                className="w-4 h-4"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.2"
-              >
-                <polyline points="15 18 9 12 15 6" />
-              </svg>
+              <PanelLeftClose className="w-4 h-4" />
             </button>
           )}
         </div>
 
-
-
-        {/* Navigation Items List */}
+        {/* Navigation Items List with Lucide-React Icons */}
         <nav className="flex-1 py-3 px-2 space-y-1 overflow-y-auto" data-ui-actions="sidebar-nav">
           {navItems.map((item) => {
+            const Icon = item.icon;
             const isActive =
               item.to === '/'
                 ? location.pathname === '/'
@@ -338,24 +233,30 @@ export const Sidebar: React.FC = () => {
               <NavLink
                 key={item.id}
                 to={item.to}
-                className={`flex items-center ${isCollapsed ? 'justify-center px-2' : 'justify-between px-3'} py-2.5 rounded-lg text-[13px] font-medium transition-all group ${
+                className={`flex items-center ${
+                  isOpen ? 'justify-between px-3' : 'justify-center px-2'
+                } py-2.5 rounded-xl text-[13px] font-medium transition-all group relative ${
                   isActive
-                    ? 'bg-white text-[#262626] shadow-xs border-l-2 border-l-[#FF0055]'
+                    ? 'bg-white text-[#262626] shadow-xs border-l-2 border-l-[#FF0055] font-semibold'
                     : 'text-[#727272] hover:text-[#262626] hover:bg-white'
                 }`}
-                title={isCollapsed ? item.label : undefined}
+                title={!isOpen ? item.label : undefined}
                 aria-label={item.label}
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  {item.icon(isActive)}
-                  {!isCollapsed && (
+                  <Icon
+                    className={`w-4 h-4 shrink-0 transition-colors ${
+                      isActive ? 'text-[#FF0055]' : 'text-[#727272] group-hover:text-[#262626]'
+                    }`}
+                  />
+                  {isOpen && (
                     <span className="truncate whitespace-nowrap">{item.label}</span>
                   )}
                 </div>
 
-                {!isCollapsed && item.badge && (
+                {isOpen && item.badge && (
                   <span
-                    className={`px-1.5 py-0.5 rounded text-[10px] font-mono-num font-medium ${
+                    className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono-num font-bold ${
                       isActive
                         ? 'bg-[#fff0f3] text-[#FF0055] border border-[#ffd1dc]'
                         : 'bg-white border border-[#e5e7eb] text-[#727272]'
@@ -373,7 +274,9 @@ export const Sidebar: React.FC = () => {
         <div className="p-2 border-t border-[#e5e7eb] bg-white space-y-2">
           <button
             onClick={() => openCartDrawer()}
-            className={`w-full min-h-[44px] flex items-center ${isCollapsed ? 'justify-center p-2' : 'justify-between p-2.5'} rounded-lg transition-all border cursor-pointer ${
+            className={`w-full min-h-[44px] flex items-center ${
+              isOpen ? 'justify-between p-2.5' : 'justify-center p-2'
+            } rounded-xl transition-all border cursor-pointer ${
               totalCartCount > 0
                 ? 'bg-[#fff0f3] border-[#ffd1dc] text-[#262626] shadow-xs hover:border-[#FF0055]'
                 : 'bg-[#f9f9f9] border-[#e5e7eb] text-[#727272] hover:text-[#262626]'
@@ -381,41 +284,33 @@ export const Sidebar: React.FC = () => {
             title="View Order Cart"
             aria-label="View Order Cart"
           >
-            <div className="flex items-center gap-2 min-w-0">
-              <svg className="w-4 h-4 shrink-0 text-[#FF0055]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="9" cy="21" r="1" />
-                <circle cx="20" cy="21" r="1" />
-                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
-              </svg>
-              {!isCollapsed && (
-                <span className="text-[12px] font-medium truncate">Cart</span>
+            <div className="flex items-center gap-2.5 min-w-0">
+              <ShoppingCart className="w-4 h-4 shrink-0 text-[#FF0055]" />
+              {isOpen && (
+                <span className="text-[12px] font-semibold truncate">Shared Cart</span>
               )}
             </div>
 
             {totalCartCount > 0 && (
-              <span className={`px-1.5 py-0.5 rounded-full bg-[#FF0055] text-white text-[10px] font-mono-num font-medium shrink-0 ${isCollapsed ? 'ml-1' : ''}`}>
+              <span
+                className={`px-1.5 py-0.5 rounded-full bg-[#FF0055] text-white text-[10px] font-mono-num font-bold shrink-0 ${
+                  !isOpen ? 'ml-1' : ''
+                }`}
+              >
                 {totalCartCount}
               </span>
             )}
           </button>
 
-          {/* Dedicated Expand Button when Rail is Collapsed */}
-          {isCollapsed && (
+          {/* Expand Toggle when Rail is Collapsed */}
+          {!isOpen && (
             <button
-              onClick={() => setIsCollapsed(false)}
+              onClick={() => setIsOpen(true)}
               className="w-full h-8 rounded-lg hover:bg-[#f0f0f0] text-[#727272] hover:text-[#262626] flex items-center justify-center transition-colors cursor-pointer"
               aria-label="Expand navigation rail"
-              title="Expand navigation rail"
+              title="Expand sidebar"
             >
-              <svg
-                className="w-4 h-4 rotate-180"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.2"
-              >
-                <polyline points="15 18 9 12 15 6" />
-              </svg>
+              <PanelLeftOpen className="w-4 h-4" />
             </button>
           )}
         </div>
