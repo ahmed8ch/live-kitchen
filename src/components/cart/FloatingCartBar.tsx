@@ -38,34 +38,34 @@ export const FloatingCartBar: React.FC = () => {
         onClick={() => openCartDrawer()}
         data-ui-radius="999"
         style={{
-          boxShadow: '0 0 0 6px rgba(38, 38, 38, 0.08), 0 20px 30px -10px rgba(0, 0, 0, 0.25)',
+          boxShadow: '0 0 0 5px rgba(255, 0, 85, 0.08), 0 20px 30px -10px rgba(0, 0, 0, 0.12)',
         }}
-        className={`w-full flex items-center justify-between px-5 py-3.5 rounded-full bg-[#262626] text-white hover:bg-[#1a1a1a] border border-[#383838] transition-all cursor-pointer group ${
+        className={`w-full flex items-center justify-between px-5 py-3.5 rounded-full bg-white text-[#262626] hover:bg-[#fafafa] border border-[#e5e7eb] hover:border-[#FF0055] transition-all cursor-pointer group ${
           counterPop ? 'animate-spring-pop ring-2 ring-[#FF0055]' : ''
         } active:scale-95`}
       >
         {/* Left: Item Count Badge & Label */}
         <div className="flex items-center gap-3">
           <div
-            className={`w-7 h-7 rounded-full bg-[#FF0055] text-white flex items-center justify-center font-mono-num font-medium text-[13px] shadow-xs transition-transform duration-200 ${
+            className={`w-7 h-7 rounded-full bg-[#FF0055] text-white flex items-center justify-center font-mono-num font-bold text-[13px] shadow-xs transition-transform duration-200 ${
               counterPop ? 'scale-125' : 'scale-100'
             }`}
             data-ui-number
           >
             {totalItems}
           </div>
-          <span className="text-[14px] font-medium tracking-normal text-white">
+          <span className="text-[14px] font-bold tracking-tight text-[#262626]">
             View Order Cart
           </span>
         </div>
 
         {/* Right: Subtotal & Arrow */}
         <div className="flex items-center gap-2.5">
-          <span className="font-mono-num font-medium text-[15px] text-[#FF0055]" data-ui-number>
+          <span className="font-mono-num font-bold text-[15px] text-[#FF0055]" data-ui-number>
             {subtotal.toFixed(2)} EGP
           </span>
           <svg
-            className="w-4 h-4 text-[#949494] group-hover:text-white transition-colors group-hover:translate-x-0.5"
+            className="w-4 h-4 text-[#727272] group-hover:text-[#FF0055] transition-colors group-hover:translate-x-0.5"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"

@@ -52,21 +52,77 @@ export const App: React.FC = () => {
           </Routes>
         </main>
 
-        {/* Global Footer (Consumer & SaaS views only) */}
+        {/* Global Master Footer (Sole Single Footer across all non-KDS routes) */}
         {!isKds && (
-          <footer className="border-t border-[#e5e7eb] bg-[#f9f9f9] py-8 mt-auto">
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
-              <div className="flex items-center gap-3">
-                <FlameLinkLogo size="sm" />
-                <span className="text-[12px] text-[#727272] hidden sm:inline">
-                  / Digital Dine-In & Kitchen Synchronization
-                </span>
+          <footer className="border-t border-[#e5e7eb] bg-[#f9f9f9] py-14 mt-auto select-none">
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 pb-8 border-b border-[#e5e7eb]">
+                {/* Generous, Prominent Logo Presence */}
+                <div className="space-y-2">
+                  <FlameLinkLogo size="xl" />
+                  <p className="text-[13px] text-[#727272] max-w-sm">
+                    Digital Dine-In & Kitchen Synchronization Platform. Zero tablet hardware leases.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2.5 px-4 py-2 rounded-full bg-white border border-[#e5e7eb] text-[12px] font-mono-num shadow-xs">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#15803d] animate-pulse" />
+                  <span className="font-semibold text-[#262626]">All Systems Operational</span>
+                  <span className="text-[#949494]">•</span>
+                  <span className="text-[#727272]">ETA 14% VAT Engine Active</span>
+                </div>
               </div>
 
-              <div className="text-[12px] font-mono-num text-[#727272] flex items-center gap-4">
-                <span>ETA 14% VAT Engine</span>
-                <span className="text-[#e5e7eb]">/</span>
-                <span>Sub-150ms Pass Synchronization</span>
+              {/* Sitemap Grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 text-[13px]">
+                <div className="space-y-3">
+                  <span className="font-bold text-[#262626] uppercase font-mono-num text-[11px] block tracking-wider">
+                    Dine-In Operations
+                  </span>
+                  <ul className="space-y-2 text-[#727272]">
+                    <li><a href="/menu" className="hover:text-[#FF0055] transition-colors">Customer Menu</a></li>
+                    <li><a href="/companion" className="hover:text-[#FF0055] transition-colors">Companion Guest POV</a></li>
+                    <li><a href="/stand" className="hover:text-[#FF0055] transition-colors">Acrylic Table Stand Studio</a></li>
+                  </ul>
+                </div>
+
+                <div className="space-y-3">
+                  <span className="font-bold text-[#262626] uppercase font-mono-num text-[11px] block tracking-wider">
+                    Kitchen Systems
+                  </span>
+                  <ul className="space-y-2 text-[#727272]">
+                    <li><a href="/kds" className="hover:text-[#FF0055] transition-colors">Kitchen Pass (KDS)</a></li>
+                    <li><a href="/cashier" className="hover:text-[#FF0055] transition-colors">Cashier POS Terminal</a></li>
+                    <li><a href="/tracker" className="hover:text-[#FF0055] transition-colors">Live Order Tracking</a></li>
+                  </ul>
+                </div>
+
+                <div className="space-y-3">
+                  <span className="font-bold text-[#262626] uppercase font-mono-num text-[11px] block tracking-wider">
+                    Financials
+                  </span>
+                  <ul className="space-y-2 text-[#727272]">
+                    <li><a href="/settlement" className="hover:text-[#FF0055] transition-colors">Itemized Bill Split</a></li>
+                    <li><span className="text-[#949494]">ETA Fiscal Invoicing</span></li>
+                    <li><span className="text-[#949494]">Apple Pay & Meeza</span></li>
+                  </ul>
+                </div>
+
+                <div className="space-y-3">
+                  <span className="font-bold text-[#262626] uppercase font-mono-num text-[11px] block tracking-wider">
+                    Platform
+                  </span>
+                  <ul className="space-y-2 text-[#727272]">
+                    <li><span className="text-[#949494]">FlameLink OS v2.0</span></li>
+                    <li><span className="text-[#949494]">Changa Brand Typography</span></li>
+                    <li><span className="text-[#949494]">Sub-150ms Synchronization</span></li>
+                  </ul>
+                </div>
+              </div>
+
+              <div className="pt-8 border-t border-[#e5e7eb] flex flex-col sm:flex-row items-center justify-between text-[11px] font-mono-num text-[#949494] gap-3">
+                <span>FlameLink Multi-Player Dine-In Operating System</span>
+                <span>Zero Slop • 100% Light Workspace Compliance</span>
               </div>
             </div>
           </footer>

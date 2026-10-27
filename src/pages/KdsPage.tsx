@@ -55,45 +55,55 @@ export const KdsPage: React.FC = () => {
     }
   };
 
-  // Status Top Band Configuration with Green (Fresh), Amber (Warning), Red (Rush) time bands
+  // Status-Driven Color Coding for Instant 10-Foot Fast Browsing
   const getTicketStatusTheme = (status: OrderStatus, elapsedSeconds: number) => {
+    const isRush = elapsedSeconds > 600 && status !== 'served'; // >10 min rush condition
+
     if (status === 'served') {
       return {
         bg: '#475569',
-        label: 'SERVED // CLOSED',
-        stage: 'CLOSED',
+        cardBorder: 'border-2 border-[#334155]',
+        cardShadow: 'shadow-md opacity-80',
+        label: 'SERVED // ARCHIVED',
+        stage: 'SERVED',
         buttonClass: 'bg-[#334155] text-[#94a3b8] cursor-default',
+        isRush: false,
       };
     }
 
-    const stageLabel = status === 'cooking' ? 'GRILL' : status === 'ready' ? 'PASS' : 'NEW';
-
-    // Delayed / Rush condition: over 10 min (600s)
-    if (elapsedSeconds > 600) {
+    if (status === 'ready') {
       return {
-        bg: '#dc2626',
-        label: `${stageLabel} // RUSH (>10M)`,
-        stage: stageLabel,
-        buttonClass: 'bg-[#dc2626] hover:bg-[#b91c1c] text-white',
+        bg: '#16a34a', // Emerald Green
+        cardBorder: 'border-2 border-emerald-500',
+        cardShadow: 'shadow-[0_0_24px_rgba(22,163,74,0.35)] ring-2 ring-emerald-500/30',
+        label: isRush ? 'READY AT PASS // RUSH (>10M)' : 'READY AT PASS // EXPEDITE',
+        stage: 'READY',
+        buttonClass: 'bg-[#15803d] hover:bg-[#166534] text-white font-bold',
+        isRush,
       };
     }
 
-    // Warning condition: 5 to 10 min (300s to 600s)
-    if (elapsedSeconds >= 300) {
+    if (status === 'cooking') {
       return {
-        bg: '#d97706',
-        label: `${stageLabel} // WARNING (5-10M)`,
-        stage: stageLabel,
-        buttonClass: 'bg-[#d97706] hover:bg-[#b45309] text-white',
+        bg: isRush ? '#dc2626' : '#ea580c', // Red if rush, Vivid Amber if normal cooking
+        cardBorder: isRush ? 'border-2 border-red-500' : 'border-2 border-amber-500',
+        cardShadow: isRush ? 'shadow-[0_0_24px_rgba(239,68,68,0.4)]' : 'shadow-[0_0_20px_rgba(234,88,12,0.25)]',
+        label: isRush ? 'ON GRILL // RUSH (>10M)' : 'ON GRILL // COOKING',
+        stage: 'GRILL',
+        buttonClass: isRush ? 'bg-[#dc2626] hover:bg-[#b91c1c] text-white font-bold' : 'bg-[#ea580c] hover:bg-[#c2410c] text-white font-bold',
+        isRush,
       };
     }
 
-    // Fresh condition: under 5 min (<300s)
+    // Default: 'received' (New Order Fired)
     return {
-      bg: '#16a34a',
-      label: `${stageLabel} // FRESH (<5M)`,
-      stage: stageLabel,
-      buttonClass: 'bg-[#16a34a] hover:bg-[#15803d] text-white',
+      bg: isRush ? '#dc2626' : '#0284c7', // Sky Blue for New, Red if rush
+      cardBorder: isRush ? 'border-2 border-red-500' : 'border-2 border-sky-500',
+      cardShadow: isRush ? 'shadow-[0_0_24px_rgba(239,68,68,0.4)]' : 'shadow-[0_0_20px_rgba(2,132,199,0.25)]',
+      label: isRush ? 'NEW ORDER // RUSH (>10M)' : 'NEW ORDER // PENDING GRILL',
+      stage: 'NEW',
+      buttonClass: isRush ? 'bg-[#dc2626] hover:bg-[#b91c1c] text-white font-bold' : 'bg-[#0284c7] hover:bg-[#0369a1] text-white font-bold',
+      isRush,
     };
   };
 
@@ -248,15 +258,20 @@ export const KdsPage: React.FC = () => {
               return (
                 <article
                   key={ticket.id}
-                  className="thermal-chit-kds flex flex-col justify-between animate-in zoom-in-95 duration-150 border-2 border-[#252b36] shadow-xl"
+                  className={`thermal-chit-kds flex flex-col justify-between animate-in zoom-in-95 duration-150 ${theme.cardBorder} ${theme.cardShadow} transition-all`}
                   style={{ minHeight: '420px' }}
                 >
-                  {/* 44px Solid Status Top Band */}
+                  {/* Status-Driven Top Band */}
                   <div
                     style={{ backgroundColor: theme.bg }}
-                    className="h-12 px-4 flex items-center justify-between text-white font-mono-num font-semibold text-[13px] tracking-wider rounded-t-[5px]"
+                    className="h-12 px-4 flex items-center justify-between text-white font-mono-num font-bold text-[13px] tracking-wider rounded-t-[5px]"
                   >
-                    <span>{theme.label}</span>
+                    <div className="flex items-center gap-2">
+                      {theme.isRush && (
+                        <span className="w-2.5 h-2.5 rounded-full bg-white animate-ping shrink-0" />
+                      )}
+                      <span>{theme.label}</span>
+                    </div>
                     <span className="text-white font-mono-num text-[14px]" data-ui-number>
                       {formatElapsed(ticket.createdAt)}
                     </span>

@@ -11,7 +11,6 @@ import {
   QrCode,
   PanelLeftClose,
   PanelLeftOpen,
-  ShoppingCart,
   X,
   Menu as MenuIcon,
 } from 'lucide-react';
@@ -189,24 +188,21 @@ export const Sidebar: React.FC = () => {
           isOpen ? 'w-64' : 'w-16'
         } hidden md:flex flex-col border-r border-[#e5e7eb] bg-[#f9f9f9] sticky top-0 h-screen transition-all duration-300 ease-in-out z-30 shrink-0 select-none shadow-[1px_0_10px_rgba(0,0,0,0.02)]`}
       >
-        {/* Top Wordmark & Collapse Trigger Header (Bigger Logo on top + Flame Animation) */}
+        {/* Top Wordmark & Collapse Trigger Header (Clicking Logo toggles compact/full) */}
         <div
           className={`h-16 flex items-center border-b border-[#e5e7eb] px-3 ${
             isOpen ? 'justify-between' : 'justify-center'
           } bg-white transition-all`}
         >
-          <Link
-            to="/"
-            className="inline-flex items-center justify-center group select-none transition-transform"
-            aria-label="FlameLink Home"
-            title="FlameLink Home"
+          <button
+            type="button"
+            onClick={() => setIsOpen(!isOpen)}
+            className="inline-flex items-center justify-center group select-none transition-transform cursor-pointer"
+            aria-label={isOpen ? 'Compact navigation sidebar' : 'Expand navigation sidebar'}
+            title={isOpen ? 'Click logo to compact sidebar' : 'Click logo to expand sidebar'}
           >
-            {isOpen ? (
-              <FlameLinkLogo size="lg" showWordmark={true} />
-            ) : (
-              <FlameLinkLogo size="lg" showWordmark={false} />
-            )}
-          </Link>
+            <FlameLinkLogo size="lg" showWordmark={isOpen} />
+          </button>
 
           {isOpen && (
             <button
@@ -270,49 +266,24 @@ export const Sidebar: React.FC = () => {
           })}
         </nav>
 
-        {/* Bottom Area: Cart Trigger + Rail Expand Toggle */}
-        <div className="p-2 border-t border-[#e5e7eb] bg-white space-y-2">
+        {/* Bottom Rail Collapse / Expand Toggle */}
+        <div className="p-2 border-t border-[#e5e7eb] bg-white">
           <button
-            onClick={() => openCartDrawer()}
-            className={`w-full min-h-[44px] flex items-center ${
-              isOpen ? 'justify-between p-2.5' : 'justify-center p-2'
-            } rounded-xl transition-all border cursor-pointer ${
-              totalCartCount > 0
-                ? 'bg-[#fff0f3] border-[#ffd1dc] text-[#262626] shadow-xs hover:border-[#FF0055]'
-                : 'bg-[#f9f9f9] border-[#e5e7eb] text-[#727272] hover:text-[#262626]'
-            }`}
-            title="View Order Cart"
-            aria-label="View Order Cart"
+            type="button"
+            onClick={() => setIsOpen(!isOpen)}
+            className="w-full h-9 rounded-xl hover:bg-[#f0f0f0] text-[#727272] hover:text-[#262626] flex items-center justify-center transition-colors cursor-pointer"
+            aria-label={isOpen ? 'Compact sidebar rail' : 'Expand sidebar rail'}
+            title={isOpen ? 'Compact sidebar rail' : 'Expand sidebar rail'}
           >
-            <div className="flex items-center gap-2.5 min-w-0">
-              <ShoppingCart className="w-4 h-4 shrink-0 text-[#FF0055]" />
-              {isOpen && (
-                <span className="text-[12px] font-semibold truncate">Shared Cart</span>
-              )}
-            </div>
-
-            {totalCartCount > 0 && (
-              <span
-                className={`px-1.5 py-0.5 rounded-full bg-[#FF0055] text-white text-[10px] font-mono-num font-bold shrink-0 ${
-                  !isOpen ? 'ml-1' : ''
-                }`}
-              >
-                {totalCartCount}
-              </span>
+            {isOpen ? (
+              <div className="flex items-center gap-2.5 text-[12px] font-medium w-full px-2">
+                <PanelLeftClose className="w-4 h-4 text-[#727272]" />
+                <span>Collapse Rail</span>
+              </div>
+            ) : (
+              <PanelLeftOpen className="w-4 h-4 text-[#727272]" />
             )}
           </button>
-
-          {/* Expand Toggle when Rail is Collapsed */}
-          {!isOpen && (
-            <button
-              onClick={() => setIsOpen(true)}
-              className="w-full h-8 rounded-lg hover:bg-[#f0f0f0] text-[#727272] hover:text-[#262626] flex items-center justify-center transition-colors cursor-pointer"
-              aria-label="Expand navigation rail"
-              title="Expand sidebar"
-            >
-              <PanelLeftOpen className="w-4 h-4" />
-            </button>
-          )}
         </div>
       </aside>
     </>

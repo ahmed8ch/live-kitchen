@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAppStore } from '../store/useAppStore';
-import { AsciiSwellDots } from '../components/ui/AsciiSwellDots';
-import { FlameLinkLogo } from '../components/ui/FlameLinkLogo';
+import { AsciiBackground } from '../components/ui/AsciiBackground';
 
 export const HomePage: React.FC = () => {
   const activeTable = useAppStore((state) => state.activeTable);
   const addSampleOrder = useAppStore((state) => state.addSampleOrder);
+  const submitPlatformFeedback = useAppStore((state) => state.submitPlatformFeedback);
   const showToast = useAppStore((state) => state.showToast);
 
   const menuLink = activeTable ? `/menu?table=${activeTable}` : '/menu';
@@ -19,11 +19,13 @@ export const HomePage: React.FC = () => {
   const [tableCount, setTableCount] = useState<number>(24);
   const [avgCheck, setAvgCheck] = useState<number>(380);
 
-  // Contact Form State
-  const [restaurantName, setRestaurantName] = useState('');
+  // Platform Inquiries / Feedback / Support Form State
+  const [contactName, setContactName] = useState('');
   const [contactEmail, setContactEmail] = useState('');
-  const [contactTables, setContactTables] = useState('20');
-  const [pilotSubmitted, setPilotSubmitted] = useState(false);
+  const [category, setCategory] = useState('Platform Inquiry');
+  const [priority, setPriority] = useState('Normal');
+  const [message, setMessage] = useState('');
+  const [submittedTicket, setSubmittedTicket] = useState<string | null>(null);
 
   const handleFireDemoOrder = () => {
     setIsFiringDemo(true);
@@ -36,75 +38,103 @@ export const HomePage: React.FC = () => {
     }, 700);
   };
 
+  const handleFeedbackSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!contactName.trim() || !contactEmail.trim() || !message.trim()) {
+      showToast('Please fill out all required fields.');
+      return;
+    }
+
+    const ticketId = submitPlatformFeedback({
+      name: contactName.trim(),
+      email: contactEmail.trim(),
+      category,
+      priority,
+      message: message.trim(),
+    });
+
+    setSubmittedTicket(ticketId);
+    setContactName('');
+    setContactEmail('');
+    setMessage('');
+  };
+
   // ROI Calculations
   const extraDailyParties = Math.round(tableCount * 0.65);
   const extraDailyRevenue = extraDailyParties * avgCheck;
   const monthlyRevenueUplift = extraDailyRevenue * 30;
 
   return (
-    <div className="flex-1 w-full bg-white select-none pb-24" data-ui-container="home-overview">
-      {/* Blueprint Sub-Grid Hero Header */}
-      <section className="relative pt-12 pb-16 md:pt-16 md:pb-20 border-b border-[#e5e7eb] blueprint-dots bg-[#f9f9f9]">
+    <div className="flex-1 w-full bg-white select-none" data-ui-container="home-overview">
+      {/* Cloudflare-Style Vibrant Engulfing Hero with Full-Bleed ASCII Swell Dots Background */}
+      <section className="relative bg-[#FF0055] text-white pt-20 pb-24 md:pt-28 md:pb-32 overflow-hidden border-b border-[#e5e7eb]">
+        {/* Full-Bleed Ambient ASCII Background across the entire Hero */}
+        <AsciiBackground theme="crimson" />
+
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
           {/* Top Status Capsule */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-[#e5e7eb] mb-6 shadow-xs">
-            <span className="w-2 h-2 rounded-full bg-[#FF0055]" />
-            <span className="text-[12px] font-mono-num font-medium text-[#262626]">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/20 backdrop-blur-xs border border-white/30 mb-8 shadow-xs">
+            <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
+            <span className="text-[12px] font-mono-num font-bold text-white tracking-wider uppercase">
               FLAMELINK v2.0 // MULTIPLAYER DINE-IN OS
             </span>
           </div>
 
-          {/* Two-Tone Engineered Display Headline */}
+          {/* Cloudflare-Class Display Headline */}
           <h1
-            className="text-3xl sm:text-4xl lg:text-5xl font-medium tracking-tight text-[#262626] max-w-3xl mx-auto leading-[1.12]"
+            className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white max-w-4xl mx-auto leading-[1.08]"
             data-ui-balance
           >
-            Turn Every Table into a{' '}
-            <span className="text-[#FF0055]">Synchronized Multiplayer Kitchen</span>
+            Turn Every Table into a Synchronized Multiplayer Kitchen
           </h1>
 
           {/* Calm Technical Subtitle */}
-          <p className="mt-4 text-base sm:text-lg text-[#616161] max-w-2xl mx-auto leading-relaxed" data-ui-pretty>
-            Zero tablet leasing, zero mandatory logins. First diner sets table PIN; table pool orders together. The Payment Gate verifies settlement before food ever hits the grill line.
+          <p
+            className="mt-6 text-lg sm:text-xl text-white/90 max-w-2xl mx-auto leading-relaxed font-normal"
+            data-ui-pretty
+          >
+            Zero tablet leasing fees. Zero mandatory account logins. First diner sets table PIN; table pool orders together. The Payment Gate verifies settlement before food ever hits the grill line.
           </p>
 
-          {/* Hero CTAs */}
-          <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3" data-ui-actions="hero-cta">
+          {/* High-Contrast Hero CTAs (Cloudflare-style White CTA on Crimson) */}
+          <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4" data-ui-actions="hero-cta">
             <Link
               to={menuLink}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[14px] font-medium transition-all btn-crimson-glow active:scale-[0.99] shadow-sm"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-white hover:bg-[#fafafa] text-[#FF0055] text-[15px] font-bold transition-all shadow-lg active:scale-95 cursor-pointer"
             >
               <span>Launch Dine-In Menu -&gt;</span>
             </Link>
 
             <Link
-              to="/cashier"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-white hover:bg-[#f0f0f0] border border-[#e5e7eb] text-[#262626] text-[14px] font-medium transition-all active:scale-[0.99] shadow-xs"
+              to="/companion"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-4 rounded-full bg-white/15 hover:bg-white/25 border border-white/30 text-white text-[15px] font-medium backdrop-blur-xs transition-all active:scale-95 cursor-pointer"
             >
-              <span>Cashier Station POS</span>
+              <span>Companion Guest POV</span>
+            </Link>
+
+            <Link
+              to="/cashier"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-4 rounded-full bg-white/15 hover:bg-white/25 border border-white/30 text-white text-[15px] font-medium backdrop-blur-xs transition-all active:scale-95 cursor-pointer"
+            >
+              <span>Cashier POS</span>
             </Link>
 
             <Link
               to="/kds"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-white hover:bg-[#f0f0f0] border border-[#e5e7eb] text-[#262626] text-[14px] font-medium transition-all active:scale-[0.99] shadow-xs"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-4 rounded-full bg-white/15 hover:bg-white/25 border border-white/30 text-white text-[15px] font-medium backdrop-blur-xs transition-all active:scale-95 cursor-pointer"
             >
-              <span>Kitchen Line KDS</span>
+              <span>Kitchen Pass</span>
             </Link>
-          </div>
-
-          {/* Interactive ASCII Swell Dots Engine (4.32.8) */}
-          <div className="mt-12 max-w-xl mx-auto">
-            <AsciiSwellDots />
           </div>
         </div>
       </section>
 
-      {/* Live ASCII WebSocket Conduit Bar (DESIGN.md §4.1 & §4.3) */}
+      {/* Live ASCII WebSocket Conduit Bar */}
       <section className="bg-white border-b border-[#e5e7eb] py-4">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-[#15803d]" />
-            <span className="text-[12px] font-mono-num font-medium text-[#262626]">
+            <span className="text-[12px] font-mono-num font-bold text-[#262626]">
               LINE BROADCAST CONDUIT:
             </span>
           </div>
@@ -117,27 +147,27 @@ export const HomePage: React.FC = () => {
                 : 'bg-[#f9f9f9] border-[#e5e7eb] text-[#262626]'
             }`}
           >
-            TABLE T-04 ──[ <span className="text-[#FF0055] font-medium">{conduitText}</span> ]──&gt; FLAME PASS
+            TABLE T-04 ──[ <span className="text-[#FF0055] font-bold">{conduitText}</span> ]──&gt; FLAME PASS
           </div>
 
           <button
             onClick={handleFireDemoOrder}
-            className="px-4 py-1.5 rounded-full bg-[#262626] hover:bg-black text-white text-[12px] font-mono-num font-medium transition-all active:scale-95 cursor-pointer shadow-xs shrink-0"
+            className="px-4 py-2 rounded-full bg-[#262626] hover:bg-black text-white text-[12px] font-mono-num font-bold transition-all active:scale-95 cursor-pointer shadow-xs shrink-0"
           >
-            Fire Demo Order Ticket
+            Fire Demo Ticket to Kitchen
           </button>
         </div>
       </section>
 
-      {/* Asymmetric Bento Blueprint Grid (DESIGN.md §4.3) */}
-      <section className="py-12 md:py-16 bg-[#f9f9f9] border-b border-[#e5e7eb]">
+      {/* Asymmetric Bento Blueprint Grid */}
+      <section className="py-14 md:py-18 bg-[#f9f9f9] border-b border-[#e5e7eb]">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between mb-8">
             <div>
               <div className="text-[11px] font-mono-num uppercase tracking-wider text-[#949494]">
                 Architecture Blueprint
               </div>
-              <h2 className="text-2xl font-medium text-[#262626]" data-ui-balance>
+              <h2 className="text-2xl font-bold text-[#262626]" data-ui-balance>
                 Synchronized 4-Stage Dine-In Flow
               </h2>
             </div>
@@ -148,175 +178,130 @@ export const HomePage: React.FC = () => {
 
           {/* Exposed Hairline Bento Grid with Corner Crosshairs */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-px bg-[#e5e7eb] border border-[#e5e7eb] rounded-2xl overflow-hidden shadow-xs relative">
-            {/* Cell 1: Acrylic Table Stand Scan & PIN Lobby */}
-            <div className="bg-white p-6 sm:p-7 flex flex-col justify-between relative group card-glow-hover">
+            {/* Cell 1 */}
+            <div className="bg-white p-6 sm:p-7 flex flex-col justify-between relative group">
               <span className="absolute top-2 right-2 text-[#b5b5b5] font-mono text-[10px]">+</span>
               <div>
-                <div className="w-8 h-8 rounded-lg bg-[#f9f9f9] border border-[#e5e7eb] flex items-center justify-center text-[#FF0055] mb-4">
-                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <rect x="3" y="3" width="7" height="7" />
-                    <rect x="14" y="3" width="7" height="7" />
-                    <rect x="14" y="14" width="7" height="7" />
-                    <rect x="3" y="14" width="7" height="7" />
-                  </svg>
+                <div className="w-8 h-8 rounded-full bg-[#f9f9f9] border border-[#e5e7eb] text-[#FF0055] flex items-center justify-center font-mono-num font-bold text-[13px] mb-4">
+                  01
                 </div>
-                <div className="text-[12px] font-mono-num text-[#949494] uppercase">01 // Entry Point</div>
-                <h3 className="text-[17px] font-medium text-[#262626] mt-1">PIN Table Pool</h3>
-                <p className="mt-2 text-[13px] text-[#616161] leading-relaxed">
-                  First diner generates a 4-digit PIN. Friends enter the PIN to join the shared cart without downloading an app.
+                <h3 className="text-[16px] font-bold text-[#262626]">
+                  Acrylic Table Stand Scan
+                </h3>
+                <p className="mt-2 text-[13px] text-[#727272] leading-relaxed">
+                  First diner scans table QR; assigns private 4-digit PIN. Companions enter PIN to join table pool.
                 </p>
               </div>
-
-              <div className="mt-6 pt-4 border-t border-[#e5e7eb]">
-                <Link to="/stand" className="text-[12px] font-medium text-[#FF0055] hover:underline">
-                  Launch Stand Studio -&gt;
-                </Link>
+              <div className="mt-6 pt-4 border-t border-[#f0f0f0] text-[11px] font-mono-num text-[#949494]">
+                Latency: &lt;50ms Bind
               </div>
             </div>
 
-            {/* Cell 2: Self-Ordering & Customization */}
-            <div className="bg-white p-6 sm:p-7 flex flex-col justify-between relative group card-glow-hover">
+            {/* Cell 2 */}
+            <div className="bg-white p-6 sm:p-7 flex flex-col justify-between relative group">
               <span className="absolute top-2 right-2 text-[#b5b5b5] font-mono text-[10px]">+</span>
               <div>
-                <div className="w-8 h-8 rounded-lg bg-[#f9f9f9] border border-[#e5e7eb] flex items-center justify-center text-[#FF0055] mb-4">
-                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M18 8h1a4 4 0 0 1 0 8h-1" />
-                    <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" />
-                    <line x1="6" y1="1" x2="6" y2="4" />
-                    <line x1="10" y1="1" x2="10" y2="4" />
-                    <line x1="14" y1="1" x2="14" y2="4" />
-                  </svg>
+                <div className="w-8 h-8 rounded-full bg-[#f9f9f9] border border-[#e5e7eb] text-[#FF0055] flex items-center justify-center font-mono-num font-bold text-[13px] mb-4">
+                  02
                 </div>
-                <div className="text-[12px] font-mono-num text-[#949494] uppercase">02 // Table Menu</div>
-                <h3 className="text-[17px] font-medium text-[#262626] mt-1">Shared Touch Cart</h3>
-                <p className="mt-2 text-[13px] text-[#616161] leading-relaxed">
-                  Touch anywhere on dish cards to customize. Items group by diner: "Sarah's Order", "Your Order".
+                <h3 className="text-[16px] font-bold text-[#262626]">
+                  Multiplayer Dish Customization
+                </h3>
+                <p className="mt-2 text-[13px] text-[#727272] leading-relaxed">
+                  Each guest selects rare temps, sides, and kitchen notes. Cart items track which seated diner ordered each plate.
                 </p>
               </div>
-
-              <div className="mt-6 pt-4 border-t border-[#e5e7eb]">
-                <Link to={menuLink} className="text-[12px] font-medium text-[#FF0055] hover:underline">
-                  Browse 14 Dishes -&gt;
-                </Link>
+              <div className="mt-6 pt-4 border-t border-[#f0f0f0] text-[11px] font-mono-num text-[#949494]">
+                Attributed Ledger
               </div>
             </div>
 
-            {/* Cell 3: The Payment Gate */}
-            <div className="bg-white p-6 sm:p-7 flex flex-col justify-between relative group card-glow-hover">
+            {/* Cell 3 */}
+            <div className="bg-white p-6 sm:p-7 flex flex-col justify-between relative group">
               <span className="absolute top-2 right-2 text-[#b5b5b5] font-mono text-[10px]">+</span>
               <div>
-                <div className="w-8 h-8 rounded-lg bg-[#f9f9f9] border border-[#e5e7eb] flex items-center justify-center text-[#FF0055] mb-4">
-                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <rect x="2" y="4" width="20" height="16" rx="2" />
-                    <line x1="2" y1="10" x2="22" y2="10" />
-                    <line x1="7" y1="15" x2="7.01" y2="15" strokeWidth="2.5" />
-                    <line x1="11" y1="15" x2="17" y2="15" strokeWidth="2" />
-                  </svg>
+                <div className="w-8 h-8 rounded-full bg-[#f9f9f9] border border-[#e5e7eb] text-[#FF0055] flex items-center justify-center font-mono-num font-bold text-[13px] mb-4">
+                  03
                 </div>
-                <div className="text-[12px] font-mono-num text-[#949494] uppercase">03 // The Payment Gate</div>
-                <h3 className="text-[17px] font-medium text-[#262626] mt-1">Cashier Station</h3>
-                <p className="mt-2 text-[13px] text-[#616161] leading-relaxed">
-                  Orders are locked from kitchen until paid online or verified at the cashier desk via Chit #PAY-XX.
+                <h3 className="text-[16px] font-bold text-[#262626]">
+                  The Payment Gate
+                </h3>
+                <p className="mt-2 text-[13px] text-[#727272] leading-relaxed">
+                  Equal split or Split by Diner. Orders remain Draft until verified online or at cashier. Zero unpaid food wastage.
                 </p>
               </div>
-
-              <div className="mt-6 pt-4 border-t border-[#e5e7eb]">
-                <Link to="/cashier" className="text-[12px] font-medium text-[#FF0055] hover:underline">
-                  Open Cashier POS -&gt;
-                </Link>
+              <div className="mt-6 pt-4 border-t border-[#f0f0f0] text-[11px] font-mono-num text-[#949494]">
+                ETA 14% VAT Engine
               </div>
             </div>
 
-            {/* Cell 4: KDS Thermal Pass */}
-            <div className="bg-white p-6 sm:p-7 flex flex-col justify-between relative group card-glow-hover">
+            {/* Cell 4 */}
+            <div className="bg-white p-6 sm:p-7 flex flex-col justify-between relative group">
               <span className="absolute top-2 right-2 text-[#b5b5b5] font-mono text-[10px]">+</span>
               <div>
-                <div className="w-8 h-8 rounded-lg bg-[#f9f9f9] border border-[#e5e7eb] flex items-center justify-center text-[#FF0055] mb-4">
-                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <rect x="2" y="3" width="20" height="14" rx="2" />
-                    <line x1="8" y1="21" x2="16" y2="21" />
-                    <line x1="12" y1="17" x2="12" y2="21" />
-                  </svg>
+                <div className="w-8 h-8 rounded-full bg-[#f9f9f9] border border-[#e5e7eb] text-[#FF0055] flex items-center justify-center font-mono-num font-bold text-[13px] mb-4">
+                  04
                 </div>
-                <div className="text-[12px] font-mono-num text-[#949494] uppercase">04 // Kitchen Pass</div>
-                <h3 className="text-[17px] font-medium text-[#262626] mt-1">Thermal Chit KDS</h3>
-                <p className="mt-2 text-[13px] text-[#616161] leading-relaxed">
-                  24px headers, 20px dish names, 18px bold crimson modifiers. Sticky batch totals for high-speed line cooks.
+                <h3 className="text-[16px] font-bold text-[#262626]">
+                  Thermal Kitchen Pass
+                </h3>
+                <p className="mt-2 text-[13px] text-[#727272] leading-relaxed">
+                  Verified orders fire instantly to KDS wall pass. Color-coded ticket states (<span className="text-sky-600 font-bold">New</span>, <span className="text-amber-600 font-bold">Grill</span>, <span className="text-emerald-600 font-bold">Pass</span>).
                 </p>
               </div>
-
-              <div className="mt-6 pt-4 border-t border-[#e5e7eb]">
-                <Link to="/kds" className="text-[12px] font-medium text-[#FF0055] hover:underline">
-                  Open Kitchen Pass -&gt;
-                </Link>
+              <div className="mt-6 pt-4 border-t border-[#f0f0f0] text-[11px] font-mono-num text-[#949494]">
+                10-Foot Readability
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Interactive Restaurant Table-Turn & ROI Estimator (in EGP) */}
-      <section className="py-12 md:py-16 bg-white border-b border-[#e5e7eb]">
+      {/* ROI & Turnover Projection Tool */}
+      <section className="py-14 bg-white border-b border-[#e5e7eb]">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
-            <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#f9f9f9] border border-[#e5e7eb] text-[11px] font-mono-num font-medium text-[#FF0055] uppercase mb-4">
-                Economic Impact Model
+          <div className="mb-8">
+            <div className="text-[11px] font-mono-num uppercase tracking-wider text-[#949494]">
+              Restaurant Unit Economics
+            </div>
+            <h2 className="text-2xl font-bold text-[#262626]">
+              Turnover Speed & Revenue Modeling
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            {/* Input Sliders */}
+            <div className="space-y-6 bg-[#f9f9f9] p-6 sm:p-8 rounded-2xl border border-[#e5e7eb]">
+              <div>
+                <div className="flex justify-between text-[13px] mb-1.5">
+                  <span className="font-semibold text-[#262626]">Active Dining Tables</span>
+                  <span className="font-mono-num font-bold text-[#FF0055]">{tableCount} Tables</span>
+                </div>
+                <input
+                  type="range"
+                  min="6"
+                  max="80"
+                  step="2"
+                  value={tableCount}
+                  onChange={(e) => setTableCount(Number(e.target.value))}
+                  className="w-full h-1.5 bg-[#e5e7eb] rounded-lg appearance-none cursor-pointer accent-[#FF0055]"
+                />
               </div>
-              <h2 className="text-2xl sm:text-3xl font-medium text-[#262626] tracking-tight" data-ui-balance>
-                Restaurant Table-Turn & ROI Estimator
-              </h2>
-              <p className="mt-3 text-[14px] text-[#616161] leading-relaxed" data-ui-pretty>
-                Diners place orders 4.5 minutes faster and pay at table in 30 seconds without waiting for a server. Calculate your projected monthly revenue increase in Egyptian Pounds.
-              </p>
 
-              {/* Sliders */}
-              <div className="mt-6 space-y-5">
-                <div>
-                  <div className="flex justify-between text-[13px] mb-1.5">
-                    <span className="font-medium text-[#262626]">Active Dining Tables</span>
-                    <span className="font-mono-num font-medium text-[#FF0055]" data-ui-number>
-                      {tableCount} Tables
-                    </span>
-                  </div>
-                  <input
-                    type="range"
-                    min="6"
-                    max="80"
-                    step="2"
-                    value={tableCount}
-                    aria-label="Active Dining Tables Count"
-                    onChange={(e) => setTableCount(Number(e.target.value))}
-                    className="w-full h-1.5 bg-[#e5e7eb] rounded-lg appearance-none cursor-pointer accent-[#FF0055]"
-                  />
-                  <div className="flex justify-between text-[11px] text-[#949494] font-mono-num mt-1">
-                    <span>6 Tables</span>
-                    <span>80 Tables</span>
-                  </div>
+              <div>
+                <div className="flex justify-between text-[13px] mb-1.5">
+                  <span className="font-semibold text-[#262626]">Average Check per Party</span>
+                  <span className="font-mono-num font-bold text-[#FF0055]">{avgCheck} EGP</span>
                 </div>
-
-                <div>
-                  <div className="flex justify-between text-[13px] mb-1.5">
-                    <span className="font-medium text-[#262626]">Average Check per Party</span>
-                    <span className="font-mono-num font-medium text-[#FF0055]" data-ui-number>
-                      {avgCheck} EGP
-                    </span>
-                  </div>
-                  <input
-                    type="range"
-                    min="120"
-                    max="1000"
-                    step="20"
-                    value={avgCheck}
-                    aria-label="Average Check per Party in EGP"
-                    onChange={(e) => setAvgCheck(Number(e.target.value))}
-                    className="w-full h-1.5 bg-[#e5e7eb] rounded-lg appearance-none cursor-pointer accent-[#FF0055]"
-                  />
-                  <div className="flex justify-between text-[11px] text-[#949494] font-mono-num mt-1">
-                    <span>120 EGP</span>
-                    <span>1,000 EGP</span>
-                  </div>
-                </div>
+                <input
+                  type="range"
+                  min="120"
+                  max="1000"
+                  step="20"
+                  value={avgCheck}
+                  onChange={(e) => setAvgCheck(Number(e.target.value))}
+                  className="w-full h-1.5 bg-[#e5e7eb] rounded-lg appearance-none cursor-pointer accent-[#FF0055]"
+                />
               </div>
             </div>
 
@@ -326,14 +311,14 @@ export const HomePage: React.FC = () => {
                 <span className="text-[12px] font-mono-num uppercase text-[#949494]">
                   Monthly Growth Projection
                 </span>
-                <span className="px-2.5 py-0.5 rounded-full bg-[#fff0f3] border border-[#ffd1dc] text-[#FF0055] text-[11px] font-mono-num font-medium">
+                <span className="px-2.5 py-0.5 rounded-full bg-[#fff0f3] border border-[#ffd1dc] text-[#FF0055] text-[11px] font-mono-num font-bold">
                   +22% TABLE TURNS
                 </span>
               </div>
 
               <div>
                 <div className="text-[12px] text-[#727272]">Estimated Monthly Revenue Uplift:</div>
-                <div className="text-3xl sm:text-4xl font-mono-num font-medium text-[#262626] mt-1" data-ui-number>
+                <div className="text-3xl sm:text-4xl font-mono-num font-bold text-[#262626] mt-1">
                   +{monthlyRevenueUplift.toLocaleString()} EGP
                 </div>
                 <div className="text-[12px] text-[#949494] mt-1 font-mono-num">
@@ -344,11 +329,11 @@ export const HomePage: React.FC = () => {
               <div className="grid grid-cols-2 gap-4 pt-4 border-t border-[#e5e7eb] text-[13px]">
                 <div>
                   <div className="text-[#949494] text-[11px] font-mono-num uppercase">Service Speed</div>
-                  <div className="font-medium text-[#262626] mt-0.5">-18 min / party</div>
+                  <div className="font-bold text-[#262626] mt-0.5">-18 min / party</div>
                 </div>
                 <div>
                   <div className="text-[#949494] text-[11px] font-mono-num uppercase">Hardware Capital</div>
-                  <div className="font-medium text-[#15803d] mt-0.5">0 EGP (No Tablets)</div>
+                  <div className="font-bold text-[#15803d] mt-0.5">0 EGP (No Tablets)</div>
                 </div>
               </div>
             </div>
@@ -356,85 +341,62 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* Cloudflare-Inspired Crimson Edge Architecture Banner */}
-      <section className="bg-[#FF0055] text-white py-14 px-4 sm:px-6 select-none relative overflow-hidden">
-        <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8 relative z-10">
-          <div className="space-y-2 text-center md:text-left">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 text-white text-[11px] font-mono-num font-bold uppercase tracking-wider">
-              <span>Cloudflare-Class Performance</span>
+      {/* Platform Inquiries, Suggestions, Issues & Direct Support Form */}
+      <section className="py-16 bg-[#f9f9f9] border-b border-[#e5e7eb]">
+        <div className="max-w-2xl mx-auto px-4 sm:px-6">
+          <div className="bg-white rounded-2xl border border-[#e5e7eb] p-6 sm:p-9 shadow-xs space-y-6">
+            <div>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#fff0f3] text-[#FF0055] border border-[#ffd1dc] text-[11px] font-mono-num font-bold uppercase tracking-wider mb-2">
+                FlameLink Direct Platform Desk
+              </div>
+              <h2 className="text-2xl font-bold text-[#262626]">
+                Inquiries, Suggestions & Issue Reports
+              </h2>
+              <p className="text-[13px] text-[#616161] mt-1">
+                Have a question about deploying FlameLink, a feature recommendation, or experiencing an operational issue? Send a direct dispatch to our platform engineering desk.
+              </p>
             </div>
-            <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-              Sub-150ms Synchronization from Table to Pass
-            </h2>
-            <p className="text-white/85 text-[14px] max-w-xl">
-              Zero tablet leasing fees. Zero mandatory account creation. Instant WebSockets keep all seated diner phones in lockstep with the kitchen expo chit printer.
-            </p>
-          </div>
 
-          <div className="bg-white/10 backdrop-blur-xs border border-white/20 p-6 rounded-2xl shrink-0 text-center space-y-3 min-w-[240px]">
-            <FlameLinkLogo size="lg" variant="on-dark" className="justify-center" />
-            <div className="pt-2 border-t border-white/15 text-[11px] font-mono-num text-white/90">
-              99.99% Uptime • Zero Data Leaks
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Pilot Restaurant Onboarding Contact Form */}
-      <section className="py-14 bg-white border-b border-[#e5e7eb]">
-        <div className="max-w-xl mx-auto px-4 sm:px-6">
-          <div className="bg-[#f9f9f9] rounded-2xl border border-[#e5e7eb] p-6 sm:p-8 shadow-xs">
-            <div className="text-[11px] font-mono-num uppercase tracking-wider text-[#949494]">
-              Restaurant Partner Pilot
-            </div>
-            <h2 className="text-xl font-bold text-[#262626] mt-1">
-              Request a 14-Day Dining Room Pilot
-            </h2>
-            <p className="mt-1 text-[13px] text-[#616161]">
-              Get pre-printed acrylic table stands and zero-hardware kitchen pass access for your restaurant.
-            </p>
-
-            {pilotSubmitted ? (
-              <div className="mt-6 p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-center space-y-1">
-                <div className="text-emerald-800 font-bold text-[14px]">
-                  Pilot Request Received
+            {submittedTicket ? (
+              <div className="p-5 rounded-xl bg-emerald-50 border border-emerald-200 text-center space-y-2">
+                <div className="text-emerald-800 font-bold text-[15px]">
+                  Dispatch Received & Logged
                 </div>
-                <div className="text-emerald-700 text-[12px]">
-                  Our dining operations team will reach out to {contactEmail} within 2 hours.
-                </div>
+                <p className="text-[13px] text-emerald-700">
+                  Your ticket <span className="font-mono-num font-bold text-emerald-900">#{submittedTicket}</span> has been dispatched to platform operations. We will reply via email shortly.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setSubmittedTicket(null)}
+                  className="mt-2 px-4 py-1.5 rounded-full bg-white border border-emerald-300 text-emerald-800 text-[12px] font-bold hover:bg-emerald-100 cursor-pointer"
+                >
+                  Send Another Message
+                </button>
               </div>
             ) : (
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  if (!restaurantName || !contactEmail) return;
-                  setPilotSubmitted(true);
-                  showToast(`Pilot request for "${restaurantName}" received!`);
-                }}
-                className="mt-6 space-y-4"
-              >
-                <div>
-                  <label htmlFor="hp-restaurant-name" className="block text-[12px] font-semibold text-[#262626] mb-1">
-                    Restaurant Name
-                  </label>
-                  <input
-                    id="hp-restaurant-name"
-                    type="text"
-                    required
-                    value={restaurantName}
-                    onChange={(e) => setRestaurantName(e.target.value)}
-                    placeholder="e.g. Port Said Grill House"
-                    className="w-full px-3.5 py-2.5 text-[13px] rounded-lg border border-[#e5e7eb] bg-white text-[#262626] focus:outline-none focus:border-[#FF0055]"
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <form onSubmit={handleFeedbackSubmit} className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label htmlFor="hp-work-email" className="block text-[12px] font-semibold text-[#262626] mb-1">
-                      Manager Email
+                    <label htmlFor="fb-name" className="block text-[12px] font-semibold text-[#262626] mb-1">
+                      Your Name
                     </label>
                     <input
-                      id="hp-work-email"
+                      id="fb-name"
+                      type="text"
+                      required
+                      value={contactName}
+                      onChange={(e) => setContactName(e.target.value)}
+                      placeholder="e.g. Tarek Mansour"
+                      className="w-full px-3.5 py-2.5 text-[13px] rounded-lg border border-[#e5e7eb] bg-white text-[#262626] focus:outline-none focus:border-[#FF0055]"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="fb-email" className="block text-[12px] font-semibold text-[#262626] mb-1">
+                      Email Address
+                    </label>
+                    <input
+                      id="fb-email"
                       type="email"
                       required
                       value={contactEmail}
@@ -443,98 +405,69 @@ export const HomePage: React.FC = () => {
                       className="w-full px-3.5 py-2.5 text-[13px] rounded-lg border border-[#e5e7eb] bg-white text-[#262626] focus:outline-none focus:border-[#FF0055]"
                     />
                   </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label htmlFor="fb-category" className="block text-[12px] font-semibold text-[#262626] mb-1">
+                      Message Topic
+                    </label>
+                    <select
+                      id="fb-category"
+                      value={category}
+                      onChange={(e) => setCategory(e.target.value)}
+                      className="w-full px-3.5 py-2.5 text-[13px] rounded-lg border border-[#e5e7eb] bg-white text-[#262626] focus:outline-none focus:border-[#FF0055]"
+                    >
+                      <option value="Platform Inquiry">Platform Inquiry / Partnership</option>
+                      <option value="Feature Suggestion">Feature Suggestion & Ideas</option>
+                      <option value="Bug / Issue Report">Bug / Operational Issue Report</option>
+                      <option value="Enterprise Hardware">Enterprise Hardware & Setup</option>
+                    </select>
+                  </div>
 
                   <div>
-                    <label htmlFor="hp-table-count" className="block text-[12px] font-semibold text-[#262626] mb-1">
-                      Dining Table Count
+                    <label htmlFor="fb-priority" className="block text-[12px] font-semibold text-[#262626] mb-1">
+                      Priority Level
                     </label>
-                    <input
-                      id="hp-table-count"
-                      type="number"
-                      min="4"
-                      max="200"
-                      value={contactTables}
-                      onChange={(e) => setContactTables(e.target.value)}
-                      className="w-full px-3.5 py-2.5 text-[13px] font-mono-num rounded-lg border border-[#e5e7eb] bg-white text-[#262626] focus:outline-none focus:border-[#FF0055]"
-                    />
+                    <select
+                      id="fb-priority"
+                      value={priority}
+                      onChange={(e) => setPriority(e.target.value)}
+                      className="w-full px-3.5 py-2.5 text-[13px] rounded-lg border border-[#e5e7eb] bg-white text-[#262626] focus:outline-none focus:border-[#FF0055]"
+                    >
+                      <option value="Normal">Normal Inquiry</option>
+                      <option value="High">High (Live Restaurant Operation)</option>
+                      <option value="Urgent">Urgent System Concern</option>
+                    </select>
                   </div>
+                </div>
+
+                <div>
+                  <label htmlFor="fb-message" className="block text-[12px] font-semibold text-[#262626] mb-1">
+                    Details / Feedback / Problem Description
+                  </label>
+                  <textarea
+                    id="fb-message"
+                    required
+                    rows={4}
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    placeholder="Describe your suggestion, inquiry, or any problem you observed..."
+                    className="w-full px-3.5 py-2.5 text-[13px] rounded-lg border border-[#e5e7eb] bg-white text-[#262626] focus:outline-none focus:border-[#FF0055]"
+                  />
                 </div>
 
                 <button
                   type="submit"
-                  className="w-full py-3 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[13px] font-bold btn-crimson-glow transition-all active:scale-[0.99] cursor-pointer shadow-xs"
+                  className="w-full py-3.5 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[13px] font-bold btn-crimson-glow transition-all active:scale-[0.99] cursor-pointer shadow-xs"
                 >
-                  Submit Pilot Application -&gt;
+                  Send Message to Platform Team -&gt;
                 </button>
               </form>
             )}
           </div>
         </div>
       </section>
-
-      {/* Comprehensive Home Page Footer */}
-      <footer className="bg-[#f9f9f9] border-t border-[#e5e7eb] py-12 text-[#727272] select-none">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 space-y-8">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-8 border-b border-[#e5e7eb]">
-            <FlameLinkLogo size="md" />
-            <div className="flex items-center gap-2 text-[12px] font-mono-num">
-              <span className="w-2 h-2 rounded-full bg-[#15803d]" />
-              <span>All Systems Operational • ETA 14% VAT Engine Active</span>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 text-[12px]">
-            <div className="space-y-2">
-              <span className="font-bold text-[#262626] uppercase font-mono-num text-[11px] block">
-                Dine-In Operations
-              </span>
-              <ul className="space-y-1.5">
-                <li><Link to="/menu" className="hover:text-[#FF0055]">Customer Menu</Link></li>
-                <li><Link to="/companion" className="hover:text-[#FF0055]">Guest Companion POV</Link></li>
-                <li><Link to="/stand" className="hover:text-[#FF0055]">Acrylic Table Stands</Link></li>
-              </ul>
-            </div>
-
-            <div className="space-y-2">
-              <span className="font-bold text-[#262626] uppercase font-mono-num text-[11px] block">
-                Kitchen Systems
-              </span>
-              <ul className="space-y-1.5">
-                <li><Link to="/kds" className="hover:text-[#FF0055]">Kitchen Pass (KDS)</Link></li>
-                <li><Link to="/cashier" className="hover:text-[#FF0055]">Cashier POS Terminal</Link></li>
-                <li><Link to="/tracker" className="hover:text-[#FF0055]">Live Order Tracking</Link></li>
-              </ul>
-            </div>
-
-            <div className="space-y-2">
-              <span className="font-bold text-[#262626] uppercase font-mono-num text-[11px] block">
-                Financials
-              </span>
-              <ul className="space-y-1.5">
-                <li><Link to="/settlement" className="hover:text-[#FF0055]">Itemized Bill Split</Link></li>
-                <li><span className="text-[#949494]">ETA Fiscal Invoicing</span></li>
-                <li><span className="text-[#949494]">Apple Pay & Meeza</span></li>
-              </ul>
-            </div>
-
-            <div className="space-y-2">
-              <span className="font-bold text-[#262626] uppercase font-mono-num text-[11px] block">
-                Platform
-              </span>
-              <ul className="space-y-1.5">
-                <li><span className="text-[#949494]">FlameLink OS v2.0</span></li>
-                <li><span className="text-[#949494]">Changa Brand Typography</span></li>
-                <li><span className="text-[#949494]">Zero Tablet Capital</span></li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="pt-6 border-t border-[#e5e7eb] flex flex-col sm:flex-row items-center justify-between text-[11px] font-mono-num text-[#949494] gap-2">
-            <span>FlameLink Dine-In Operating System</span>
-            <span>Zero Slop • High-Velocity Table Self-Ordering</span>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 };

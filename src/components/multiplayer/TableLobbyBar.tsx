@@ -8,6 +8,9 @@ export const TableLobbyBar: React.FC = () => {
   const tableSessions = useAppStore((state) => state.tableSessions);
   const openPinModal = useAppStore((state) => state.openPinModal);
   const setMemberReadyToPay = useAppStore((state) => state.setMemberReadyToPay);
+  const removeMemberFromTable = useAppStore((state) => state.removeMemberFromTable);
+  const resetTableSession = useAppStore((state) => state.resetTableSession);
+  const leaveTableSession = useAppStore((state) => state.leaveTableSession);
   const showToast = useAppStore((state) => state.showToast);
 
   const [copied, setCopied] = useState(false);
@@ -100,7 +103,7 @@ export const TableLobbyBar: React.FC = () => {
           )}
         </div>
 
-        {/* Center: Party Members seated */}
+        {/* Center: Party Members seated with Kick / Leave Controls */}
         <div className="flex items-center gap-2 overflow-x-auto max-w-full pb-1 md:pb-0 scrollbar-none">
           <span className="text-[11px] text-[#727272] shrink-0 font-mono-num">
             Diners ({members.length}):
@@ -122,23 +125,55 @@ export const TableLobbyBar: React.FC = () => {
                 title={member.isReadyToPay ? 'Ready to pay' : 'Browsing dishes'}
               />
               <span>{member.name}{member.isHost ? ' (Host)' : ''}</span>
+
+              {/* Host can kick unwanted/duplicate companions */}
+              {isHost && !member.isHost && (
+                <button
+                  type="button"
+                  onClick={() => removeMemberFromTable(activeTable, member.id)}
+                  className="w-4 h-4 rounded-full bg-[#f9f9f9] hover:bg-red-100 text-[#949494] hover:text-red-600 flex items-center justify-center text-[11px] ml-1 cursor-pointer transition-colors"
+                  title={`Remove ${member.name}`}
+                >
+                  ×
+                </button>
+              )}
             </div>
           ))}
+
+          {/* Quick Clean Reset for Host if duplicates exist */}
+          {isHost && members.length > 1 && (
+            <button
+              onClick={() => resetTableSession(activeTable)}
+              className="text-[10px] font-mono-num text-[#727272] hover:text-[#FF0055] px-2 py-0.5 rounded bg-white border border-[#e5e7eb] shrink-0 cursor-pointer"
+              title="Reset table session to single host"
+            >
+              Reset Diners
+            </button>
+          )}
         </div>
 
-        {/* Right: Seated Actions (Zero redundant join button) */}
+        {/* Right: Seated Actions */}
         <div className="flex items-center gap-2">
           {!isHost && currentMember && (
-            <button
-              onClick={handleToggleReady}
-              className={`px-3 py-1 rounded-full text-[12px] font-medium transition-all cursor-pointer shadow-xs ${
-                currentMember.isReadyToPay
-                  ? 'bg-[#15803d] text-white hover:bg-[#166534]'
-                  : 'bg-white text-[#262626] border border-[#e5e7eb] hover:border-[#FF0055]'
-              }`}
-            >
-              {currentMember.isReadyToPay ? 'Marked Ready' : 'Mark Ready to Pay'}
-            </button>
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={handleToggleReady}
+                className={`px-3 py-1 rounded-full text-[12px] font-medium transition-all cursor-pointer shadow-xs ${
+                  currentMember.isReadyToPay
+                    ? 'bg-[#15803d] text-white hover:bg-[#166534]'
+                    : 'bg-white text-[#262626] border border-[#e5e7eb] hover:border-[#FF0055]'
+                }`}
+              >
+                {currentMember.isReadyToPay ? 'Marked Ready' : 'Mark Ready to Pay'}
+              </button>
+              <button
+                onClick={() => leaveTableSession(activeTable, currentMember.id)}
+                className="text-[11px] font-mono-num text-red-600 hover:underline px-1 cursor-pointer"
+                title="Leave table pool"
+              >
+                Leave
+              </button>
+            </div>
           )}
 
           {isHost && (

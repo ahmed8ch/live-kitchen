@@ -17,6 +17,8 @@ export const CartDrawer: React.FC = () => {
   const tableSessions = useAppStore((state) => state.tableSessions);
   const createOrder = useAppStore((state) => state.createOrder);
   const setMemberReadyToPay = useAppStore((state) => state.setMemberReadyToPay);
+  const leaveTableSession = useAppStore((state) => state.leaveTableSession);
+  const resetTableSession = useAppStore((state) => state.resetTableSession);
 
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>('apple_pay');
   const [showPaymentChoice, setShowPaymentChoice] = useState(false);
@@ -112,13 +114,37 @@ export const CartDrawer: React.FC = () => {
           </div>
         </div>
 
-        {/* Seating Banner (Clean & Functional) */}
+        {/* Seating Banner (Clean & Functional with Host Reset Controls) */}
         {activeTable && (
           <div className="px-5 py-2.5 bg-[#fff0f3] border-b border-[#ffd1dc] flex items-center justify-between text-[12px]">
-            <span className="text-[#262626] font-semibold">Table {activeTable}</span>
-            <span className="text-[11px] font-mono-num text-[#727272]">
-              {members.length > 0 ? `${readyMembersCount}/${members.length} Diners Ready` : 'Shared Pool'}
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-[#262626] font-bold">Table {activeTable}</span>
+              <span className="text-[11px] font-mono-num text-[#727272]">
+                {members.length > 0 ? `(${readyMembersCount}/${members.length} Ready)` : '(Shared Pool)'}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              {isHost && members.length > 1 && (
+                <button
+                  onClick={() => resetTableSession(activeTable)}
+                  className="text-[10px] font-mono-num text-[#727272] hover:text-[#FF0055] px-2 py-0.5 rounded bg-white border border-[#ffd1dc] cursor-pointer"
+                  title="Reset table to clean solo Host state"
+                >
+                  Reset Diners
+                </button>
+              )}
+              {!isHost && currentMember && (
+                <button
+                  onClick={() => {
+                    leaveTableSession(activeTable, currentMember.id);
+                    closeCartDrawer();
+                  }}
+                  className="text-[10px] font-mono-num text-red-600 hover:underline cursor-pointer"
+                >
+                  Leave Table
+                </button>
+              )}
+            </div>
           </div>
         )}
 
@@ -305,35 +331,37 @@ export const CartDrawer: React.FC = () => {
                   </button>
                   <button
                     onClick={() => handleFinalizeCheckout(selectedMethod)}
-                    className="flex-2 py-2.5 rounded-full bg-[#FF0055] text-white text-[12px] font-medium hover:opacity-95 cursor-pointer shadow-xs"
+                    className="flex-2 py-2.5 rounded-full bg-[#FF0055] text-white text-[12px] font-bold hover:opacity-95 cursor-pointer shadow-xs btn-crimson-glow"
                   >
                     Confirm & Settle ({total.toFixed(2)} EGP)
                   </button>
                 </div>
               </div>
-            ) : isHost ? (
-              <button
-                onClick={handleProceedToPayment}
-                data-ui-radius="999"
-                className="w-full py-3.5 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[14px] font-medium transition-all btn-crimson-glow active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2 shadow-xs"
-              >
-                <span>Proceed to Checkout ({total.toFixed(2)} EGP) -&gt;</span>
-              </button>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-2.5">
+                {/* Primary Master Checkout Button — ALWAYS accessible to send order to kitchen */}
                 <button
-                  onClick={handleToggleMyReady}
-                  className={`w-full py-3 rounded-full text-[13px] font-medium transition-all cursor-pointer shadow-xs ${
-                    currentMember?.isReadyToPay
-                      ? 'bg-[#15803d] text-white hover:bg-[#166534]'
-                      : 'bg-white text-[#262626] border border-[#e5e7eb] hover:border-[#FF0055]'
-                  }`}
+                  onClick={handleProceedToPayment}
+                  data-ui-radius="999"
+                  className="w-full py-3.5 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[14px] font-bold transition-all btn-crimson-glow active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2 shadow-xs"
                 >
-                  {currentMember?.isReadyToPay ? 'Marked Ready to Settle' : 'Mark Yourself Ready to Settle'}
+                  <span>Proceed to Checkout ({total.toFixed(2)} EGP) -&gt;</span>
                 </button>
-                <p className="text-[11px] text-center text-[#727272]">
-                  Host will proceed to payment checkout when all table members are ready.
-                </p>
+
+                {/* Secondary Diner Readiness Status & Toggle */}
+                {members.length > 1 && currentMember && (
+                  <div className="flex items-center justify-between pt-1 text-[11px] font-mono-num text-[#727272]">
+                    <span>
+                      Table Readiness: {readyMembersCount}/{members.length} Diners
+                    </span>
+                    <button
+                      onClick={handleToggleMyReady}
+                      className="text-[#FF0055] hover:underline font-bold cursor-pointer"
+                    >
+                      {currentMember.isReadyToPay ? '[Mark as Browsing]' : '[Mark Ready to Settle]'}
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </div>

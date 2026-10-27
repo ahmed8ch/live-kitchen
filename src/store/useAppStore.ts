@@ -43,6 +43,27 @@ interface AppState {
   openPinModal: (tableNumber: string) => void;
   closePinModal: () => void;
   clearTableSession: (tableNumber: string) => void;
+  leaveTableSession: (tableNumber: string, memberId: string) => void;
+  removeMemberFromTable: (tableNumber: string, targetMemberId: string) => void;
+  resetTableSession: (tableNumber: string) => void;
+
+  // Platform Feedback & Inquiries
+  platformFeedback: Array<{
+    id: string;
+    name: string;
+    email: string;
+    category: string;
+    message: string;
+    priority: string;
+    submittedAt: number;
+  }>;
+  submitPlatformFeedback: (data: {
+    name: string;
+    email: string;
+    category: string;
+    message: string;
+    priority: string;
+  }) => string;
 
   // Companion (2nd Diner POV) actions
   companionMember: MemberProfile | null;
@@ -155,6 +176,7 @@ export const useAppStore = create<AppState>()(
       toastMessage: null,
       isPinModalOpen: false,
       pendingJoinTable: null,
+      platformFeedback: [],
 
       showToast: (msg) => {
         set({ toastMessage: msg });
@@ -541,6 +563,132 @@ export const useAppStore = create<AppState>()(
         }
 
         get().showToast(`Table ${cleanTable} cleared & marked available.`);
+      },
+
+      leaveTableSession: (tableNumber, memberId) => {
+        const cleanTable = tableNumber.trim().toUpperCase();
+        const { tableSessions, currentMember, companionMember } = get();
+        const session = tableSessions[cleanTable];
+        if (!session) return;
+
+        const remainingMembers = session.members.filter((m) => m.id !== memberId);
+        let newHostId = session.hostId;
+
+        // If departing member was host, pass host to next senior member
+        if (session.hostId === memberId && remainingMembers.length > 0) {
+          remainingMembers[0] = { ...remainingMembers[0], isHost: true };
+          newHostId = remainingMembers[0].id;
+        }
+
+        const updatedSession: TableSession = {
+          ...session,
+          hostId: newHostId,
+          members: remainingMembers,
+          status: remainingMembers.length === 0 ? 'idle' : session.status,
+          lastUpdated: Date.now(),
+        };
+
+        const updatedSessions = { ...tableSessions, [cleanTable]: updatedSession };
+
+        const isLeavingUserCurrent = currentMember?.id === memberId;
+        const isLeavingUserCompanion = companionMember?.id === memberId;
+
+        set({
+          tableSessions: updatedSessions,
+          currentMember: isLeavingUserCurrent ? null : currentMember,
+          companionMember: isLeavingUserCompanion ? null : companionMember,
+        });
+
+        if (broadcastChannel) {
+          broadcastChannel.postMessage({ type: 'SESSIONS_SYNC', tableSessions: updatedSessions });
+        }
+
+        get().showToast(`Left Table ${cleanTable}.`);
+      },
+
+      removeMemberFromTable: (tableNumber, targetMemberId) => {
+        const cleanTable = tableNumber.trim().toUpperCase();
+        const { tableSessions, currentMember } = get();
+        const session = tableSessions[cleanTable];
+        if (!session) return;
+
+        const target = session.members.find((m) => m.id === targetMemberId);
+        const remainingMembers = session.members.filter((m) => m.id !== targetMemberId);
+
+        const updatedSession: TableSession = {
+          ...session,
+          members: remainingMembers,
+          lastUpdated: Date.now(),
+        };
+
+        const updatedSessions = { ...tableSessions, [cleanTable]: updatedSession };
+
+        set({
+          tableSessions: updatedSessions,
+          currentMember: currentMember?.id === targetMemberId ? null : currentMember,
+        });
+
+        if (broadcastChannel) {
+          broadcastChannel.postMessage({ type: 'SESSIONS_SYNC', tableSessions: updatedSessions });
+        }
+
+        get().showToast(`Removed ${target?.name || 'Diner'} from Table ${cleanTable}.`);
+      },
+
+      resetTableSession: (tableNumber) => {
+        const cleanTable = tableNumber.trim().toUpperCase();
+        const { tableSessions } = get();
+        const session = tableSessions[cleanTable];
+
+        const hostPin = session?.pin || '1004';
+        const freshHost: MemberProfile = {
+          id: `host-${Date.now()}`,
+          name: 'Red Panda (Host)',
+          isHost: true,
+          isReadyToPay: false,
+          joinedAt: Date.now(),
+        };
+
+        const freshSession: TableSession = {
+          tableNumber: cleanTable,
+          pin: hostPin,
+          hostId: freshHost.id,
+          members: [freshHost],
+          status: 'ordering',
+          lastUpdated: Date.now(),
+        };
+
+        const updatedSessions = { ...tableSessions, [cleanTable]: freshSession };
+
+        set({
+          tableSessions: updatedSessions,
+          activeTable: cleanTable,
+          currentMember: freshHost,
+          companionMember: null,
+          cart: [],
+        });
+
+        if (broadcastChannel) {
+          broadcastChannel.postMessage({ type: 'SESSIONS_SYNC', tableSessions: updatedSessions });
+        }
+
+        get().showToast(`Table ${cleanTable} session reset to clean Host state.`);
+      },
+
+      submitPlatformFeedback: (data) => {
+        const ticketId = `FLM-${Math.floor(10000 + Math.random() * 90000)}`;
+        const newRecord = {
+          id: ticketId,
+          ...data,
+          submittedAt: Date.now(),
+        };
+
+        set((state) => ({
+          platformFeedback: [newRecord, ...state.platformFeedback],
+        }));
+
+        get().showToast(`Feedback submitted! Reference Ticket #${ticketId}`);
+        return ticketId;
       },
 
       // Cart Actions with Member Attribution

@@ -5,9 +5,10 @@ import { useAppStore } from '../../store/useAppStore';
 interface DishModalProps {
   dish: MenuItem | null;
   onClose: () => void;
+  onAdd?: (dish: MenuItem, modifiers: ModifierOption[], quantity: number, notes?: string) => void;
 }
 
-export const DishModal: React.FC<DishModalProps> = ({ dish, onClose }) => {
+export const DishModal: React.FC<DishModalProps> = ({ dish, onClose, onAdd }) => {
   const addToCart = useAppStore((state) => state.addToCart);
 
   const [quantity, setQuantity] = useState(1);
@@ -32,7 +33,11 @@ export const DishModal: React.FC<DishModalProps> = ({ dish, onClose }) => {
   const itemTotal = (dish.basePrice + modTotal) * quantity;
 
   const handleAddToCart = () => {
-    addToCart(dish, selectedModifiers, quantity, notes.trim() || undefined);
+    if (onAdd) {
+      onAdd(dish, selectedModifiers, quantity, notes.trim() || undefined);
+    } else {
+      addToCart(dish, selectedModifiers, quantity, notes.trim() || undefined);
+    }
     setAddedFeedback(true);
     setTimeout(() => {
       setAddedFeedback(false);
