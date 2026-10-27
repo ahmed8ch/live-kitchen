@@ -26,6 +26,7 @@ export const CompanionPage: React.FC = () => {
   const currentMember = useAppStore((state) => state.currentMember);
   const tableSessions = useAppStore((state) => state.tableSessions);
   const orders = useAppStore((state) => state.orders);
+  const hasLeftTables = useAppStore((state) => state.hasLeftTables);
   const payDinerShare = useAppStore((state) => state.payDinerShare);
   const showToast = useAppStore((state) => state.showToast);
   const initCompanionSession = useAppStore((state) => state.initCompanionSession);
@@ -37,14 +38,20 @@ export const CompanionPage: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false);
 
   const cleanTable = (tableParam || activeTable || 'T-04').trim().toUpperCase();
+  const hasLeftTable = Boolean(hasLeftTables?.[cleanTable]);
 
-  // Ensure table session & companion profile are initialized
+  // Ensure table session & companion profile are initialized if user has not departed
   useEffect(() => {
-    initCompanionSession(cleanTable);
-  }, [cleanTable, initCompanionSession]);
+    if (!hasLeftTable && !companionMember) {
+      initCompanionSession(cleanTable);
+    }
+  }, [cleanTable, initCompanionSession, hasLeftTable, companionMember]);
 
   const session = tableSessions[cleanTable];
   const effectiveMember = companionMember || currentMember;
+  const isSeatedAtTable = Boolean(
+    session && effectiveMember && (session.members || []).some((m) => m?.id === effectiveMember.id)
+  );
 
   // Lookup active order ticket for this table session
   const activeTicket = useMemo(() => {
@@ -112,8 +119,44 @@ export const CompanionPage: React.FC = () => {
       ? MENU_ITEMS
       : MENU_ITEMS.filter((item) => item.category === activeCategory);
 
+  if (hasLeftTable || !isSeatedAtTable) {
+    return (
+      <div className="flex-1 w-full bg-[#f9f9f9] min-h-screen py-16 px-4" data-ui-container="not-seated-view">
+        <div className="max-w-md mx-auto bg-white rounded-2xl border border-[#e5e7eb] p-6 sm:p-8 text-center shadow-xs">
+          <div className="w-14 h-14 rounded-full bg-[#fff0f3] border border-[#ffd1dc] flex items-center justify-center mx-auto text-[#FF0055] mb-4">
+            <svg className="w-6 h-6 stroke-[2px]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
+          </div>
+          <h2 className="text-xl font-bold text-[#262626]">Not Seated at Table {cleanTable}</h2>
+          <p className="mt-2 text-[#727272] text-[13px] leading-relaxed">
+            You have left Table {cleanTable} or are not currently part of this dining party. Join the table to select your dishes and settle your share directly.
+          </p>
+          <div className="mt-6 flex flex-col gap-2.5">
+            <button
+              type="button"
+              onClick={() => initCompanionSession(cleanTable)}
+              className="w-full py-2.5 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[13px] font-bold transition-all btn-crimson-glow shadow-xs cursor-pointer"
+            >
+              Join Table {cleanTable} as Guest Diner
+            </button>
+            <Link
+              to={`/menu?table=${cleanTable}`}
+              className="w-full py-2.5 rounded-full bg-white hover:bg-[#f9f9f9] border border-[#e5e7eb] text-[#262626] text-[13px] font-medium transition-colors shadow-xs inline-block"
+            >
+              Browse Dine-In Menu
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex-1 w-full bg-white pb-36 select-none" data-ui-container="companion-menu-view">
+    <div className="flex-1 w-full bg-white pb-52 select-none" data-ui-container="companion-menu-view">
       {/* Sticky Table Lobby Bar (PIN, Table Diners, Companion sync) */}
       <TableLobbyBar />
 

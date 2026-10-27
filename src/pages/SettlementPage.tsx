@@ -14,6 +14,7 @@ export const SettlementPage: React.FC = () => {
 
   const orders = useAppStore((state) => state.orders);
   const activeOrderId = useAppStore((state) => state.activeOrderId);
+  const tableSessions = useAppStore((state) => state.tableSessions);
   const payDinerShare = useAppStore((state) => state.payDinerShare);
   const submitMealReview = useAppStore((state) => state.submitMealReview);
   const orderAgain = useAppStore((state) => state.orderAgain);
@@ -74,6 +75,8 @@ export const SettlementPage: React.FC = () => {
 
   // Dynamic grouping by seated diner who ordered each item
   const effectiveMember = currentMember || companionMember;
+  const currentSession = ticket.tableNumber ? tableSessions[ticket.tableNumber] : null;
+
   const dinerGroups = useMemo(() => {
     const groups: Record<
       string,
@@ -82,6 +85,7 @@ export const SettlementPage: React.FC = () => {
         name: string;
         isHost: boolean;
         isCurrentUser: boolean;
+        isDeparted: boolean;
         items: typeof ticket.items;
         subtotal: number;
         vatAmount: number;
@@ -101,6 +105,9 @@ export const SettlementPage: React.FC = () => {
       const memberId = item.addedBy?.memberId || 'host-diner';
       const memberName = item.addedBy?.name || 'Table Diner';
       const isHost = item.addedBy?.isHost || false;
+      const isDeparted = currentSession
+        ? !(currentSession.members || []).some((m) => m?.id === memberId)
+        : false;
 
       if (!groups[memberId]) {
         groups[memberId] = {
@@ -108,6 +115,7 @@ export const SettlementPage: React.FC = () => {
           name: memberName,
           isHost,
           isCurrentUser: effectiveMember?.id === memberId,
+          isDeparted,
           items: [],
           subtotal: 0,
           vatAmount: 0,
@@ -129,7 +137,7 @@ export const SettlementPage: React.FC = () => {
     });
 
     return Object.values(groups);
-  }, [ticket, effectiveMember]);
+  }, [ticket, effectiveMember, currentSession]);
 
   const totalPaidShares = Object.values(ticket.paidDiners || {}).reduce(
     (sum, record) => sum + record.amount,
@@ -266,9 +274,19 @@ export const SettlementPage: React.FC = () => {
     ctx.fillText(`14% VAT: ${ticket.vatAmount.toFixed(2)} EGP`, 20, y);
     y += 22;
 
-    ctx.font = 'bold 15px monospace';
-    ctx.fillStyle = '#FF0055';
-    ctx.fillText(`Total Paid: ${ticket.total.toFixed(2)} EGP`, 20, y);
+    if (totalPaidShares > 0) {
+      ctx.font = '11px monospace';
+      ctx.fillStyle = '#15803d';
+      ctx.fillText(`Less: Pre-Settled Companion Shares: -${totalPaidShares.toFixed(2)} EGP`, 20, y);
+      y += 18;
+      ctx.font = 'bold 15px monospace';
+      ctx.fillStyle = isVerifiedPaid ? '#15803d' : '#FF0055';
+      ctx.fillText(`Net Balance Due: ${isVerifiedPaid ? '0.00' : remainingTableBalance.toFixed(2)} EGP`, 20, y);
+    } else {
+      ctx.font = 'bold 15px monospace';
+      ctx.fillStyle = '#FF0055';
+      ctx.fillText(`Total Paid: ${ticket.total.toFixed(2)} EGP`, 20, y);
+    }
 
     const dataUrl = canvas.toDataURL('image/png');
     const link = document.createElement('a');
@@ -424,6 +442,26 @@ export const SettlementPage: React.FC = () => {
               <span>Grand Total</span>
               <span className="font-mono-num font-bold text-[#FF0055]" data-ui-number>{ticket.total.toFixed(2)} EGP</span>
             </div>
+
+            {totalPaidShares > 0 && (
+              <div className="pt-2.5 mt-2 border-t border-dashed border-[#e5e7eb] space-y-1.5 text-[12px]">
+                <div className="text-[11px] font-mono-num uppercase text-emerald-700 font-semibold tracking-wide">
+                  Pre-Settled Companion Shares:
+                </div>
+                {Object.values(ticket.paidDiners || {}).map((rec) => (
+                  <div key={rec.memberId} className="flex justify-between text-emerald-700 font-mono-num">
+                    <span>Less: Settled by {rec.name} ({rec.paymentMethod.replace('_', ' ').toUpperCase()})</span>
+                    <span>-{rec.amount.toFixed(2)} EGP</span>
+                  </div>
+                ))}
+                <div className="flex justify-between text-[15px] font-bold text-[#262626] pt-1.5 border-t border-[#e5e7eb]">
+                  <span>{isVerifiedPaid ? 'Balance Due:' : 'Net Balance Due (Host):'}</span>
+                  <span className={`font-mono-num ${isVerifiedPaid ? 'text-emerald-700' : 'text-[#FF0055]'}`}>
+                    {isVerifiedPaid ? '0.00 EGP' : `${remainingTableBalance.toFixed(2)} EGP`}
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* ADVANCED BILL SPLITTING ENGINE (NO-PRINT) */}
@@ -511,15 +549,25 @@ export const SettlementPage: React.FC = () => {
                           </div>
 
                           {group.isPaid ? (
-                            <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-mono-num font-bold">
-                              PAID
+                            <span
+                              className={`px-2.5 py-0.5 rounded-full text-[11px] font-mono-num font-bold ${
+                                group.isDeparted
+                                  ? 'bg-slate-100 text-slate-700 border border-slate-200'
+                                  : 'bg-emerald-100 text-emerald-800'
+                              }`}
+                            >
+                              {group.isDeparted ? 'PAID & DEPARTED' : 'PAID'}
+                            </span>
+                          ) : group.isDeparted ? (
+                            <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-mono-num">
+                              LEFT TABLE
                             </span>
                           ) : group.isCurrentUser ? (
                             <span className="text-[11px] font-mono-num text-[#FF0055] font-bold">
                               YOUR SHARE
                             </span>
                           ) : (
-                            <span className="px-2 py-0.5 rounded-full bg-[#f9f9f9] border border-[#e5e7eb] text-[#727272] text-[10px] font-mono-num">
+                            <span className="px-2.5 py-0.5 rounded-full bg-[#f9f9f9] border border-[#e5e7eb] text-[#727272] text-[10px] font-mono-num">
                               AWAITING DINER DEVICE
                             </span>
                           )}
@@ -567,8 +615,12 @@ export const SettlementPage: React.FC = () => {
                         {/* Multi-Device Dynamic Actions */}
                         <div className="mt-3 pt-2">
                           {group.isPaid ? (
-                            <div className="py-1.5 px-3 rounded-lg bg-emerald-100/70 border border-emerald-200 text-center text-emerald-800 text-[11px] font-mono-num font-bold">
-                              PAID // {group.total.toFixed(2)} EGP via {group.paymentRecord?.paymentMethod?.toUpperCase() || 'ONLINE'}
+                            <div className={`py-1.5 px-3 rounded-lg border text-center text-[11px] font-mono-num font-bold ${
+                              group.isDeparted
+                                ? 'bg-slate-50 border-slate-200 text-slate-700'
+                                : 'bg-emerald-100/70 border-emerald-200 text-emerald-800'
+                            }`}>
+                              {group.isDeparted ? 'PAID & DEPARTED' : 'PAID'} // {group.total.toFixed(2)} EGP via {group.paymentRecord?.paymentMethod?.toUpperCase() || 'ONLINE'}
                             </div>
                           ) : group.isCurrentUser ? (
                             <button

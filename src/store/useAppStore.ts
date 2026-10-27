@@ -113,6 +113,8 @@ interface AppState {
   reorderPastOrder: (orderId: string) => void;
   reorderSingleItem: (item: CartItem) => void;
 
+  hasLeftTables: Record<string, boolean>;
+
   // Toast
   showToast: (msg: string) => void;
   clearToast: () => void;
@@ -221,6 +223,7 @@ export const useAppStore = create<AppState>()(
       isPinModalOpen: false,
       pendingJoinTable: null,
       platformFeedback: [],
+      hasLeftTables: {},
 
       // Diner Account & Auth
       userAccount: null,
@@ -428,6 +431,7 @@ export const useAppStore = create<AppState>()(
           currentMember: newGuestMember,
           isPinModalOpen: false,
           pendingJoinTable: null,
+          hasLeftTables: { ...get().hasLeftTables, [cleanTable]: false },
         });
 
         if (broadcastChannel) {
@@ -506,6 +510,7 @@ export const useAppStore = create<AppState>()(
           currentMember: newCompanion,
           activeTable: cleanTable,
           activeTablePin: null,
+          hasLeftTables: { ...get().hasLeftTables, [cleanTable]: false },
         });
 
         queueHostToast(`${newCompanion.name} joined Table ${cleanTable}`);
@@ -702,7 +707,7 @@ export const useAppStore = create<AppState>()(
 
       leaveTableSession: (tableNumber, memberId) => {
         const cleanTable = tableNumber.trim().toUpperCase();
-        const { tableSessions, currentMember, companionMember } = get();
+        const { tableSessions, currentMember, companionMember, cart, orders } = get();
         const session = tableSessions[cleanTable];
         if (!session) return;
 
@@ -725,17 +730,64 @@ export const useAppStore = create<AppState>()(
 
         const updatedSessions = { ...tableSessions, [cleanTable]: updatedSession };
 
+        // 1. Prune departed companion's unsubmitted dishes from cart
+        const updatedCart = (cart || []).filter((item) => item.addedBy?.memberId !== memberId);
+
+        // 2. Prune unpaid items added by departing member from pending draft tickets
+        const updatedOrders = orders
+          .map((ticket) => {
+            if (ticket.tableNumber !== cleanTable || ticket.paymentStatus !== 'pending_verification') {
+              return ticket;
+            }
+            // If the departing member already paid their share, keep record intact
+            const hasMemberPaid = Boolean(ticket.paidDiners?.[memberId]);
+            if (hasMemberPaid) return ticket;
+
+            // Otherwise remove their unpaid items from the draft order
+            const remainingItems = ticket.items.filter((item) => item.addedBy?.memberId !== memberId);
+            if (remainingItems.length === 0) {
+              return {
+                ...ticket,
+                items: [],
+                subtotal: 0,
+                vatAmount: 0,
+                total: 0,
+              };
+            }
+
+            const subtotal = remainingItems.reduce((sum, item) => {
+              const modTotal = item.selectedModifiers.reduce((mSum, m) => mSum + m.price, 0);
+              return sum + (item.menuItem.basePrice + modTotal) * item.quantity;
+            }, 0);
+            const vatAmount = Math.round(subtotal * 0.14 * 100) / 100;
+            const total = Math.round((subtotal + vatAmount) * 100) / 100;
+
+            return {
+              ...ticket,
+              items: remainingItems,
+              subtotal,
+              vatAmount,
+              total,
+            };
+          })
+          .filter((t) => t.items.length > 0);
+
         const isLeavingUserCurrent = currentMember?.id === memberId;
         const isLeavingUserCompanion = companionMember?.id === memberId;
 
         set({
           tableSessions: updatedSessions,
+          cart: updatedCart,
+          orders: updatedOrders,
           currentMember: isLeavingUserCurrent ? null : currentMember,
           companionMember: isLeavingUserCompanion ? null : companionMember,
+          hasLeftTables: { ...get().hasLeftTables, [cleanTable]: true },
         });
 
         if (broadcastChannel) {
           broadcastChannel.postMessage({ type: 'SESSIONS_SYNC', tableSessions: updatedSessions });
+          broadcastChannel.postMessage({ type: 'CART_SYNC', cart: updatedCart, tableNumber: cleanTable });
+          broadcastChannel.postMessage({ type: 'ORDERS_SYNC', orders: updatedOrders });
         }
 
         get().showToast(`Left Table ${cleanTable}.`);
@@ -743,7 +795,7 @@ export const useAppStore = create<AppState>()(
 
       removeMemberFromTable: (tableNumber, targetMemberId) => {
         const cleanTable = tableNumber.trim().toUpperCase();
-        const { tableSessions, currentMember, companionMember } = get();
+        const { tableSessions, currentMember, companionMember, cart, orders } = get();
         const session = tableSessions[cleanTable];
         if (!session) return;
 
@@ -758,8 +810,50 @@ export const useAppStore = create<AppState>()(
 
         const updatedSessions = { ...tableSessions, [cleanTable]: updatedSession };
 
+        // 1. Prune removed companion's unsubmitted dishes from cart
+        const updatedCart = (cart || []).filter((item) => item.addedBy?.memberId !== targetMemberId);
+
+        // 2. Prune unpaid items added by removed member from pending draft tickets
+        const updatedOrders = orders
+          .map((ticket) => {
+            if (ticket.tableNumber !== cleanTable || ticket.paymentStatus !== 'pending_verification') {
+              return ticket;
+            }
+            const hasMemberPaid = Boolean(ticket.paidDiners?.[targetMemberId]);
+            if (hasMemberPaid) return ticket;
+
+            const remainingItems = ticket.items.filter((item) => item.addedBy?.memberId !== targetMemberId);
+            if (remainingItems.length === 0) {
+              return {
+                ...ticket,
+                items: [],
+                subtotal: 0,
+                vatAmount: 0,
+                total: 0,
+              };
+            }
+
+            const subtotal = remainingItems.reduce((sum, item) => {
+              const modTotal = item.selectedModifiers.reduce((mSum, m) => mSum + m.price, 0);
+              return sum + (item.menuItem.basePrice + modTotal) * item.quantity;
+            }, 0);
+            const vatAmount = Math.round(subtotal * 0.14 * 100) / 100;
+            const total = Math.round((subtotal + vatAmount) * 100) / 100;
+
+            return {
+              ...ticket,
+              items: remainingItems,
+              subtotal,
+              vatAmount,
+              total,
+            };
+          })
+          .filter((t) => t.items.length > 0);
+
         set({
           tableSessions: updatedSessions,
+          cart: updatedCart,
+          orders: updatedOrders,
           currentMember: currentMember?.id === targetMemberId ? null : currentMember,
           activeTablePin: currentMember?.id === targetMemberId ? null : get().activeTablePin,
           companionMember: companionMember?.id === targetMemberId ? null : companionMember,
@@ -767,6 +861,8 @@ export const useAppStore = create<AppState>()(
 
         if (broadcastChannel) {
           broadcastChannel.postMessage({ type: 'SESSIONS_SYNC', tableSessions: updatedSessions });
+          broadcastChannel.postMessage({ type: 'CART_SYNC', cart: updatedCart, tableNumber: cleanTable });
+          broadcastChannel.postMessage({ type: 'ORDERS_SYNC', orders: updatedOrders });
         }
 
         get().showToast(`Removed ${target?.name || 'Diner'} from Table ${cleanTable}`);

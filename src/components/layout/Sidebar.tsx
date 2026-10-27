@@ -52,29 +52,44 @@ export const Sidebar: React.FC = () => {
 
   // Edge Trigger Handler (Immediate reveal on edge approach)
   const handleTriggerEnter = () => {
-    if (leaveTimerRef.current) clearTimeout(leaveTimerRef.current);
+    if (leaveTimerRef.current) {
+      clearTimeout(leaveTimerRef.current);
+      leaveTimerRef.current = null;
+    }
     setIsRevealed(true);
   };
 
-  const handleTriggerLeave = () => {
-    if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+  const handleTriggerLeave = (e: React.MouseEvent) => {
+    if (isPinned) return;
+    if (e.clientX > 32) {
+      if (leaveTimerRef.current) clearTimeout(leaveTimerRef.current);
+      leaveTimerRef.current = setTimeout(() => {
+        setIsRevealed(false);
+        leaveTimerRef.current = null;
+      }, 180);
+    }
   };
 
-  // Dock Hover & Leave Handlers (with 280ms safety debounce)
+  // Dock Hover & Leave Handlers (with 180ms safety debounce)
   const handleDockEnter = () => {
-    if (leaveTimerRef.current) clearTimeout(leaveTimerRef.current);
+    if (leaveTimerRef.current) {
+      clearTimeout(leaveTimerRef.current);
+      leaveTimerRef.current = null;
+    }
     setIsRevealed(true);
   };
 
   const handleDockLeave = () => {
     if (isPinned) return;
     setHoveredIndex(null);
+    if (leaveTimerRef.current) clearTimeout(leaveTimerRef.current);
     leaveTimerRef.current = setTimeout(() => {
       setIsRevealed(false);
-    }, 280);
+      leaveTimerRef.current = null;
+    }, 180);
   };
 
-  // Global Edge Detection & Keyboard Shortcuts (Resolves Firefox/Safari mouse lag)
+  // Global Edge Detection & Keyboard Shortcuts (Reliable across Firefox, Chrome, Safari)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (
@@ -88,10 +103,28 @@ export const Sidebar: React.FC = () => {
 
     const handleMouseMove = (e: MouseEvent) => {
       if (isPinned) return;
-      // When cursor approaches within 28px of the left screen edge, reveal dock immediately
-      if (e.clientX <= 28) {
-        if (leaveTimerRef.current) clearTimeout(leaveTimerRef.current);
+
+      // Mouse reaches the left edge trigger zone (<= 14px): reveal dock
+      if (e.clientX <= 14) {
+        if (leaveTimerRef.current) {
+          clearTimeout(leaveTimerRef.current);
+          leaveTimerRef.current = null;
+        }
         setIsRevealed(true);
+      } else if (e.clientX > 92) {
+        // Mouse moved well past the dock capsule: auto-hide cleanly
+        if (!leaveTimerRef.current) {
+          leaveTimerRef.current = setTimeout(() => {
+            setIsRevealed(false);
+            leaveTimerRef.current = null;
+          }, 180);
+        }
+      } else {
+        // Mouse is within the dock capsule zone: cancel any hide timer
+        if (leaveTimerRef.current) {
+          clearTimeout(leaveTimerRef.current);
+          leaveTimerRef.current = null;
+        }
       }
     };
 
@@ -261,12 +294,12 @@ export const Sidebar: React.FC = () => {
           DESKTOP macOS AUTO-HIDING DOCK (>= 768px Viewports)
           ========================================================================= */}
 
-      {/* Left-Edge Trigger Sensor (32px wide for seamless Firefox/Safari/Chrome responsiveness) */}
+      {/* Left-Edge Trigger Sensor (14px wide edge detection) */}
       {!isPinned && (
         <div
           onMouseEnter={handleTriggerEnter}
           onMouseLeave={handleTriggerLeave}
-          className="fixed left-0 top-0 bottom-0 w-8 z-40 hidden md:block"
+          className="fixed left-0 top-0 bottom-0 w-3.5 z-40 hidden md:block"
           aria-hidden="true"
         />
       )}

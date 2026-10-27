@@ -39,7 +39,7 @@ export const MenuPage: React.FC = () => {
       : MENU_ITEMS.filter((item) => item.category === activeCategory);
 
   return (
-    <div className="flex-1 w-full bg-white pb-36" data-ui-container="menu-view">
+    <div className="flex-1 w-full bg-white pb-52" data-ui-container="menu-view">
       {/* Sticky Table Lobby Bar (PIN, Table Diners) */}
       <TableLobbyBar />
 

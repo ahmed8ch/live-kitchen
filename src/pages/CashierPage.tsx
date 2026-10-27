@@ -52,16 +52,34 @@ export const CashierPage: React.FC = () => {
     pendingForTable ||
     orders.find((o) => o.tableNumber === selectedTableNum && o.status !== 'served' && o.status !== 'voided');
 
+  // Exact financial calculations taking companion settlements into account
+  const paidDinersList = Object.values(tableOrder?.paidDiners || {});
+  const totalPaidOnline = paidDinersList.reduce((sum, d) => sum + d.amount, 0);
+  const isOrderFullySettled = tableOrder
+    ? tableOrder.isPaid || tableOrder.paymentStatus === 'verified_paid'
+    : false;
+  const remainingDue = isOrderFullySettled
+    ? 0
+    : tableOrder
+    ? Math.max(0, Math.round((tableOrder.total - totalPaidOnline) * 100) / 100)
+    : 0;
+
+  const tenderedAmount = parseFloat(cashTendered) || 0;
+  const changeDue = Math.max(0, Math.round((tenderedAmount - remainingDue) * 100) / 100);
+
   const getTableMeta = (tableNum: string) => {
     const session = tableSessions[tableNum];
     const pending = pendingOrders.find((o) => o.tableNumber === tableNum);
 
     if (pending) {
+      const pendingPaidOnline = Object.values(pending.paidDiners || {}).reduce((s, d) => s + d.amount, 0);
+      const pendingRemaining = Math.max(0, Math.round((pending.total - pendingPaidOnline) * 100) / 100);
+
       return {
         status: 'waiting_for_payment' as const,
-        label: 'Waiting for Payment',
-        badgeClass: 'bg-[#fff0f3] text-[#FF0055] border-[#ffd1dc] border-2 font-bold',
-        amount: pending.total,
+        label: 'Waiting Payment',
+        badgeClass: 'bg-[#fff0f3] text-[#FF0055] border-[#ffd1dc] border',
+        amountText: `${pendingRemaining.toFixed(0)} EGP Due`,
         orderId: pending.id,
         chitCode: pending.cashierChitCode,
       };
@@ -75,14 +93,14 @@ export const CashierPage: React.FC = () => {
         o.status !== 'voided'
     );
     if (activeCookingOrder) {
+      const isReady = activeCookingOrder.status === 'ready';
       return {
         status: 'paid_cooking' as const,
-        label: activeCookingOrder.status === 'ready' ? 'Ready at Pass' : 'Paid & Cooking',
-        badgeClass:
-          activeCookingOrder.status === 'ready'
-            ? 'bg-emerald-50 text-emerald-800 border-emerald-300 font-bold'
-            : 'bg-blue-50 text-blue-800 border-blue-200 font-medium',
-        amount: activeCookingOrder.total,
+        label: isReady ? 'Ready at Pass' : 'Cooking on Line',
+        badgeClass: isReady
+          ? 'bg-[#ecfdf5] text-[#047857] border-[#a7f3d0] border'
+          : 'bg-[#f0fdf4] text-[#166534] border-[#bbf7d0] border',
+        amountText: 'Settled',
         orderId: activeCookingOrder.id,
         chitCode: activeCookingOrder.cashierChitCode,
       };
@@ -91,9 +109,9 @@ export const CashierPage: React.FC = () => {
     if (session && session.members.length > 0) {
       return {
         status: 'ordering' as const,
-        label: 'Ordering',
-        badgeClass: 'bg-amber-50 text-amber-800 border-amber-300 font-medium',
-        amount: undefined,
+        label: `${session.members.length} Diners`,
+        badgeClass: 'bg-[#fffbeb] text-[#b45309] border-[#fde68a] border',
+        amountText: 'Browsing',
         orderId: undefined,
         chitCode: undefined,
       };
@@ -101,9 +119,9 @@ export const CashierPage: React.FC = () => {
 
     return {
       status: 'idle' as const,
-      label: 'Cleared',
-      badgeClass: 'bg-[#f9f9f9] text-[#727272] border-[#e5e7eb]',
-      amount: undefined,
+      label: 'Available',
+      badgeClass: 'bg-[#f9f9f9] text-[#727272] border-[#e5e7eb] border',
+      amountText: undefined,
       orderId: undefined,
       chitCode: undefined,
     };
@@ -115,12 +133,10 @@ export const CashierPage: React.FC = () => {
     return RESTAURANT_TABLES.filter((tableNum) => {
       const meta = getTableMeta(tableNum);
 
-      // Status filter
       if (activeTab === 'waiting' && meta.status !== 'waiting_for_payment') return false;
       if (activeTab === 'active' && meta.status !== 'paid_cooking') return false;
       if (activeTab === 'cleared' && meta.status !== 'idle') return false;
 
-      // Text search
       if (q) {
         const matchesTable = tableNum.toLowerCase().includes(q);
         const matchesChit = meta.chitCode?.toLowerCase().includes(q);
@@ -134,12 +150,12 @@ export const CashierPage: React.FC = () => {
   const handleConfirmPayment = (orderId: string, chitCode?: string) => {
     verifyCashierPayment(orderId, selectedMethod);
     setCashTendered('');
-    showToast(`Payment confirmed for Chit #${chitCode || orderId}. Fired to KDS line.`);
+    showToast(`Payment confirmed for Chit #${chitCode || orderId}. Fired to KDS pass.`);
   };
 
   const handleClearTable = (tableNum: string) => {
     clearTableSession(tableNum);
-    showToast(`Table ${tableNum} marked Cleared & Available.`);
+    showToast(`Table ${tableNum} cleared and marked available.`);
   };
 
   const handleOpenVoidModal = (orderId: string) => {
@@ -160,14 +176,6 @@ export const CashierPage: React.FC = () => {
     setIsReceiptModalOpen(true);
   };
 
-  // Financial calculations
-  const paidDinersList = Object.values(tableOrder?.paidDiners || {});
-  const totalPaidOnline = paidDinersList.reduce((sum, d) => sum + d.amount, 0);
-  const remainingDue = tableOrder ? Math.max(0, tableOrder.total - totalPaidOnline) : 0;
-  const tenderedAmount = parseFloat(cashTendered) || 0;
-  const changeDue = tableOrder ? Math.max(0, tenderedAmount - remainingDue) : 0;
-
-  // Selected receipt order details
   const receiptOrder = orders.find((o) => o.id === receiptOrderId) || tableOrder;
 
   return (
@@ -189,7 +197,7 @@ export const CashierPage: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="text-right px-3 py-1 bg-[#f9f9f9] border border-[#e5e7eb] rounded-lg">
+            <div className="text-right px-3.5 py-1.5 bg-[#f9f9f9] border border-[#e5e7eb] rounded-xl">
               <span className="text-[10px] font-mono-num uppercase text-[#727272] block">Verified Today</span>
               <span className="text-[15px] font-mono-num font-bold text-[#15803d]">
                 {totalCollectedToday.toFixed(2)} EGP
@@ -200,7 +208,7 @@ export const CashierPage: React.FC = () => {
               to="/kds"
               className="px-4 py-2 rounded-full bg-[#262626] hover:bg-black text-white text-[12px] font-medium transition-colors shadow-xs"
             >
-              Open KDS Pass -&gt;
+              Open Kitchen Pass -&gt;
             </Link>
           </div>
         </div>
@@ -225,7 +233,7 @@ export const CashierPage: React.FC = () => {
               {verifiedOrders.length} Orders
             </div>
             <div className="text-[12px] font-mono-num text-[#727272] mt-1">
-              On cooking pass or served
+              Cooking or expediting on line
             </div>
           </div>
 
@@ -235,7 +243,7 @@ export const CashierPage: React.FC = () => {
               {Object.values(tableSessions).filter((s) => s.members.length > 0).length} Tables Seated
             </div>
             <div className="text-[12px] font-mono-num text-[#727272] mt-1">
-              Multi-device table synchronization
+              Real-time multi-player session synchronization
             </div>
           </div>
         </section>
@@ -246,7 +254,7 @@ export const CashierPage: React.FC = () => {
             <div>
               <h2 className="text-lg font-bold text-[#262626]">Floor Plan & Table Matrix</h2>
               <p className="text-[13px] text-[#727272]">
-                Select any table to view seated diners, ring up payment, print thermal chit, or void orders.
+                Select any table to view seated diners, ring up settlement, print thermal chit, or void orders.
               </p>
             </div>
 
@@ -254,7 +262,7 @@ export const CashierPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => addSampleOrder(selectedTableNum)}
-                className="px-3.5 py-1.5 rounded-full border border-[#ffd1dc] bg-[#fff0f3] text-[#FF0055] text-[12px] font-medium hover:bg-[#ffe0e8] transition-colors"
+                className="px-3.5 py-1.5 rounded-full border border-[#ffd1dc] bg-[#fff0f3] text-[#FF0055] text-[12px] font-medium hover:bg-[#ffe0e8] transition-colors cursor-pointer"
               >
                 + Test Chit on {selectedTableNum}
               </button>
@@ -332,7 +340,7 @@ export const CashierPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Interactive Table Grid */}
+          {/* Disciplined Floor Plan Matrix */}
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
             {filteredTables.map((tableNum) => {
               const meta = getTableMeta(tableNum);
@@ -343,8 +351,8 @@ export const CashierPage: React.FC = () => {
                   key={tableNum}
                   type="button"
                   onClick={() => setSelectedTableNum(tableNum)}
-                  className={`p-3.5 rounded-xl border text-center transition-all cursor-pointer relative ${meta.badgeClass} ${
-                    isSelected ? 'ring-2 ring-[#FF0055] shadow-md' : 'hover:scale-[1.02]'
+                  className={`p-3.5 rounded-xl text-center transition-all cursor-pointer relative ${meta.badgeClass} ${
+                    isSelected ? 'ring-2 ring-[#262626] ring-offset-2 shadow-md' : 'hover:scale-[1.02]'
                   }`}
                 >
                   <div className="text-xl font-mono-num font-bold">
@@ -353,9 +361,9 @@ export const CashierPage: React.FC = () => {
                   <div className="text-[11px] font-medium mt-1 truncate">
                     {meta.label}
                   </div>
-                  {meta.amount && (
-                    <div className="text-[11px] font-mono-num font-bold text-[#FF0055] mt-1">
-                      {meta.amount.toFixed(0)} EGP
+                  {meta.amountText && (
+                    <div className="text-[11px] font-mono-num font-bold mt-1 truncate">
+                      {meta.amountText}
                     </div>
                   )}
                 </button>
@@ -382,7 +390,7 @@ export const CashierPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => handleClearTable(selectedTableNum)}
-                  className="px-2.5 py-1 text-[11px] rounded-md bg-[#f9f9f9] hover:bg-red-50 hover:text-red-600 text-[#727272] transition-colors border border-[#e5e7eb]"
+                  className="px-2.5 py-1 text-[11px] rounded-md bg-[#f9f9f9] hover:bg-red-50 hover:text-red-600 text-[#727272] transition-colors border border-[#e5e7eb] cursor-pointer"
                 >
                   Clear Table
                 </button>
@@ -397,7 +405,7 @@ export const CashierPage: React.FC = () => {
               </span>
             </div>
 
-            {/* Seated Diners List */}
+            {/* Seated Diners List with Independent Payment Status */}
             <div>
               <div className="text-[12px] font-semibold text-[#262626] mb-2">
                 Seated Diners ({activeSession?.members.length || 0}):
@@ -408,26 +416,36 @@ export const CashierPage: React.FC = () => {
                   Table is currently cleared / available
                 </div>
               ) : (
-                <div className="space-y-1.5">
-                  {activeSession.members.map((m) => (
-                    <div
-                      key={m.id}
-                      className="p-2 rounded-lg bg-[#f9f9f9] border border-[#e5e7eb] flex items-center justify-between text-[13px]"
-                    >
-                      <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-[#15803d]" />
-                        <span className="font-medium text-[#262626]">{m.name}</span>
-                        {m.isHost && (
-                          <span className="text-[10px] uppercase font-mono-num px-1.5 py-0.5 rounded-full bg-[#ffe0e8] text-[#FF0055] font-bold">
-                            Host
+                <div className="space-y-2">
+                  {activeSession.members.map((m) => {
+                    const dinerPayment = tableOrder?.paidDiners?.[m.id];
+                    return (
+                      <div
+                        key={m.id}
+                        className="p-2.5 rounded-lg bg-[#f9f9f9] border border-[#e5e7eb] flex items-center justify-between text-[13px]"
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className={`w-2 h-2 rounded-full ${dinerPayment ? 'bg-[#15803d]' : 'bg-[#727272]'}`} />
+                          <span className="font-medium text-[#262626]">{m.name}</span>
+                          {m.isHost && (
+                            <span className="text-[10px] uppercase font-mono-num px-1.5 py-0.5 rounded-full bg-[#ffe0e8] text-[#FF0055] font-bold">
+                              Host
+                            </span>
+                          )}
+                        </div>
+
+                        {dinerPayment ? (
+                          <span className="text-[11px] font-mono-num text-[#15803d] font-bold">
+                            Paid {dinerPayment.amount.toFixed(0)} EGP
+                          </span>
+                        ) : (
+                          <span className="text-[11px] font-mono-num text-[#727272]">
+                            {m.isReadyToPay ? 'Ready' : 'Ordering'}
                           </span>
                         )}
                       </div>
-                      <span className="text-[11px] font-mono-num text-[#727272]">
-                        {m.isReadyToPay ? 'Ready' : 'Ordering'}
-                      </span>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -447,10 +465,33 @@ export const CashierPage: React.FC = () => {
 
               {tableOrder && (
                 <div className="text-right">
-                  <span className="text-[11px] font-mono-num text-[#727272] block uppercase">Total Due</span>
-                  <span className="text-2xl font-mono-num font-bold text-[#FF0055]">
-                    {tableOrder.total.toFixed(2)} EGP
-                  </span>
+                  {isOrderFullySettled ? (
+                    <div>
+                      <span className="text-[11px] font-mono-num text-[#15803d] font-bold block uppercase tracking-wider">
+                        Settled &amp; Paid
+                      </span>
+                      <span className="text-2xl font-mono-num font-bold text-[#15803d]">
+                        0.00 EGP
+                      </span>
+                      <span className="text-[11px] font-mono-num text-[#727272] block">
+                        (Paid in Full: {tableOrder.total.toFixed(2)} EGP)
+                      </span>
+                    </div>
+                  ) : (
+                    <div>
+                      <span className="text-[11px] font-mono-num text-[#FF0055] font-bold block uppercase tracking-wider">
+                        Balance Due
+                      </span>
+                      <span className="text-2xl font-mono-num font-bold text-[#FF0055]">
+                        {remainingDue.toFixed(2)} EGP
+                      </span>
+                      {totalPaidOnline > 0 && (
+                        <span className="text-[11px] font-mono-num text-[#15803d] block">
+                          ({totalPaidOnline.toFixed(2)} EGP paid by companions)
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -473,7 +514,7 @@ export const CashierPage: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => addSampleOrder(selectedTableNum)}
-                    className="px-4 py-2 rounded-full bg-[#262626] text-white text-[12px] font-medium hover:bg-black transition-colors shadow-xs"
+                    className="px-4 py-2 rounded-full bg-[#262626] text-white text-[12px] font-medium hover:bg-black transition-colors shadow-xs cursor-pointer"
                   >
                     Add Test Order on {selectedTableNum}
                   </button>
@@ -481,71 +522,110 @@ export const CashierPage: React.FC = () => {
               </div>
             ) : (
               <div className="space-y-4">
-                {/* Status Alert & Quick Action Bar */}
-                <div className="p-3.5 rounded-xl bg-[#fff0f3] border border-[#ffd1dc] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div>
-                    <span className="text-[11px] font-mono-num font-semibold text-[#FF0055] uppercase block">
-                      {tableOrder.paymentStatus === 'pending_verification'
-                        ? 'WAITING FOR CASHIER SETTLEMENT'
-                        : 'PAID & COOKING ON KDS PASS'}
-                    </span>
-                    <span className="text-[13px] font-mono-num text-[#262626] font-medium">
-                      Chit #{tableOrder.cashierChitCode || tableOrder.id}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => handleOpenReceipt(tableOrder.id)}
-                      className="px-3 py-1 bg-white border border-[#e5e7eb] hover:bg-[#f9f9f9] text-[#262626] rounded-full text-[11px] font-medium transition-colors"
-                    >
-                      Print Chit
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => handleOpenVoidModal(tableOrder.id)}
-                      className="px-3 py-1 bg-white border border-red-200 hover:bg-red-50 text-red-600 rounded-full text-[11px] font-medium transition-colors"
-                    >
-                      Void Order
-                    </button>
-                  </div>
-                </div>
-
-                {/* Line Items List */}
-                <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
-                  {tableOrder.items.map((item, idx) => (
-                    <div
-                      key={item.cartItemId || idx}
-                      className="flex justify-between text-[13px] py-1 border-b border-[#f0f0f0]"
-                    >
-                      <span className="text-[#262626]">
-                        <strong className="font-mono-num font-bold text-[#111827] mr-1.5">
-                          {item.quantity}x
-                        </strong>
-                        {item.menuItem.name}
-                        {item.selectedModifiers.length > 0 && (
-                          <span className="text-[11px] text-[#727272] ml-1.5">
-                            (+{item.selectedModifiers.map((m) => m.name).join(', ')})
-                          </span>
-                        )}
-                        {item.addedBy && (
-                          <span className="text-[11px] text-[#727272] ml-1.5">
-                            ({item.addedBy.name})
-                          </span>
-                        )}
+                {/* Visual State Banner */}
+                {isOrderFullySettled ? (
+                  <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                      <span className="text-[11px] font-mono-num font-bold text-[#15803d] uppercase block">
+                        VERIFIED PAID // COOKING ON KDS PASS
                       </span>
-                      <span className="font-mono-num font-medium text-[#262626]">
-                        {(
-                          (item.menuItem.basePrice +
-                            item.selectedModifiers.reduce((s, m) => s + m.price, 0)) *
-                          item.quantity
-                        ).toFixed(2)}{' '}
-                        EGP
+                      <span className="text-[13px] font-mono-num text-[#262626] font-medium">
+                        Chit #{tableOrder.cashierChitCode || tableOrder.id} • Paid via {tableOrder.paymentMethod?.toUpperCase()}
                       </span>
                     </div>
-                  ))}
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleOpenReceipt(tableOrder.id)}
+                        className="px-3.5 py-1.5 bg-white border border-[#e5e7eb] hover:bg-[#f9f9f9] text-[#262626] rounded-full text-[11px] font-medium transition-colors cursor-pointer"
+                      >
+                        Print Thermal Chit
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleOpenVoidModal(tableOrder.id)}
+                        className="px-3.5 py-1.5 bg-white border border-red-200 hover:bg-red-50 text-red-600 rounded-full text-[11px] font-medium transition-colors cursor-pointer"
+                      >
+                        Void / Refund
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-3.5 rounded-xl bg-[#fff0f3] border border-[#ffd1dc] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                      <span className="text-[11px] font-mono-num font-semibold text-[#FF0055] uppercase block">
+                        WAITING FOR REGISTER SETTLEMENT
+                      </span>
+                      <span className="text-[13px] font-mono-num text-[#262626] font-medium">
+                        Chit #{tableOrder.cashierChitCode || tableOrder.id}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleOpenReceipt(tableOrder.id)}
+                        className="px-3 py-1 bg-white border border-[#e5e7eb] hover:bg-[#f9f9f9] text-[#262626] rounded-full text-[11px] font-medium transition-colors cursor-pointer"
+                      >
+                        Print Chit
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleOpenVoidModal(tableOrder.id)}
+                        className="px-3 py-1 bg-white border border-red-200 hover:bg-red-50 text-red-600 rounded-full text-[11px] font-medium transition-colors cursor-pointer"
+                      >
+                        Void Order
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Line Items List with Member Attribution and Payment Tag */}
+                <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                  {tableOrder.items.map((item, idx) => {
+                    const memberId = item.addedBy?.memberId;
+                    const isItemPaid = memberId && tableOrder.paidDiners?.[memberId];
+
+                    return (
+                      <div
+                        key={item.cartItemId || idx}
+                        className="flex justify-between text-[13px] py-1 border-b border-[#f0f0f0]"
+                      >
+                        <span className="text-[#262626] flex items-center flex-wrap gap-1">
+                          <strong className="font-mono-num font-bold text-[#111827] mr-1">
+                            {item.quantity}x
+                          </strong>
+                          <span>{item.menuItem.name}</span>
+                          {item.selectedModifiers.length > 0 && (
+                            <span className="text-[11px] text-[#727272]">
+                              (+{item.selectedModifiers.map((m) => m.name).join(', ')})
+                            </span>
+                          )}
+                          {item.addedBy && (
+                            <span className="text-[11px] text-[#727272]">
+                              ({item.addedBy.name})
+                            </span>
+                          )}
+                          {isItemPaid && (
+                            <span className="text-[10px] font-mono-num px-1.5 py-0.2 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded">
+                              Paid Online
+                            </span>
+                          )}
+                        </span>
+                        <span className="font-mono-num font-medium text-[#262626]">
+                          {(
+                            (item.menuItem.basePrice +
+                              item.selectedModifiers.reduce((s, m) => s + m.price, 0)) *
+                            item.quantity
+                          ).toFixed(2)}{' '}
+                          EGP
+                        </span>
+                      </div>
+                    );
+                  })}
                 </div>
 
                 {/* Tax Breakdown */}
@@ -562,16 +642,38 @@ export const CashierPage: React.FC = () => {
                       {tableOrder.vatAmount.toFixed(2)} EGP
                     </span>
                   </div>
-                  <div className="flex justify-between text-[15px] font-bold text-[#262626] pt-1 border-t border-[#e5e7eb]">
-                    <span>Grand Total:</span>
-                    <span className="font-mono-num text-[#FF0055]">
+                  <div className="flex justify-between text-[14px] font-bold text-[#262626] pt-1 border-t border-[#e5e7eb]">
+                    <span>Total Bill:</span>
+                    <span className="font-mono-num text-[#262626]">
                       {tableOrder.total.toFixed(2)} EGP
+                    </span>
+                  </div>
+
+                  {totalPaidOnline > 0 && (
+                    <div className="flex justify-between text-[12px] text-[#15803d]">
+                      <span>Less: Settled by Companions:</span>
+                      <span className="font-mono-num font-bold">
+                        -{totalPaidOnline.toFixed(2)} EGP
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="flex justify-between text-[15px] font-bold pt-1 border-t border-[#e5e7eb]">
+                    <span className={isOrderFullySettled ? 'text-[#15803d]' : 'text-[#FF0055]'}>
+                      {isOrderFullySettled ? 'Net Balance Due:' : 'Remaining Balance Due:'}
+                    </span>
+                    <span
+                      className={`font-mono-num ${
+                        isOrderFullySettled ? 'text-[#15803d]' : 'text-[#FF0055]'
+                      }`}
+                    >
+                      {remainingDue.toFixed(2)} EGP
                     </span>
                   </div>
                 </div>
 
-                {/* Cashier Payment Action (Only if pending) */}
-                {tableOrder.paymentStatus === 'pending_verification' ? (
+                {/* Cashier Payment Action (Only if pending remaining balance) */}
+                {!isOrderFullySettled && (
                   <div className="pt-4 border-t border-[#e5e7eb] space-y-3">
                     <div className="text-[12px] font-medium text-[#262626]">Tender Method:</div>
                     <div className="grid grid-cols-3 gap-2">
@@ -623,35 +725,35 @@ export const CashierPage: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => setCashTendered(remainingDue.toFixed(2))}
-                            className="px-2.5 py-1 bg-white hover:bg-[#e5e7eb] border border-[#e5e7eb] rounded-full text-[11px] font-mono-num font-bold text-[#262626]"
+                            className="px-2.5 py-1 bg-white hover:bg-[#e5e7eb] border border-[#e5e7eb] rounded-full text-[11px] font-mono-num font-bold text-[#262626] cursor-pointer"
                           >
                             Exact ({remainingDue.toFixed(0)})
                           </button>
                           <button
                             type="button"
                             onClick={() => setCashTendered('100')}
-                            className="px-2.5 py-1 bg-white hover:bg-[#e5e7eb] border border-[#e5e7eb] rounded-full text-[11px] font-mono-num text-[#262626]"
+                            className="px-2.5 py-1 bg-white hover:bg-[#e5e7eb] border border-[#e5e7eb] rounded-full text-[11px] font-mono-num text-[#262626] cursor-pointer"
                           >
                             100
                           </button>
                           <button
                             type="button"
                             onClick={() => setCashTendered('200')}
-                            className="px-2.5 py-1 bg-white hover:bg-[#e5e7eb] border border-[#e5e7eb] rounded-full text-[11px] font-mono-num text-[#262626]"
+                            className="px-2.5 py-1 bg-white hover:bg-[#e5e7eb] border border-[#e5e7eb] rounded-full text-[11px] font-mono-num text-[#262626] cursor-pointer"
                           >
                             200
                           </button>
                           <button
                             type="button"
                             onClick={() => setCashTendered('500')}
-                            className="px-2.5 py-1 bg-white hover:bg-[#e5e7eb] border border-[#e5e7eb] rounded-full text-[11px] font-mono-num text-[#262626]"
+                            className="px-2.5 py-1 bg-white hover:bg-[#e5e7eb] border border-[#e5e7eb] rounded-full text-[11px] font-mono-num text-[#262626] cursor-pointer"
                           >
                             500
                           </button>
                           <button
                             type="button"
                             onClick={() => setCashTendered('1000')}
-                            className="px-2.5 py-1 bg-white hover:bg-[#e5e7eb] border border-[#e5e7eb] rounded-full text-[11px] font-mono-num text-[#262626]"
+                            className="px-2.5 py-1 bg-white hover:bg-[#e5e7eb] border border-[#e5e7eb] rounded-full text-[11px] font-mono-num text-[#262626] cursor-pointer"
                           >
                             1000
                           </button>
@@ -661,7 +763,7 @@ export const CashierPage: React.FC = () => {
                               const curr = parseFloat(cashTendered) || remainingDue;
                               setCashTendered((curr + 50).toString());
                             }}
-                            className="px-2.5 py-1 bg-white hover:bg-[#e5e7eb] border border-[#e5e7eb] rounded-full text-[11px] font-mono-num text-[#262626]"
+                            className="px-2.5 py-1 bg-white hover:bg-[#e5e7eb] border border-[#e5e7eb] rounded-full text-[11px] font-mono-num text-[#262626] cursor-pointer"
                           >
                             +50
                           </button>
@@ -671,7 +773,7 @@ export const CashierPage: React.FC = () => {
                           type="number"
                           value={cashTendered}
                           onChange={(e) => setCashTendered(e.target.value)}
-                          placeholder={`e.g. ${Math.ceil(tableOrder.total / 100) * 100}`}
+                          placeholder={`e.g. ${Math.ceil(remainingDue / 100) * 100}`}
                           className="w-full px-3 py-2 rounded-lg border border-[#e5e7eb] bg-white font-mono-num text-[14px] text-[#262626] focus:outline-hidden focus:border-[#FF0055]"
                         />
 
@@ -695,18 +797,9 @@ export const CashierPage: React.FC = () => {
                         <polyline points="20 6 9 17 4 12" />
                       </svg>
                       <span>
-                        Confirm Payment ({tableOrder.total.toFixed(2)} EGP) & Fire to KDS
+                        Confirm Cashier Payment ({remainingDue.toFixed(2)} EGP) &amp; Fire to KDS
                       </span>
                     </button>
-                  </div>
-                ) : (
-                  <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-center space-y-1">
-                    <div className="text-emerald-800 font-bold text-[14px]">
-                      VERIFIED PAID // FIRED TO KDS
-                    </div>
-                    <div className="text-[12px] font-mono-num text-emerald-700">
-                      Paid via {tableOrder.paymentMethod?.toUpperCase()} • Cooking on grill line
-                    </div>
                   </div>
                 )}
               </div>
@@ -731,51 +824,56 @@ export const CashierPage: React.FC = () => {
             </div>
           ) : (
             <div className="divide-y divide-[#e5e7eb]">
-              {pendingOrders.map((order) => (
-                <div
-                  key={order.id}
-                  className="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
-                >
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono-num font-bold text-[#262626] text-[15px]">
-                        Chit #{order.cashierChitCode || order.id}
-                      </span>
-                      <span className="px-2 py-0.5 rounded-full bg-[#fff0f3] text-[#FF0055] text-[11px] font-mono-num font-semibold">
-                        Table {order.tableNumber || 'Counter'}
-                      </span>
+              {pendingOrders.map((order) => {
+                const paidOnline = Object.values(order.paidDiners || {}).reduce((s, d) => s + d.amount, 0);
+                const netDue = Math.max(0, Math.round((order.total - paidOnline) * 100) / 100);
+
+                return (
+                  <div
+                    key={order.id}
+                    className="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                  >
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono-num font-bold text-[#262626] text-[15px]">
+                          Chit #{order.cashierChitCode || order.id}
+                        </span>
+                        <span className="px-2 py-0.5 rounded-full bg-[#fff0f3] text-[#FF0055] text-[11px] font-mono-num font-semibold">
+                          Table {order.tableNumber || 'Counter'}
+                        </span>
+                      </div>
+                      <div className="text-[12px] text-[#727272] mt-0.5">
+                        {order.items.map((i) => `${i.quantity}x ${i.menuItem.name}`).join(', ')}
+                      </div>
                     </div>
-                    <div className="text-[12px] text-[#727272] mt-0.5">
-                      {order.items.map((i) => `${i.quantity}x ${i.menuItem.name}`).join(', ')}
+
+                    <div className="flex items-center gap-3">
+                      <div className="text-right">
+                        <span className="font-mono-num font-bold text-[#FF0055] text-[16px]">
+                          {netDue.toFixed(2)} EGP
+                        </span>
+                        <span className="text-[10px] font-mono-num text-[#949494] block">incl. VAT</span>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => handleOpenVoidModal(order.id)}
+                        className="px-3 py-1.5 rounded-full border border-red-200 text-red-600 hover:bg-red-50 text-[11px] font-medium transition-colors cursor-pointer"
+                      >
+                        Void
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleConfirmPayment(order.id, order.cashierChitCode)}
+                        className="px-4 py-2 rounded-full bg-[#FF0055] text-white text-[12px] font-bold hover:opacity-95 transition-all cursor-pointer shadow-xs"
+                      >
+                        Confirm Payment
+                      </button>
                     </div>
                   </div>
-
-                  <div className="flex items-center gap-3">
-                    <div className="text-right">
-                      <span className="font-mono-num font-bold text-[#FF0055] text-[16px]">
-                        {order.total.toFixed(2)} EGP
-                      </span>
-                      <span className="text-[10px] font-mono-num text-[#949494] block">incl. VAT</span>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => handleOpenVoidModal(order.id)}
-                      className="px-3 py-1.5 rounded-full border border-red-200 text-red-600 hover:bg-red-50 text-[11px] font-medium transition-colors"
-                    >
-                      Void
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => handleConfirmPayment(order.id, order.cashierChitCode)}
-                      className="px-4 py-2 rounded-full bg-[#FF0055] text-white text-[12px] font-bold hover:opacity-95 transition-all cursor-pointer shadow-xs"
-                    >
-                      Confirm Payment
-                    </button>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </section>
@@ -796,7 +894,7 @@ export const CashierPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setIsVoidModalOpen(false)}
-                className="w-7 h-7 flex items-center justify-center rounded-full text-[#727272] hover:text-[#262626] hover:bg-[#f9f9f9]"
+                className="w-7 h-7 flex items-center justify-center rounded-full text-[#727272] hover:text-[#262626] hover:bg-[#f9f9f9] cursor-pointer"
                 aria-label="Close dialog"
               >
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -843,7 +941,7 @@ export const CashierPage: React.FC = () => {
                     setVoidTargetOrderId(null);
                   }
                 }}
-                className="px-3 py-1.5 text-red-600 hover:bg-red-50 rounded-full text-[12px] font-medium transition-colors border border-transparent hover:border-red-200"
+                className="px-3 py-1.5 text-red-600 hover:bg-red-50 rounded-full text-[12px] font-medium transition-colors border border-transparent hover:border-red-200 cursor-pointer"
               >
                 Delete Permanently
               </button>
@@ -852,7 +950,7 @@ export const CashierPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsVoidModalOpen(false)}
-                  className="px-4 py-2 border border-[#e5e7eb] rounded-full text-[12px] font-medium text-[#727272] hover:bg-[#f9f9f9]"
+                  className="px-4 py-2 border border-[#e5e7eb] rounded-full text-[12px] font-medium text-[#727272] hover:bg-[#f9f9f9] cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -860,7 +958,7 @@ export const CashierPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={handleConfirmVoid}
-                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-full text-[12px] font-bold shadow-xs"
+                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-full text-[12px] font-bold shadow-xs cursor-pointer"
                 >
                   Confirm Void Order
                 </button>
@@ -945,7 +1043,7 @@ export const CashierPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setIsReceiptModalOpen(false)}
-                className="px-4 py-2 border border-[#e5e7eb] rounded-full text-[12px] font-sans text-[#727272] hover:bg-[#f9f9f9]"
+                className="px-4 py-2 border border-[#e5e7eb] rounded-full text-[12px] font-sans text-[#727272] hover:bg-[#f9f9f9] cursor-pointer"
               >
                 Close
               </button>
@@ -954,7 +1052,7 @@ export const CashierPage: React.FC = () => {
                 onClick={() => {
                   window.print();
                 }}
-                className="px-4 py-2 bg-[#262626] hover:bg-black text-white rounded-full text-[12px] font-sans font-medium"
+                className="px-4 py-2 bg-[#262626] hover:bg-black text-white rounded-full text-[12px] font-sans font-medium cursor-pointer"
               >
                 Print Chit
               </button>
