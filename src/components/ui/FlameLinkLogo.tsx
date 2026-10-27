@@ -354,8 +354,11 @@ export const FlameLinkLogo: React.FC<FlameLinkLogoProps> = ({
       ? 'text-[#262626]'
       : 'text-[#FF0055]';
 
+  const gapClass =
+    size === 'sm' ? 'gap-1' : size === 'lg' ? 'gap-2' : size === 'xl' ? 'gap-2.5' : 'gap-1.5';
+
   return (
-    <span className={`group inline-flex items-center gap-2.5 select-none transition-transform duration-200 cursor-pointer ${className}`}>
+    <span className={`group inline-flex items-center ${gapClass} select-none transition-transform duration-200 cursor-pointer ${className}`}>
       {/* Exact Vector SVG Mark with Flame Hover Animation */}
       <span className="flex items-center justify-center shrink-0">
         <FlameMark className={iconSize} />

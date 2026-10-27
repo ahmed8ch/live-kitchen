@@ -14,12 +14,15 @@ export const CartDrawer: React.FC = () => {
   const clearCart = useAppStore((state) => state.clearCart);
   const activeTable = useAppStore((state) => state.activeTable);
   const currentMember = useAppStore((state) => state.currentMember);
+  const companionMember = useAppStore((state) => state.companionMember);
   const tableSessions = useAppStore((state) => state.tableSessions);
   const createOrder = useAppStore((state) => state.createOrder);
   const setMemberReadyToPay = useAppStore((state) => state.setMemberReadyToPay);
   const leaveTableSession = useAppStore((state) => state.leaveTableSession);
+  const removeMemberFromTable = useAppStore((state) => state.removeMemberFromTable);
 
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>('apple_pay');
+  const [splitStrategy, setSplitStrategy] = useState<'host_pays_all' | 'split_by_diner' | 'equal_split'>('host_pays_all');
   const [showPaymentChoice, setShowPaymentChoice] = useState(false);
 
   if (!isCartDrawerOpen) {
@@ -27,7 +30,7 @@ export const CartDrawer: React.FC = () => {
   }
 
   const session = activeTable ? tableSessions[activeTable] : null;
-  const isHost = currentMember?.isHost ?? true;
+  const isHost = (currentMember?.isHost ?? true) && !companionMember;
   const members = session?.members || [];
   const readyMembersCount = members.filter((m) => m.isReadyToPay).length;
 
@@ -64,7 +67,7 @@ export const CartDrawer: React.FC = () => {
   };
 
   const handleFinalizeCheckout = (method: PaymentMethod) => {
-    const ticket = createOrder(method);
+    const ticket = createOrder(method, splitStrategy);
     const query = activeTable ? `?table=${activeTable}` : '';
     navigate(`/settlement/${ticket.id}${query}`);
   };
@@ -167,9 +170,21 @@ export const CartDrawer: React.FC = () => {
                       {group.isYou ? 'Your Items' : `${group.name}'s Items`}
                     </span>
                   </div>
-                  <span className="text-[11px] font-mono-num text-[#727272]">
-                    {group.items.reduce((s, i) => s + i.quantity, 0)} items
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] font-mono-num text-[#727272]">
+                      {group.items.reduce((s, i) => s + i.quantity, 0)} items
+                    </span>
+                    {isHost && !group.isYou && activeTable && (
+                      <button
+                        type="button"
+                        onClick={() => removeMemberFromTable(activeTable, memberId)}
+                        className="text-[10px] text-red-600 hover:underline cursor-pointer font-mono-num"
+                        title="Remove member from table"
+                      >
+                        [Remove]
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 {group.items.map((item) => {
@@ -232,32 +247,40 @@ export const CartDrawer: React.FC = () => {
 
                       {/* Quantity Adjustment Controls (Touchscreen >= 44x44px compliance) */}
                       <div className="flex items-center justify-between pt-2 border-t border-[#f0f0f0]">
-                        <div className="flex items-center gap-1.5 border border-[#e5e7eb] rounded-full p-0.5 bg-[#f9f9f9]">
-                          <button
-                            onClick={() => updateCartItemQuantity(item.cartItemId, item.quantity - 1)}
-                            className="min-w-[44px] min-h-[44px] rounded-full bg-white hover:bg-[#f0f0f0] border border-[#e5e7eb] flex items-center justify-center text-[#262626] cursor-pointer text-base font-bold transition-all active:scale-90 shadow-xs"
-                            aria-label="Decrease quantity"
-                          >
-                            -
-                          </button>
-                          <span className="w-7 text-center font-mono-num font-bold text-[13px]" data-ui-number>
-                            {item.quantity}
-                          </span>
-                          <button
-                            onClick={() => updateCartItemQuantity(item.cartItemId, item.quantity + 1)}
-                            className="min-w-[44px] min-h-[44px] rounded-full bg-white hover:bg-[#f0f0f0] border border-[#e5e7eb] flex items-center justify-center text-[#262626] cursor-pointer text-base font-bold transition-all active:scale-90 shadow-xs"
-                            aria-label="Increase quantity"
-                          >
-                            +
-                          </button>
-                        </div>
+                        {isHost || group.isYou ? (
+                          <>
+                            <div className="flex items-center gap-1.5 border border-[#e5e7eb] rounded-full p-0.5 bg-[#f9f9f9]">
+                              <button
+                                onClick={() => updateCartItemQuantity(item.cartItemId, item.quantity - 1)}
+                                className="min-w-[44px] min-h-[44px] rounded-full bg-white hover:bg-[#f0f0f0] border border-[#e5e7eb] flex items-center justify-center text-[#262626] cursor-pointer text-base font-bold transition-all active:scale-90 shadow-xs"
+                                aria-label="Decrease quantity"
+                              >
+                                -
+                              </button>
+                              <span className="w-7 text-center font-mono-num font-bold text-[13px]" data-ui-number>
+                                {item.quantity}
+                              </span>
+                              <button
+                                onClick={() => updateCartItemQuantity(item.cartItemId, item.quantity + 1)}
+                                className="min-w-[44px] min-h-[44px] rounded-full bg-white hover:bg-[#f0f0f0] border border-[#e5e7eb] flex items-center justify-center text-[#262626] cursor-pointer text-base font-bold transition-all active:scale-90 shadow-xs"
+                                aria-label="Increase quantity"
+                              >
+                                +
+                              </button>
+                            </div>
 
-                        <button
-                          onClick={() => removeFromCart(item.cartItemId)}
-                          className="min-h-[44px] px-3 inline-flex items-center text-[12px] font-medium text-[#727272] hover:text-[#dc2626] transition-colors cursor-pointer"
-                        >
-                          Remove
-                        </button>
+                            <button
+                              onClick={() => removeFromCart(item.cartItemId)}
+                              className="min-h-[44px] px-3 inline-flex items-center text-[12px] font-medium text-[#727272] hover:text-[#dc2626] transition-colors cursor-pointer"
+                            >
+                              Remove
+                            </button>
+                          </>
+                        ) : (
+                          <div className="text-[11px] font-mono-num text-[#949494] py-1">
+                            Chosen by {group.name} ({item.quantity}x)
+                          </div>
+                        )}
                       </div>
                     </div>
                   );
@@ -285,11 +308,81 @@ export const CartDrawer: React.FC = () => {
               </div>
             </div>
 
-            {/* Payment Choice Selection Modal / Expanded Area */}
-            {showPaymentChoice ? (
+            {/* If user is Companion: NOT Host */}
+            {!isHost ? (
+              <div className="space-y-3 pt-1">
+                <div className="p-3.5 rounded-xl bg-amber-50/70 border border-amber-200 text-center space-y-1">
+                  <div className="text-[12px] font-bold text-amber-900">
+                    Waiting for Table Host to Finalize
+                  </div>
+                  <div className="text-[11px] text-amber-800">
+                    Host ({session?.members.find((m) => m.isHost)?.name || 'Host'}) will review the table order and submit it to the kitchen.
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleToggleMyReady}
+                  data-ui-radius="999"
+                  className={`w-full py-3.5 rounded-full text-[13px] font-bold transition-all cursor-pointer flex items-center justify-center gap-2 shadow-xs ${
+                    currentMember?.isReadyToPay
+                      ? 'bg-emerald-600 text-white hover:bg-emerald-700'
+                      : 'bg-[#FF0055] text-white hover:opacity-95 btn-crimson-glow'
+                  }`}
+                >
+                  <span>
+                    {currentMember?.isReadyToPay
+                      ? 'I am Ready (Click to Browse More)'
+                      : 'I am Done Choosing (Mark Ready) ->'}
+                  </span>
+                </button>
+              </div>
+            ) : showPaymentChoice ? (
               <div className="p-4 rounded-xl bg-white border border-[#e5e7eb] space-y-3 animate-in fade-in duration-150">
-                <div className="text-[12px] font-medium text-[#262626]">
-                  Select Payment Method:
+                {/* Split Strategy Choice */}
+                <div>
+                  <div className="text-[11px] font-mono-num font-bold uppercase tracking-wider text-[#727272] mb-1.5">
+                    Table Payment Strategy
+                  </div>
+                  <div className="grid grid-cols-3 gap-1.5 text-center">
+                    <button
+                      type="button"
+                      onClick={() => setSplitStrategy('host_pays_all')}
+                      className={`p-2 rounded-lg border text-[11px] transition-all cursor-pointer ${
+                        splitStrategy === 'host_pays_all'
+                          ? 'border-[#FF0055] bg-[#fff0f3] font-bold text-[#FF0055]'
+                          : 'border-[#e5e7eb] bg-white text-[#616161]'
+                      }`}
+                    >
+                      Host Pays All
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSplitStrategy('split_by_diner')}
+                      className={`p-2 rounded-lg border text-[11px] transition-all cursor-pointer ${
+                        splitStrategy === 'split_by_diner'
+                          ? 'border-[#FF0055] bg-[#fff0f3] font-bold text-[#FF0055]'
+                          : 'border-[#e5e7eb] bg-white text-[#616161]'
+                      }`}
+                    >
+                      Split by Diner
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSplitStrategy('equal_split')}
+                      className={`p-2 rounded-lg border text-[11px] transition-all cursor-pointer ${
+                        splitStrategy === 'equal_split'
+                          ? 'border-[#FF0055] bg-[#fff0f3] font-bold text-[#FF0055]'
+                          : 'border-[#e5e7eb] bg-white text-[#616161]'
+                      }`}
+                    >
+                      Equal Split
+                    </button>
+                  </div>
+                </div>
+
+                <div className="text-[11px] font-mono-num font-bold uppercase tracking-wider text-[#727272] pt-1">
+                  Payment Method:
                 </div>
 
                 <div className="grid grid-cols-2 gap-2">
@@ -329,32 +422,32 @@ export const CartDrawer: React.FC = () => {
                     onClick={() => handleFinalizeCheckout(selectedMethod)}
                     className="flex-2 py-2.5 rounded-full bg-[#FF0055] text-white text-[12px] font-bold hover:opacity-95 cursor-pointer shadow-xs btn-crimson-glow"
                   >
-                    Confirm & Settle ({total.toFixed(2)} EGP)
+                    Submit Table Order -&gt;
                   </button>
                 </div>
               </div>
             ) : (
               <div className="space-y-2.5">
-                {/* Primary Master Checkout Button — ALWAYS accessible to send order to kitchen */}
+                {/* Host Master Checkout Button */}
                 <button
                   onClick={handleProceedToPayment}
                   data-ui-radius="999"
                   className="w-full py-3.5 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[14px] font-bold transition-all btn-crimson-glow active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2 shadow-xs"
                 >
-                  <span>Proceed to Checkout ({total.toFixed(2)} EGP) -&gt;</span>
+                  <span>Submit Table Order ({total.toFixed(2)} EGP) -&gt;</span>
                 </button>
 
-                {/* Secondary Diner Readiness Status & Toggle */}
-                {members.length > 1 && currentMember && (
+                {/* Diner Readiness Status */}
+                {members.length > 1 && (
                   <div className="flex items-center justify-between pt-1 text-[11px] font-mono-num text-[#727272]">
                     <span>
-                      Table Readiness: {readyMembersCount}/{members.length} Diners
+                      Table Diners Ready: {readyMembersCount}/{members.length}
                     </span>
                     <button
                       onClick={handleToggleMyReady}
                       className="text-[#FF0055] hover:underline font-bold cursor-pointer"
                     >
-                      {currentMember.isReadyToPay ? '[Mark as Browsing]' : '[Mark Ready to Settle]'}
+                      {currentMember?.isReadyToPay ? '[Mark Browsing]' : '[Mark Ready]'}
                     </button>
                   </div>
                 )}

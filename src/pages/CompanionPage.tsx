@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useSearchParams, Link } from 'react-router-dom';
 import { useAppStore } from '../store/useAppStore';
 import { MENU_ITEMS } from '../domain/menuData';
-import { MenuCategory, MenuItem } from '../types/domain';
+import { MenuCategory, MenuItem, PaymentMethod } from '../types/domain';
 import { DishModal } from '../components/menu/DishModal';
 import { FloatingCartBar } from '../components/cart/FloatingCartBar';
 import { CartDrawer } from '../components/cart/CartDrawer';
@@ -23,18 +23,89 @@ export const CompanionPage: React.FC = () => {
 
   const activeTable = useAppStore((state) => state.activeTable);
   const companionMember = useAppStore((state) => state.companionMember);
+  const currentMember = useAppStore((state) => state.currentMember);
+  const tableSessions = useAppStore((state) => state.tableSessions);
+  const orders = useAppStore((state) => state.orders);
+  const payDinerShare = useAppStore((state) => state.payDinerShare);
+  const showToast = useAppStore((state) => state.showToast);
   const initCompanionSession = useAppStore((state) => state.initCompanionSession);
   const addToCartAsCompanion = useAppStore((state) => state.addToCartAsCompanion);
 
   const [activeCategory, setActiveCategory] = useState<'all' | MenuCategory>('all');
   const [selectedDish, setSelectedDish] = useState<MenuItem | null>(null);
+  const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>('apple_pay');
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const cleanTable = (tableParam || activeTable || 'T-04').trim().toUpperCase();
 
   // Ensure table session & companion profile are initialized
   useEffect(() => {
     initCompanionSession(cleanTable);
-  }, [cleanTable]);
+  }, [cleanTable, initCompanionSession]);
+
+  const session = tableSessions[cleanTable];
+  const effectiveMember = companionMember || currentMember;
+
+  // Lookup active order ticket for this table session
+  const activeTicket = useMemo(() => {
+    if (session?.activeOrderId) {
+      const found = orders.find((o) => o.id === session.activeOrderId);
+      if (found) return found;
+    }
+    const pendingOrder = orders.find(
+      (o) => o.tableNumber === cleanTable && (o.paymentStatus === 'pending_verification' || !o.isPaid)
+    );
+    if (pendingOrder) return pendingOrder;
+    return orders.find((o) => o.tableNumber === cleanTable);
+  }, [orders, session?.activeOrderId, cleanTable]);
+
+  // Is table currently waiting for payment or recently created
+  const isSettlementActive = Boolean(
+    activeTicket && (session?.status === 'waiting_for_payment' || activeTicket.paymentStatus === 'pending_verification')
+  );
+
+  // Companion's attributed dishes from the active order
+  const companionItems = useMemo(() => {
+    if (!activeTicket || !effectiveMember) return [];
+    return activeTicket.items.filter(
+      (item) => item.addedBy?.memberId === effectiveMember.id || item.addedBy?.name === effectiveMember.name
+    );
+  }, [activeTicket, effectiveMember]);
+
+  const companionSubtotal = useMemo(() => {
+    return companionItems.reduce((sum, item) => {
+      const modTotal = (item.selectedModifiers || []).reduce((mSum, m) => mSum + m.price, 0);
+      return sum + (item.menuItem.basePrice + modTotal) * item.quantity;
+    }, 0);
+  }, [companionItems]);
+
+  const companionVat = Math.round(companionSubtotal * 0.14 * 100) / 100;
+  const companionTotalShare = Math.round((companionSubtotal + companionVat) * 100) / 100;
+
+  // Has this companion settled their share
+  const paidRecord = effectiveMember && activeTicket?.paidDiners ? activeTicket.paidDiners[effectiveMember.id] : undefined;
+  const isCompanionSharePaid = Boolean(paidRecord);
+
+  // Table total progress
+  const totalPaidShares = Object.values(activeTicket?.paidDiners || {}).reduce(
+    (sum, record) => sum + record.amount,
+    0
+  );
+  const remainingTableBalance = activeTicket
+    ? Math.max(0, Math.round((activeTicket.total - totalPaidShares) * 100) / 100)
+    : 0;
+  const isOrderFullySettled =
+    activeTicket?.paymentStatus === 'verified_paid' || remainingTableBalance <= 0.05;
+
+  const handlePayMyShare = () => {
+    if (!activeTicket || !effectiveMember) return;
+    setIsProcessing(true);
+    setTimeout(() => {
+      payDinerShare(activeTicket.id, effectiveMember.id, selectedMethod, companionTotalShare);
+      setIsProcessing(false);
+      showToast(`Your share of ${companionTotalShare.toFixed(2)} EGP authorized via ${selectedMethod.replace('_', ' ').toUpperCase()}.`);
+    }, 450);
+  };
 
   const filteredDishes =
     activeCategory === 'all'
@@ -46,7 +117,188 @@ export const CompanionPage: React.FC = () => {
       {/* Sticky Table Lobby Bar (PIN, Table Diners, Companion sync) */}
       <TableLobbyBar />
 
-      {/* Clean, Functional Menu Header Identical to MenuPage */}
+      {/* DEDICATED DISTRIBUTED SETTLEMENT CARD (Visible when table order is in checkout/settlement) */}
+      {isSettlementActive && activeTicket && (
+        <section className="bg-[#fff0f3] border-b-2 border-[#ffd1dc] py-5 px-4 sm:px-6">
+          <div className="max-w-xl mx-auto space-y-4">
+            {/* Header Status Strip */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#FF0055]" />
+                <span className="text-[11px] font-mono-num font-bold uppercase tracking-wider text-[#FF0055]">
+                  Table Settlement Active
+                </span>
+              </div>
+              <span className="text-[12px] font-mono-num text-[#727272]">
+                Chit #{activeTicket.cashierChitCode || activeTicket.id}
+              </span>
+            </div>
+
+            {/* Main Share Card */}
+            <div className="bg-white rounded-2xl p-5 border border-[#e5e7eb] shadow-xs space-y-4">
+              <div className="flex items-start justify-between border-b border-[#f0f0f0] pb-3">
+                <div>
+                  <div className="text-[11px] font-mono-num uppercase tracking-wider text-[#727272]">
+                    Your Personal Dine-In Share
+                  </div>
+                  <h3 className="text-lg font-bold text-[#262626] mt-0.5">
+                    {effectiveMember?.name || 'Companion'}
+                  </h3>
+                </div>
+
+                <div className="text-right">
+                  <div className="text-[10px] font-mono-num uppercase tracking-wider text-[#727272]">
+                    Share Total
+                  </div>
+                  <div className="text-lg font-mono-num font-bold text-[#FF0055]">
+                    {companionTotalShare.toFixed(2)} EGP
+                  </div>
+                </div>
+              </div>
+
+              {/* Exact Companion Item Breakdown */}
+              {companionItems.length > 0 ? (
+                <div className="space-y-2 text-[13px]">
+                  <div className="text-[11px] font-mono-num uppercase text-[#949494]">
+                    Dishes Added by You ({companionItems.length}):
+                  </div>
+                  {companionItems.map((item) => {
+                    const modTotal = (item.selectedModifiers || []).reduce((s, m) => s + m.price, 0);
+                    const linePrice = (item.menuItem.basePrice + modTotal) * item.quantity;
+                    return (
+                      <div key={item.cartItemId} className="flex justify-between items-start text-[#262626]">
+                        <div>
+                          <span className="font-medium">{item.quantity}x {item.menuItem.name}</span>
+                          {item.selectedModifiers.length > 0 && (
+                            <div className="text-[11px] text-[#727272]">
+                              +{item.selectedModifiers.map((m) => m.name).join(', ')}
+                            </div>
+                          )}
+                        </div>
+                        <span className="font-mono-num text-[#727272] shrink-0 ml-2">
+                          {linePrice.toFixed(2)} EGP
+                        </span>
+                      </div>
+                    );
+                  })}
+
+                  <div className="pt-2 border-t border-[#f0f0f0] flex justify-between text-[11px] text-[#727272]">
+                    <span>Net Subtotal: {companionSubtotal.toFixed(2)} EGP</span>
+                    <span>14% VAT: {companionVat.toFixed(2)} EGP</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-[13px] text-[#727272] py-2">
+                  No individual dishes were attributed to your profile in this round.
+                </div>
+              )}
+
+              {/* Settlement Action State */}
+              {isCompanionSharePaid ? (
+                <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-center space-y-1">
+                  <div className="text-emerald-800 font-bold text-[13px]">
+                    SHARE PAID // {paidRecord?.amount.toFixed(2)} EGP VIA {paidRecord?.paymentMethod?.toUpperCase()}
+                  </div>
+                  <div className="text-[11px] font-mono-num text-emerald-700">
+                    {isOrderFullySettled
+                      ? 'All table shares settled. Dishes are firing to the kitchen pass.'
+                      : `Awaiting other table diners (${remainingTableBalance.toFixed(2)} EGP remaining).`}
+                  </div>
+                </div>
+              ) : companionTotalShare > 0 ? (
+                <div className="space-y-3 pt-1">
+                  <div className="text-[12px] font-medium text-[#262626]">
+                    Select Your Payment Method:
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedMethod('apple_pay')}
+                      className={`p-2.5 rounded-lg border text-center transition-all cursor-pointer ${
+                        selectedMethod === 'apple_pay'
+                          ? 'border-[#FF0055] bg-[#fff0f3] shadow-xs'
+                          : 'border-[#e5e7eb] bg-white hover:bg-[#f9f9f9]'
+                      }`}
+                    >
+                      <div className="text-[12px] font-bold text-[#262626]">Apple Pay</div>
+                      <div className="text-[10px] text-[#727272] mt-0.5">Biometric Auth</div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setSelectedMethod('card')}
+                      className={`p-2.5 rounded-lg border text-center transition-all cursor-pointer ${
+                        selectedMethod === 'card'
+                          ? 'border-[#FF0055] bg-[#fff0f3] shadow-xs'
+                          : 'border-[#e5e7eb] bg-white hover:bg-[#f9f9f9]'
+                      }`}
+                    >
+                      <div className="text-[12px] font-bold text-[#262626]">Card</div>
+                      <div className="text-[10px] text-[#727272] mt-0.5">Visa / Meeza</div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setSelectedMethod('cashier')}
+                      className={`p-2.5 rounded-lg border text-center transition-all cursor-pointer ${
+                        selectedMethod === 'cashier'
+                          ? 'border-[#FF0055] bg-[#fff0f3] shadow-xs'
+                          : 'border-[#e5e7eb] bg-white hover:bg-[#f9f9f9]'
+                      }`}
+                    >
+                      <div className="text-[12px] font-bold text-[#262626]">Cashier</div>
+                      <div className="text-[10px] text-[#727272] mt-0.5">Desk Chit</div>
+                    </button>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handlePayMyShare}
+                    disabled={isProcessing}
+                    data-ui-radius="999"
+                    className="w-full py-3 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[13px] font-bold transition-all btn-crimson-glow shadow-xs cursor-pointer flex items-center justify-center gap-2 active:scale-[0.99]"
+                  >
+                    {isProcessing ? (
+                      <span>Authorizing Payment...</span>
+                    ) : (
+                      <span>Pay My Share ({companionTotalShare.toFixed(2)} EGP) -&gt;</span>
+                    )}
+                  </button>
+                </div>
+              ) : null}
+
+              {/* Table Progress Bar */}
+              <div className="pt-2 border-t border-[#f0f0f0] space-y-1.5">
+                <div className="flex justify-between text-[11px] font-mono-num text-[#727272]">
+                  <span>Table Balance Remaining:</span>
+                  <span className="font-bold text-[#FF0055]">{remainingTableBalance.toFixed(2)} EGP</span>
+                </div>
+                <div className="w-full bg-[#e5e7eb] h-1.5 rounded-full overflow-hidden">
+                  <div
+                    className="bg-[#15803d] h-full transition-all duration-300"
+                    style={{
+                      width: `${Math.min(100, Math.round((totalPaidShares / activeTicket.total) * 100))}%`,
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Auxiliary Link */}
+              <div className="text-center pt-1">
+                <Link
+                  to={`/settlement/${activeTicket.id}?table=${cleanTable}`}
+                  className="text-[12px] text-[#727272] hover:text-[#262626] underline font-medium"
+                >
+                  View Full Table Thermal Chit -&gt;
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Clean, Functional Menu Header */}
       <section className="bg-white border-b border-[#e5e7eb] pt-6 pb-5 sm:pt-8 sm:pb-6">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
@@ -56,7 +308,7 @@ export const CompanionPage: React.FC = () => {
                   Menu
                 </h1>
                 <span className="px-2.5 py-0.5 rounded-full bg-[#fff0f3] border border-[#ffd1dc] text-[#FF0055] text-[11px] font-mono-num font-bold">
-                  {companionMember?.name || 'Guest'}
+                  {effectiveMember?.name || 'Guest'}
                 </span>
               </div>
               <p className="text-[13px] text-[#727272]">
@@ -74,7 +326,7 @@ export const CompanionPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Category Filter Pills (2px solid #FF0055 selected state) */}
+          {/* Category Filter Pills */}
           <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none" data-ui-actions="category-filters">
             {CATEGORIES.map((cat) => (
               <button
@@ -94,7 +346,7 @@ export const CompanionPage: React.FC = () => {
         </div>
       </section>
 
-      {/* Dish Grid Section (3-column, high-resolution photography identical to MenuPage) */}
+      {/* Dish Grid Section */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8">
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-lg font-bold text-[#262626]">
@@ -113,7 +365,6 @@ export const CompanionPage: React.FC = () => {
               data-ui-radius="16"
               className="group bg-white rounded-2xl border border-[#e5e7eb] overflow-hidden shadow-xs hover:border-[#FF0055] transition-all cursor-pointer flex flex-col active:scale-[0.99] select-none"
             >
-              {/* Full Dish Image with Badges */}
               <div className="relative h-48 sm:h-52 w-full bg-[#f9f9f9] overflow-hidden">
                 <img
                   src={dish.imageUrl}
@@ -140,7 +391,6 @@ export const CompanionPage: React.FC = () => {
                 )}
               </div>
 
-              {/* Dish Card Content */}
               <div className="p-5 flex-1 flex flex-col justify-between">
                 <div>
                   <h3 className="text-[16px] font-bold text-[#262626] group-hover:text-[#FF0055] transition-colors leading-snug">
@@ -156,7 +406,6 @@ export const CompanionPage: React.FC = () => {
                   </p>
                 </div>
 
-                {/* Bottom Price & Customize Action */}
                 <div className="mt-5 pt-4 border-t border-[#f0f0f0] flex items-center justify-between">
                   <div className="text-[17px] font-mono-num font-bold text-[#FF0055]" data-ui-number>
                     {dish.basePrice.toFixed(2)} EGP
@@ -175,7 +424,7 @@ export const CompanionPage: React.FC = () => {
         </div>
       </section>
 
-      {/* Rich Dish Modal Customization with Companion Attribution */}
+      {/* Dish Modal */}
       <DishModal
         dish={selectedDish}
         onClose={() => setSelectedDish(null)}

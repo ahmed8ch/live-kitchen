@@ -72,7 +72,10 @@ interface AppState {
   toggleCompanionReady: (tableNumber: string) => void;
 
   // The Payment Gate & Order actions
-  createOrder: (paymentMethod: PaymentMethod) => OrderTicket;
+  createOrder: (
+    paymentMethod: PaymentMethod,
+    splitStrategy?: 'host_pays_all' | 'split_by_diner' | 'equal_split'
+  ) => OrderTicket;
   verifyCashierPayment: (orderId: string, paymentMethod?: PaymentMethod) => void;
   advanceOrderStatus: (orderId: string) => void;
   payOrderOnline: (orderId: string, method: PaymentMethod, splitCount?: number) => void;
@@ -813,7 +816,7 @@ export const useAppStore = create<AppState>()(
       closeCartDrawer: () => set({ isCartDrawerOpen: false }),
 
       // THE PAYMENT GATE: Dynamic order creation from cart (starts as Draft until settled)
-      createOrder: (paymentMethod) => {
+      createOrder: (paymentMethod, splitStrategy = 'host_pays_all') => {
         const { cart, activeTable, activeTablePin, orders, tableSessions } = get();
         if (cart.length === 0) {
           throw new Error('Cannot create an order with an empty cart');
@@ -843,6 +846,7 @@ export const useAppStore = create<AppState>()(
           status: 'received',
           isPaid: false,
           paymentMethod,
+          splitStrategy,
           paymentStatus: 'pending_verification',
           cashierChitCode: cashierCode,
           createdAt: Date.now(),
@@ -879,6 +883,8 @@ export const useAppStore = create<AppState>()(
             type: 'ORDER_CREATED',
             orders: updatedOrders,
             tableSessions: updatedSessions,
+            orderId,
+            tableNumber: activeTable,
           });
         }
 
@@ -978,14 +984,25 @@ export const useAppStore = create<AppState>()(
         const { orders, tableSessions } = get();
         let targetTable: string | null = null;
         let allDinersSettled = false;
+        let paidMemberName = 'Diner';
+        let remainingBalance = 0;
 
         const updatedOrders = orders.map((ticket) => {
           if (ticket.id !== orderId) return ticket;
           targetTable = ticket.tableNumber;
 
           const currentPaid = ticket.paidDiners || {};
-          const memberName =
-            ticket.items.find((i) => i.addedBy?.memberId === memberId)?.addedBy?.name || 'Diner';
+          const foundItemDiner = ticket.items.find((i) => i.addedBy?.memberId === memberId)?.addedBy?.name;
+          const foundSessionDiner = targetTable && tableSessions[targetTable]?.members?.find((m) => m.id === memberId)?.name;
+          const currentMember = get().currentMember;
+          const companionMember = get().companionMember;
+
+          paidMemberName =
+            foundItemDiner ||
+            foundSessionDiner ||
+            (currentMember?.id === memberId ? currentMember.name : null) ||
+            (companionMember?.id === memberId ? companionMember.name : null) ||
+            'Diner';
 
           const existingAmount = currentPaid[memberId]?.amount || 0;
           const newAmount = Math.round((existingAmount + amount) * 100) / 100;
@@ -994,7 +1011,7 @@ export const useAppStore = create<AppState>()(
             ...currentPaid,
             [memberId]: {
               memberId,
-              name: memberName,
+              name: paidMemberName,
               amount: newAmount,
               paidAt: Date.now(),
               paymentMethod: method,
@@ -1002,7 +1019,8 @@ export const useAppStore = create<AppState>()(
           };
 
           const totalPaidSoFar = Object.values(updatedPaid).reduce((sum, r) => sum + r.amount, 0);
-          const remaining = Math.max(0, ticket.total - totalPaidSoFar);
+          const remaining = Math.max(0, Math.round((ticket.total - totalPaidSoFar) * 100) / 100);
+          remainingBalance = remaining;
           const isNowFullyPaid = remaining <= 0.05;
 
           if (isNowFullyPaid) {
@@ -1038,6 +1056,13 @@ export const useAppStore = create<AppState>()(
             type: allDinersSettled ? 'ORDER_PAID' : 'DINER_SHARE_PAID',
             orders: updatedOrders,
             tableSessions: updatedSessions,
+            orderId,
+            targetTable,
+            memberId,
+            memberName: paidMemberName,
+            amount,
+            remainingBalance,
+            allDinersSettled,
           });
         }
       },
@@ -1340,9 +1365,46 @@ if (broadcastChannel) {
         store.syncCart([]);
       }
     }
-    if (data.type === 'ORDER_CREATED' || data.type === 'ORDER_PAID' || data.type === 'DINER_SHARE_PAID') {
+    if (data.type === 'ORDER_CREATED') {
       if (data.orders) store.syncOrders(data.orders);
       if (data.tableSessions) store.syncTableSessions(data.tableSessions);
+      const targetSession = data.tableSessions && store.activeTable ? data.tableSessions[store.activeTable] : null;
+      if (targetSession?.activeOrderId && !store.activeOrderId) {
+        useAppStore.setState({ activeOrderId: targetSession.activeOrderId });
+      }
+      if (store.activeTable === data.tableNumber) {
+        store.showToast(`Order #${data.orderId || ''} placed. Ready for settlement.`);
+      }
+    }
+    if (data.type === 'DINER_SHARE_PAID') {
+      if (data.orders) store.syncOrders(data.orders);
+      if (data.tableSessions) store.syncTableSessions(data.tableSessions);
+
+      if (store.activeTable === data.targetTable) {
+        const isHostScreen =
+          typeof window !== 'undefined' &&
+          !window.location.pathname.startsWith('/companion') &&
+          !window.location.pathname.startsWith('/guest-order');
+
+        const msg = `${data.memberName || 'Diner'} paid their share (${Number(data.amount).toFixed(2)} EGP). Table balance remaining: ${Number(data.remainingBalance || 0).toFixed(2)} EGP.`;
+
+        if (isHostScreen && store.currentMember?.isHost) {
+          if (typeof document !== 'undefined' && document.visibilityState === 'hidden') {
+            queueHostToast(msg);
+          } else {
+            store.showToast(msg);
+          }
+        } else if (store.currentMember?.id !== data.memberId && store.companionMember?.id !== data.memberId) {
+          store.showToast(msg);
+        }
+      }
+    }
+    if (data.type === 'ORDER_PAID') {
+      if (data.orders) store.syncOrders(data.orders);
+      if (data.tableSessions) store.syncTableSessions(data.tableSessions);
+      if (store.activeTable === data.targetTable) {
+        store.showToast(`Table settlement complete! Order #${data.orderId || ''} verified and fired to kitchen.`);
+      }
     }
   };
 }

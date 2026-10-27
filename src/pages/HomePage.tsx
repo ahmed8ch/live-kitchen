@@ -6,6 +6,7 @@ import { FlameLinkLogo } from '../components/ui/FlameLinkLogo';
 
 export const HomePage: React.FC = () => {
   const activeTable = useAppStore((state) => state.activeTable);
+  const openPinModal = useAppStore((state) => state.openPinModal);
   const submitPlatformFeedback = useAppStore((state) => state.submitPlatformFeedback);
   const showToast = useAppStore((state) => state.showToast);
 
@@ -53,31 +54,59 @@ export const HomePage: React.FC = () => {
 
   // Platform Inquiries / Feedback / Support Form State
   const [contactName, setContactName] = useState('');
-  const [contactEmail, setContactEmail] = useState('');
+  const [contactPhone, setContactPhone] = useState('');
   const [category, setCategory] = useState('Platform Inquiry');
   const [priority, setPriority] = useState('Normal');
   const [message, setMessage] = useState('');
   const [submittedTicket, setSubmittedTicket] = useState<string | null>(null);
+  const [isSubmittingForm, setIsSubmittingForm] = useState(false);
 
-  const handleFeedbackSubmit = (e: React.FormEvent) => {
+  const handleFeedbackSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!contactName.trim() || !contactEmail.trim() || !message.trim()) {
+    if (!contactName.trim() || !contactPhone.trim() || !message.trim()) {
       showToast('Please fill out all required fields.');
       return;
     }
 
+    setIsSubmittingForm(true);
+
     const ticketId = submitPlatformFeedback({
       name: contactName.trim(),
-      email: contactEmail.trim(),
+      email: contactPhone.trim(),
       category,
       priority,
       message: message.trim(),
     });
 
-    setSubmittedTicket(ticketId);
-    setContactName('');
-    setContactEmail('');
-    setMessage('');
+    try {
+      const response = await fetch('https://vatdmlmthjdtgpvjzlep.supabase.co/rest/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': 'sb_publishable_BK5eQmfVdgz00gN9TpiY5w_ZylSieJk',
+          'Authorization': 'Bearer sb_publishable_BK5eQmfVdgz00gN9TpiY5w_ZylSieJk',
+          'Prefer': 'return=minimal',
+        },
+        body: JSON.stringify({
+          name: contactName.trim(),
+          phone: contactPhone.trim(),
+          message: `[${category} | ${priority}] ${message.trim()}`,
+        }),
+      });
+
+      if (!response.ok) {
+        console.warn('Supabase insert status:', response.status);
+      }
+    } catch (err) {
+      console.warn('Supabase messages insert error:', err);
+    } finally {
+      setIsSubmittingForm(false);
+      setSubmittedTicket(ticketId);
+      setContactName('');
+      setContactPhone('');
+      setMessage('');
+      showToast('Message dispatched and recorded on Supabase.');
+    }
   };
 
   // ROI Calculations
@@ -139,13 +168,6 @@ export const HomePage: React.FC = () => {
 
         {/* Action Buttons */}
         <div className="flex items-center gap-2 sm:gap-3">
-          <Link
-            to="/kds"
-            className="hidden sm:inline-flex items-center justify-center px-4 py-2 rounded-full bg-[#f9f9f9] hover:bg-[#f0f0f0] border border-[#e5e7eb] text-[#262626] text-[13px] font-medium transition-all active:scale-95 cursor-pointer"
-          >
-            Kitchen Pass
-          </Link>
-
           <Link
             to={menuLink}
             className="inline-flex items-center justify-center gap-1.5 px-4 sm:px-5 py-2 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[13px] font-bold btn-crimson-glow transition-all active:scale-95 cursor-pointer shadow-xs"
@@ -221,26 +243,13 @@ export const HomePage: React.FC = () => {
                 <span>Open Dine-In Menu -&gt;</span>
               </Link>
 
-              <Link
-                to="/companion"
+              <button
+                type="button"
+                onClick={() => openPinModal(activeTable || 'T-04')}
                 className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-white/15 hover:bg-white/25 border border-white/30 text-white text-[14px] font-medium backdrop-blur-xs transition-all active:scale-95 cursor-pointer"
               >
-                <span>Companion Order</span>
-              </Link>
-
-              <Link
-                to="/cashier"
-                className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-white/15 hover:bg-white/25 border border-white/30 text-white text-[14px] font-medium backdrop-blur-xs transition-all active:scale-95 cursor-pointer"
-              >
-                <span>Cashier POS</span>
-              </Link>
-
-              <Link
-                to="/kds"
-                className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-white/15 hover:bg-white/25 border border-white/30 text-white text-[14px] font-medium backdrop-blur-xs transition-all active:scale-95 cursor-pointer"
-              >
-                <span>Kitchen Pass</span>
-              </Link>
+                <span>Join Table with PIN</span>
+              </button>
             </div>
           </div>
         </div>
@@ -471,15 +480,15 @@ export const HomePage: React.FC = () => {
 
                   <div>
                     <label htmlFor="fb-email" className="block text-[12px] font-semibold text-[#262626] mb-1">
-                      Email Address
+                      Phone Number / Contact
                     </label>
                     <input
                       id="fb-email"
-                      type="email"
+                      type="text"
                       required
-                      value={contactEmail}
-                      onChange={(e) => setContactEmail(e.target.value)}
-                      placeholder="manager@restaurant.eg"
+                      value={contactPhone}
+                      onChange={(e) => setContactPhone(e.target.value)}
+                      placeholder="0100 000 0000 or email"
                       className="w-full px-3.5 py-2.5 text-[13px] rounded-lg border border-[#e5e7eb] bg-white text-[#262626] focus:outline-none focus:border-[#FF0055]"
                     />
                   </div>
@@ -537,9 +546,10 @@ export const HomePage: React.FC = () => {
 
                 <button
                   type="submit"
-                  className="w-full py-3.5 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[13px] font-bold btn-crimson-glow transition-all active:scale-[0.99] cursor-pointer shadow-xs"
+                  disabled={isSubmittingForm}
+                  className="w-full py-3.5 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[13px] font-bold btn-crimson-glow transition-all active:scale-[0.99] cursor-pointer shadow-xs disabled:opacity-50"
                 >
-                  Send Message to Platform Team -&gt;
+                  {isSubmittingForm ? 'Sending Message to Supabase...' : 'Send Message to Platform Team ->'}
                 </button>
               </form>
             )}

@@ -70,6 +70,7 @@ export interface OrderTicket {
   paymentMethod?: PaymentMethod;
   paymentStatus: PaymentStatus; // GATE: Only verified_paid tickets reach KDS!
   cashierChitCode?: string; // e.g. "PAY-401" for in-person cashier verification
+  splitStrategy?: 'host_pays_all' | 'split_by_diner' | 'equal_split';
   splitCount?: number;
   paidDiners?: Record<string, DinerPaymentRecord>; // Itemized diner settlements
   tipAmount?: number;

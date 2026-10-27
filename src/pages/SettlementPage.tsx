@@ -14,7 +14,6 @@ export const SettlementPage: React.FC = () => {
 
   const orders = useAppStore((state) => state.orders);
   const activeOrderId = useAppStore((state) => state.activeOrderId);
-  const payOrderOnline = useAppStore((state) => state.payOrderOnline);
   const payDinerShare = useAppStore((state) => state.payDinerShare);
   const submitMealReview = useAppStore((state) => state.submitMealReview);
   const orderAgain = useAppStore((state) => state.orderAgain);
@@ -179,14 +178,15 @@ export const SettlementPage: React.FC = () => {
     setIsProcessing(true);
     setTimeout(() => {
       if (splitMode === 'by_diner') {
-        payOrderOnline(ticket.id, selectedMethod, splitWays);
-        showToast(`Order #${ticket.id} verified and paid in full.`);
+        const memberId = effectiveMember?.id || 'host-diner';
+        payDinerShare(ticket.id, memberId, selectedMethod, remainingTableBalance);
+        showToast(`Settled remaining table balance of ${remainingTableBalance.toFixed(2)} EGP.`);
       } else if (splitMode === 'equal') {
-        const memberId = currentMember?.id || `diner-equal-${Date.now()}`;
+        const memberId = effectiveMember?.id || `diner-equal-${Date.now()}`;
         payDinerShare(ticket.id, memberId, selectedMethod, perPersonAmount);
         showToast(`Paid equal share of ${perPersonAmount.toFixed(2)} EGP.`);
       } else {
-        const memberId = currentMember?.id || `diner-custom-${Date.now()}`;
+        const memberId = effectiveMember?.id || `diner-custom-${Date.now()}`;
         payDinerShare(ticket.id, memberId, selectedMethod, itemizedTotal);
         showToast(`Paid ${itemizedTotal.toFixed(2)} EGP for selected dishes.`);
       }
@@ -514,9 +514,13 @@ export const SettlementPage: React.FC = () => {
                             <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-mono-num font-bold">
                               PAID
                             </span>
+                          ) : group.isCurrentUser ? (
+                            <span className="text-[11px] font-mono-num text-[#FF0055] font-bold">
+                              YOUR SHARE
+                            </span>
                           ) : (
-                            <span className="text-[11px] font-mono-num text-[#727272]">
-                              {group.items.length} {group.items.length === 1 ? 'dish' : 'dishes'}
+                            <span className="px-2 py-0.5 rounded-full bg-[#f9f9f9] border border-[#e5e7eb] text-[#727272] text-[10px] font-mono-num">
+                              AWAITING DINER DEVICE
                             </span>
                           )}
                         </div>
@@ -560,20 +564,36 @@ export const SettlementPage: React.FC = () => {
                           </div>
                         </div>
 
-                        {/* CTA or Paid Stamp */}
+                        {/* Multi-Device Dynamic Actions */}
                         <div className="mt-3 pt-2">
                           {group.isPaid ? (
                             <div className="py-1.5 px-3 rounded-lg bg-emerald-100/70 border border-emerald-200 text-center text-emerald-800 text-[11px] font-mono-num font-bold">
                               PAID // {group.total.toFixed(2)} EGP via {group.paymentRecord?.paymentMethod?.toUpperCase() || 'ONLINE'}
                             </div>
-                          ) : (
+                          ) : group.isCurrentUser ? (
                             <button
+                              type="button"
                               onClick={() => handlePayDinerShare(group.memberId, group.total)}
                               disabled={isProcessing}
                               className="w-full py-2.5 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[12px] font-bold transition-all btn-crimson-glow cursor-pointer shadow-xs flex items-center justify-center gap-1.5"
                             >
-                              <span>{group.isCurrentUser ? 'Pay My Share' : `Pay for ${group.name}`} ({group.total.toFixed(2)} EGP) -&gt;</span>
+                              <span>Pay My Share ({group.total.toFixed(2)} EGP) -&gt;</span>
                             </button>
+                          ) : (
+                            <div className="space-y-1.5">
+                              <div className="text-[11px] text-[#727272] flex items-center justify-between px-1">
+                                <span>Awaiting payment on diner phone...</span>
+                                <span className="font-mono-num font-bold text-[#FF0055]">{group.total.toFixed(2)} EGP</span>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => handlePayDinerShare(group.memberId, group.total)}
+                                disabled={isProcessing}
+                                className="w-full py-2 rounded-full bg-white hover:bg-[#f9f9f9] border border-[#e5e7eb] text-[#262626] text-[11px] font-bold transition-all cursor-pointer shadow-xs flex items-center justify-center gap-1"
+                              >
+                                <span>Cover for {group.name} ({group.total.toFixed(2)} EGP) -&gt;</span>
+                              </button>
+                            </div>
                           )}
                         </div>
                       </div>
