@@ -125,7 +125,7 @@ export const HomePage: React.FC = () => {
           </div>
 
           {/* Exposed Hairline Bento Grid with Corner Crosshairs */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-px bg-[#e5e7eb] border border-[#e5e7eb] rounded-2xl overflow-hidden shadow-xs relative">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-[#e5e7eb] border border-[#e5e7eb] rounded-2xl overflow-hidden shadow-xs relative">
             {/* Cell 1 */}
             <div className="bg-white p-6 sm:p-7 flex flex-col justify-between relative group">
               <span className="absolute top-2 right-2 text-[#b5b5b5] font-mono text-[10px]">+</span>

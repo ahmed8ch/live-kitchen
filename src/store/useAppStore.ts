@@ -223,15 +223,16 @@ export const useAppStore = create<AppState>()(
             return;
           }
 
-          // When opening /menu without a specific member profile, seat as the table host
-          const hostMember = session.members.find((m) => m?.isHost) || session.members[0];
+          // A host already exists for this table session. Second scanner joins with PIN!
           set({
             activeTable: cleanTable,
-            activeTablePin: hostMember?.isHost ? session.pin : null,
-            currentMember: hostMember,
+            activeTablePin: null,
+            currentMember: null,
+            pendingJoinTable: cleanTable,
+            isPinModalOpen: true,
           });
         } else {
-          // Table is idle or new: This user automatically becomes Host!
+          // Table is idle or new: First scanner automatically becomes Table Host!
           get().initTableSession(cleanTable, 'Red Panda (Host)', 'Red Panda');
         }
       },
@@ -439,20 +440,40 @@ export const useAppStore = create<AppState>()(
           joinedAt: Date.now(),
         };
 
-        const newItem: CartItem = {
-          cartItemId: `cart-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-          menuItem,
-          selectedModifiers: selectedModifiers || [],
-          quantity: Math.max(1, quantity),
-          notes,
-          addedBy: {
-            memberId: activeUser.id,
-            name: activeUser.name,
-            isHost: activeUser.isHost,
-          },
-        };
+        const mods = selectedModifiers || [];
+        const modKey = mods.map((m) => m.id).sort().join(',');
 
-        const nextCart = [...(cart || []), newItem];
+        const existingIndex = cart.findIndex(
+          (item) =>
+            item.menuItem.id === menuItem.id &&
+            (item.selectedModifiers || []).map((m) => m.id).sort().join(',') === modKey &&
+            (item.notes || '') === (notes?.trim() || '') &&
+            item.addedBy?.memberId === activeUser.id
+        );
+
+        let nextCart: CartItem[];
+        if (existingIndex > -1) {
+          nextCart = [...cart];
+          nextCart[existingIndex] = {
+            ...nextCart[existingIndex],
+            quantity: nextCart[existingIndex].quantity + Math.max(1, quantity),
+          };
+        } else {
+          const newItem: CartItem = {
+            cartItemId: `cart-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+            menuItem,
+            selectedModifiers: mods,
+            quantity: Math.max(1, quantity),
+            notes: notes?.trim() || undefined,
+            addedBy: {
+              memberId: activeUser.id,
+              name: activeUser.name,
+              isHost: activeUser.isHost,
+            },
+          };
+          nextCart = [...(cart || []), newItem];
+        }
+
         set({ cart: nextCart });
         get().showToast(`Added ${quantity}x ${menuItem.name} (${activeUser.name})`);
 
@@ -634,11 +655,11 @@ export const useAppStore = create<AppState>()(
         };
 
         const updatedSessions = { ...tableSessions, [cleanTable]: updatedSession };
-        const hostMember = remainingMembers.find((m) => m.isHost) || remainingMembers[0] || null;
 
         set({
           tableSessions: updatedSessions,
-          currentMember: currentMember?.id === targetMemberId ? hostMember : currentMember,
+          currentMember: currentMember?.id === targetMemberId ? null : currentMember,
+          activeTablePin: currentMember?.id === targetMemberId ? null : get().activeTablePin,
           companionMember: companionMember?.id === targetMemberId ? null : companionMember,
         });
 
@@ -1020,7 +1041,32 @@ export const useAppStore = create<AppState>()(
 
       // Loopback: Order Again button keeps table session intact and clears cart
       orderAgain: () => {
-        set({ cart: [], isCartDrawerOpen: false, activeOrderId: null });
+        const { activeTable, tableSessions } = get();
+        let updatedSessions = tableSessions;
+        if (activeTable && tableSessions[activeTable]) {
+          updatedSessions = {
+            ...tableSessions,
+            [activeTable]: {
+              ...tableSessions[activeTable],
+              status: 'ordering',
+              lastUpdated: Date.now(),
+            },
+          };
+        }
+        set({
+          cart: [],
+          isCartDrawerOpen: false,
+          activeOrderId: null,
+          tableSessions: updatedSessions,
+        });
+
+        if (broadcastChannel && activeTable) {
+          broadcastChannel.postMessage({
+            type: 'ORDER_AGAIN',
+            tableNumber: activeTable,
+            tableSessions: updatedSessions,
+          });
+        }
         get().showToast(`Ready for your next round of dishes!`);
       },
 
@@ -1189,17 +1235,17 @@ export const queueHostToast = (msg: string) => {
 export const flushPendingHostToasts = () => {
   if (typeof window === 'undefined') return;
   try {
+    const store = useAppStore.getState();
     const isHostScreen =
       !window.location.pathname.startsWith('/companion') &&
       !window.location.pathname.startsWith('/guest-order');
-    if (!isHostScreen) return;
+    if (!isHostScreen || !store.currentMember?.isHost) return;
 
     const raw = localStorage.getItem('flamelink_pending_host_toasts');
     if (!raw) return;
     const list: string[] = JSON.parse(raw);
     if (Array.isArray(list) && list.length > 0) {
       localStorage.removeItem('flamelink_pending_host_toasts');
-      const store = useAppStore.getState();
       list.forEach((msg, idx) => {
         setTimeout(() => {
           store.showToast(msg);
@@ -1283,6 +1329,12 @@ if (broadcastChannel) {
       store.syncOrders(data.orders);
       if (data.isNowReady && store.activeTable === data.notifiedTable) {
         store.showToast(`Your food is ready at the pass! Server on the way.`);
+      }
+    }
+    if (data.type === 'ORDER_AGAIN') {
+      if (store.activeTable === data.tableNumber) {
+        if (data.tableSessions) store.syncTableSessions(data.tableSessions);
+        store.syncCart([]);
       }
     }
     if (data.type === 'ORDER_CREATED' || data.type === 'ORDER_PAID' || data.type === 'DINER_SHARE_PAID') {

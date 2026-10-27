@@ -101,14 +101,14 @@ export const CartDrawer: React.FC = () => {
             {cart.length > 0 && (
               <button
                 onClick={clearCart}
-                className="text-[12px] text-[#727272] hover:text-[#dc2626] px-2 py-1 rounded transition-colors cursor-pointer"
+                className="text-[12px] text-[#727272] hover:text-[#dc2626] px-2.5 py-1.5 rounded-full hover:bg-red-50 transition-colors cursor-pointer"
               >
-                Clear
+                Clear Cart
               </button>
             )}
             <button
               onClick={closeCartDrawer}
-              className="w-8 h-8 rounded-full bg-[#f9f9f9] hover:bg-[#e5e7eb] flex items-center justify-center text-[#262626] transition-colors cursor-pointer"
+              className="min-w-[44px] min-h-[44px] rounded-full bg-[#f9f9f9] hover:bg-[#e5e7eb] flex items-center justify-center text-[#262626] transition-colors cursor-pointer"
               aria-label="Close cart drawer"
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -240,22 +240,22 @@ export const CartDrawer: React.FC = () => {
                         </div>
                       )}
 
-                      {/* Quantity Adjustment Controls */}
+                      {/* Quantity Adjustment Controls (Touchscreen >= 44x44px compliance) */}
                       <div className="flex items-center justify-between pt-2 border-t border-[#f0f0f0]">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1.5 border border-[#e5e7eb] rounded-full p-0.5 bg-[#f9f9f9]">
                           <button
                             onClick={() => updateCartItemQuantity(item.cartItemId, item.quantity - 1)}
-                            className="w-6 h-6 rounded bg-[#f9f9f9] hover:bg-[#e5e7eb] border border-[#e5e7eb] flex items-center justify-center text-[#262626] cursor-pointer text-[12px]"
+                            className="min-w-[44px] min-h-[44px] rounded-full bg-white hover:bg-[#f0f0f0] border border-[#e5e7eb] flex items-center justify-center text-[#262626] cursor-pointer text-base font-bold transition-all active:scale-90 shadow-xs"
                             aria-label="Decrease quantity"
                           >
                             -
                           </button>
-                          <span className="w-5 text-center font-mono-num font-medium text-[12px]" data-ui-number>
+                          <span className="w-7 text-center font-mono-num font-bold text-[13px]" data-ui-number>
                             {item.quantity}
                           </span>
                           <button
                             onClick={() => updateCartItemQuantity(item.cartItemId, item.quantity + 1)}
-                            className="w-6 h-6 rounded bg-[#f9f9f9] hover:bg-[#e5e7eb] border border-[#e5e7eb] flex items-center justify-center text-[#262626] cursor-pointer text-[12px]"
+                            className="min-w-[44px] min-h-[44px] rounded-full bg-white hover:bg-[#f0f0f0] border border-[#e5e7eb] flex items-center justify-center text-[#262626] cursor-pointer text-base font-bold transition-all active:scale-90 shadow-xs"
                             aria-label="Increase quantity"
                           >
                             +
@@ -264,7 +264,7 @@ export const CartDrawer: React.FC = () => {
 
                         <button
                           onClick={() => removeFromCart(item.cartItemId)}
-                          className="text-[11px] text-[#949494] hover:text-[#dc2626] transition-colors cursor-pointer"
+                          className="min-h-[44px] px-3 inline-flex items-center text-[12px] font-medium text-[#727272] hover:text-[#dc2626] transition-colors cursor-pointer"
                         >
                           Remove
                         </button>

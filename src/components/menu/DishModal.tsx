@@ -68,10 +68,10 @@ export const DishModal: React.FC<DishModalProps> = ({ dish, onClose, onAdd }) =>
           />
           <button
             onClick={onClose}
-            className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/95 hover:bg-white text-[#262626] flex items-center justify-center shadow-md transition-transform active:scale-90 cursor-pointer"
+            className="absolute top-3 right-3 min-w-[44px] min-h-[44px] rounded-full bg-white/95 hover:bg-white text-[#262626] flex items-center justify-center shadow-md transition-transform active:scale-90 cursor-pointer"
             aria-label="Close modal"
           >
-            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <path d="M18 6L6 18M6 6l12 12" />
             </svg>
           </button>
@@ -179,21 +179,21 @@ export const DishModal: React.FC<DishModalProps> = ({ dish, onClose, onAdd }) =>
 
         {/* Modal Footer Controls */}
         <div className="p-4 sm:p-5 border-t border-[#e5e7eb] bg-[#f9f9f9] flex items-center gap-3 shrink-0">
-          {/* Quantity Controls */}
-          <div className="flex items-center border border-[#e5e7eb] bg-white rounded-full p-1 shadow-xs">
+          {/* Quantity Controls (>= 44x44px touch targets) */}
+          <div className="flex items-center border border-[#e5e7eb] bg-white rounded-full p-0.5 shadow-xs">
             <button
               onClick={() => setQuantity(Math.max(1, quantity - 1))}
-              className="w-8 h-8 rounded-full flex items-center justify-center text-[#262626] hover:bg-[#f0f0f0] transition-colors cursor-pointer text-base"
+              className="min-w-[44px] min-h-[44px] rounded-full flex items-center justify-center text-[#262626] hover:bg-[#f0f0f0] active:bg-[#e5e7eb] transition-colors cursor-pointer text-lg font-bold"
               aria-label="Decrease quantity"
             >
               -
             </button>
-            <span className="w-8 text-center font-mono-num font-medium text-[14px]" data-ui-number>
+            <span className="w-8 text-center font-mono-num font-bold text-[15px]" data-ui-number>
               {quantity}
             </span>
             <button
               onClick={() => setQuantity(quantity + 1)}
-              className="w-8 h-8 rounded-full flex items-center justify-center text-[#262626] hover:bg-[#f0f0f0] transition-colors cursor-pointer text-base"
+              className="min-w-[44px] min-h-[44px] rounded-full flex items-center justify-center text-[#262626] hover:bg-[#f0f0f0] active:bg-[#e5e7eb] transition-colors cursor-pointer text-lg font-bold"
               aria-label="Increase quantity"
             >
               +

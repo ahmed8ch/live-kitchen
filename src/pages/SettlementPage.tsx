@@ -16,7 +16,6 @@ export const SettlementPage: React.FC = () => {
   const activeOrderId = useAppStore((state) => state.activeOrderId);
   const payOrderOnline = useAppStore((state) => state.payOrderOnline);
   const payDinerShare = useAppStore((state) => state.payDinerShare);
-  const verifyCashierPayment = useAppStore((state) => state.verifyCashierPayment);
   const submitMealReview = useAppStore((state) => state.submitMealReview);
   const orderAgain = useAppStore((state) => state.orderAgain);
   const activeTable = useAppStore((state) => state.activeTable);
@@ -176,18 +175,23 @@ export const SettlementPage: React.FC = () => {
     }, 450);
   };
 
-  const handleSettleOnline = () => {
+  const handleSettleAction = () => {
     setIsProcessing(true);
     setTimeout(() => {
-      payOrderOnline(ticket.id, selectedMethod, splitWays);
+      if (splitMode === 'by_diner') {
+        payOrderOnline(ticket.id, selectedMethod, splitWays);
+        showToast(`Order #${ticket.id} verified and paid in full.`);
+      } else if (splitMode === 'equal') {
+        const memberId = currentMember?.id || 'diner-equal';
+        payDinerShare(ticket.id, memberId, selectedMethod, perPersonAmount);
+        showToast(`Paid equal share of ${perPersonAmount.toFixed(2)} EGP.`);
+      } else {
+        const memberId = currentMember?.id || 'diner-custom';
+        payDinerShare(ticket.id, memberId, selectedMethod, itemizedTotal);
+        showToast(`Paid ${itemizedTotal.toFixed(2)} EGP for selected dishes.`);
+      }
       setIsProcessing(false);
-      showToast(`Order #${ticket.id} verified and paid in full.`);
     }, 500);
-  };
-
-  const handleCashierVerify = () => {
-    verifyCashierPayment(ticket.id, 'card');
-    showToast(`Cashier confirmed settlement for Chit #${ticket.cashierChitCode || ticket.id}.`);
   };
 
   const handleOrderAgain = () => {
@@ -247,8 +251,10 @@ export const SettlementPage: React.FC = () => {
     y += 20;
 
     ticket.items.forEach((item) => {
+      const modTotal = (item.selectedModifiers || []).reduce((sum, m) => sum + m.price, 0);
+      const lineTotal = (item.menuItem.basePrice + modTotal) * item.quantity;
       ctx.fillText(`${item.quantity}x ${item.menuItem.name}`, 20, y);
-      ctx.fillText(`${(item.menuItem.basePrice * item.quantity).toFixed(2)} EGP`, width - 110, y);
+      ctx.fillText(`${lineTotal.toFixed(2)} EGP`, width - 110, y);
       y += 20;
     });
 
@@ -299,26 +305,16 @@ export const SettlementPage: React.FC = () => {
         {/* Cashier Chit Notice if payment is pending (NO-PRINT) */}
         {!isVerifiedPaid && (
           <div className="no-print mb-6 p-4 rounded-2xl bg-[#fff0f3] border-2 border-[#ffd1dc] space-y-3">
-            <div className="flex items-start justify-between">
-              <div>
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#ffe0e8] text-[#FF0055] text-[11px] font-mono-num font-bold">
-                  <span>PAYMENT REQUIRED BEFORE COOKING</span>
-                </div>
-                <h3 className="text-lg font-bold text-[#262626] mt-1">
-                  Chit #<ThermalText text={ticket.cashierChitCode || ticket.id} durationMs={300} />
-                </h3>
-                <p className="text-[13px] text-[#727272] mt-0.5">
-                  Present this chit at the front register, or settle online below to fire order to kitchen line.
-                </p>
+            <div>
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#ffe0e8] text-[#FF0055] text-[11px] font-mono-num font-bold">
+                <span>PAYMENT REQUIRED BEFORE COOKING</span>
               </div>
-
-              <button
-                onClick={handleCashierVerify}
-                className="px-3 py-1.5 rounded-lg bg-white border border-[#ffd1dc] hover:border-[#FF0055] text-[#FF0055] text-[11px] font-mono-num font-bold transition-colors cursor-pointer shadow-xs shrink-0"
-                title="Verify cashier desk payment confirmation"
-              >
-                Register Payment Stamp
-              </button>
+              <h3 className="text-lg font-bold text-[#262626] mt-1">
+                Chit #<ThermalText text={ticket.cashierChitCode || ticket.id} durationMs={300} />
+              </h3>
+              <p className="text-[13px] text-[#727272] mt-0.5">
+                Present this chit at the front register, or settle online below to fire order to kitchen line.
+              </p>
             </div>
           </div>
         )}
@@ -527,14 +523,25 @@ export const SettlementPage: React.FC = () => {
 
                         {/* Diner's exact ordered items */}
                         <div className="py-2.5 space-y-1.5 text-[12px]">
-                          {group.items.map((item) => (
-                            <div key={item.cartItemId} className="flex justify-between text-[#262626]">
-                              <span>{item.quantity}x {item.menuItem.name}</span>
-                              <span className="font-mono-num text-[#727272]">
-                                {(item.menuItem.basePrice * item.quantity).toFixed(2)} EGP
-                              </span>
-                            </div>
-                          ))}
+                          {group.items.map((item) => {
+                            const modTotal = (item.selectedModifiers || []).reduce((sum, m) => sum + m.price, 0);
+                            const unitPriceWithMods = item.menuItem.basePrice + modTotal;
+                            return (
+                              <div key={item.cartItemId} className="flex justify-between items-start text-[#262626]">
+                                <div>
+                                  <span>{item.quantity}x {item.menuItem.name}</span>
+                                  {modTotal > 0 && (
+                                    <div className="text-[10px] text-[#727272]">
+                                      +{item.selectedModifiers.map((m) => m.name).join(', ')}
+                                    </div>
+                                  )}
+                                </div>
+                                <span className="font-mono-num text-[#727272] shrink-0 ml-2">
+                                  {(unitPriceWithMods * item.quantity).toFixed(2)} EGP
+                                </span>
+                              </div>
+                            );
+                          })}
                         </div>
 
                         {/* Financial calculations for this diner */}
@@ -565,7 +572,7 @@ export const SettlementPage: React.FC = () => {
                               disabled={isProcessing}
                               className="w-full py-2.5 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[12px] font-bold transition-all btn-crimson-glow cursor-pointer shadow-xs flex items-center justify-center gap-1.5"
                             >
-                              <span>Pay My Share ({group.total.toFixed(2)} EGP) -&gt;</span>
+                              <span>{group.isCurrentUser ? 'Pay My Share' : `Pay for ${group.name}`} ({group.total.toFixed(2)} EGP) -&gt;</span>
                             </button>
                           )}
                         </div>
@@ -714,7 +721,7 @@ export const SettlementPage: React.FC = () => {
                 </div>
 
                 <button
-                  onClick={handleSettleOnline}
+                  onClick={handleSettleAction}
                   disabled={isProcessing}
                   data-ui-radius="999"
                   className="w-full py-3.5 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[14px] font-bold transition-all btn-crimson-glow active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2"

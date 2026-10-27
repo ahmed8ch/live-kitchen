@@ -26,7 +26,8 @@ export const CashierPage: React.FC = () => {
 
   // Active table session
   const activeSession = tableSessions[selectedTableNum];
-  const tableOrder = orders.find((o) => o.tableNumber === selectedTableNum && o.status !== 'served');
+  const pendingForTable = pendingOrders.find((o) => o.tableNumber === selectedTableNum);
+  const tableOrder = pendingForTable || orders.find((o) => o.tableNumber === selectedTableNum && o.status !== 'served');
 
   const handleConfirmPayment = (orderId: string, chitCode?: string) => {
     verifyCashierPayment(orderId, selectedMethod);
@@ -45,14 +46,28 @@ export const CashierPage: React.FC = () => {
 
   const getTableMeta = (tableNum: string) => {
     const session = tableSessions[tableNum];
-    const pendingForTable = pendingOrders.find((o) => o.tableNumber === tableNum);
+    const pending = pendingOrders.find((o) => o.tableNumber === tableNum);
 
-    if (pendingForTable) {
+    if (pending) {
       return {
         status: 'waiting_for_payment',
         label: 'Waiting for Payment',
         badgeClass: 'bg-[#fff0f3] text-[#FF0055] border-[#ffd1dc] border-2 font-bold',
-        amount: pendingForTable.total,
+        amount: pending.total,
+      };
+    }
+
+    const activeCookingOrder = orders.find(
+      (o) => o.tableNumber === tableNum && o.paymentStatus === 'verified_paid' && o.status !== 'served'
+    );
+    if (activeCookingOrder) {
+      return {
+        status: 'paid_cooking',
+        label: activeCookingOrder.status === 'ready' ? 'Ready at Pass' : 'Paid & Cooking',
+        badgeClass: activeCookingOrder.status === 'ready'
+          ? 'bg-emerald-50 text-emerald-800 border-emerald-300 font-bold'
+          : 'bg-blue-50 text-blue-800 border-blue-200 font-medium',
+        amount: activeCookingOrder.total,
       };
     }
 

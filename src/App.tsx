@@ -29,8 +29,8 @@ export const App: React.FC = () => {
   }, [location.search, setActiveTable]);
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-white text-[#262626]">
-      {/* Sole Primary Navigation Rail (No duplicate top navbar) */}
+    <div className="min-h-screen flex flex-col bg-white text-[#262626]">
+      {/* Primary Navigation System (Desktop macOS Dock + Mobile Header) */}
       {!isKds && <Sidebar />}
 
       {/* Main Content Viewport */}
@@ -111,15 +111,15 @@ export const App: React.FC = () => {
                   </span>
                   <ul className="space-y-2 text-[#727272]">
                     <li><span className="text-[#949494]">FlameLink OS v2.0</span></li>
-                    <li><span className="text-[#949494]">Changa Brand Typography</span></li>
-                    <li><span className="text-[#949494]">Multiplayer Real-Time State</span></li>
+                    <li><span className="text-[#949494]">Wood-Fired Grill Engine</span></li>
+                    <li><span className="text-[#949494]">Real-Time Line Pass</span></li>
                   </ul>
                 </div>
               </div>
 
               <div className="pt-8 border-t border-[#e5e7eb] flex flex-col sm:flex-row items-center justify-between text-[11px] font-mono-num text-[#949494] gap-3">
                 <span>FlameLink Multi-Player Dine-In Operating System</span>
-                <span>Zero Slop • 100% Light Workspace Compliance</span>
+                <span>Port Said Culinary Pass</span>
               </div>
             </div>
           </footer>
