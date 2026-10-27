@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MENU_ITEMS } from '../domain/menuData';
 import { MenuCategory, MenuItem } from '../types/domain';
 import { DishModal } from '../components/menu/DishModal';
 import { FloatingCartBar } from '../components/cart/FloatingCartBar';
 import { CartDrawer } from '../components/cart/CartDrawer';
 import { TableLobbyBar } from '../components/multiplayer/TableLobbyBar';
-import { useAppStore } from '../store/useAppStore';
+import { useAppStore, flushPendingHostToasts } from '../store/useAppStore';
 
 const CATEGORIES: { id: 'all' | MenuCategory; label: string }[] = [
   { id: 'all', label: 'All Dishes' },
@@ -21,6 +21,10 @@ export const MenuPage: React.FC = () => {
   const [selectedDish, setSelectedDish] = useState<MenuItem | null>(null);
 
   const activeTable = useAppStore((state) => state.activeTable);
+
+  useEffect(() => {
+    flushPendingHostToasts();
+  }, []);
 
   const filteredDishes =
     activeCategory === 'all'

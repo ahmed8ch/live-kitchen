@@ -22,7 +22,6 @@ export const CompanionPage: React.FC = () => {
   const tableParam = searchParams.get('table') || 'T-04';
 
   const activeTable = useAppStore((state) => state.activeTable);
-  const setActiveTable = useAppStore((state) => state.setActiveTable);
   const companionMember = useAppStore((state) => state.companionMember);
   const initCompanionSession = useAppStore((state) => state.initCompanionSession);
   const addToCartAsCompanion = useAppStore((state) => state.addToCartAsCompanion);
@@ -34,7 +33,6 @@ export const CompanionPage: React.FC = () => {
 
   // Ensure table session & companion profile are initialized
   useEffect(() => {
-    setActiveTable(cleanTable);
     initCompanionSession(cleanTable);
   }, [cleanTable]);
 
@@ -55,10 +53,10 @@ export const CompanionPage: React.FC = () => {
             <div>
               <div className="flex items-center gap-2 mb-1">
                 <h1 className="text-2xl sm:text-3xl font-bold text-[#262626] tracking-tight">
-                  Companion Menu Order
+                  Menu
                 </h1>
                 <span className="px-2.5 py-0.5 rounded-full bg-[#fff0f3] border border-[#ffd1dc] text-[#FF0055] text-[11px] font-mono-num font-bold">
-                  Guest POV ({companionMember?.name || 'Guest'})
+                  {companionMember?.name || 'Guest'}
                 </span>
               </div>
               <p className="text-[13px] text-[#727272]">

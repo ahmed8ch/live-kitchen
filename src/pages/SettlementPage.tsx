@@ -185,7 +185,7 @@ export const SettlementPage: React.FC = () => {
     }, 500);
   };
 
-  const handleSimulateCashierVerify = () => {
+  const handleCashierVerify = () => {
     verifyCashierPayment(ticket.id, 'card');
     showToast(`Cashier confirmed settlement for Chit #${ticket.cashierChitCode || ticket.id}.`);
   };
@@ -313,11 +313,11 @@ export const SettlementPage: React.FC = () => {
               </div>
 
               <button
-                onClick={handleSimulateCashierVerify}
+                onClick={handleCashierVerify}
                 className="px-3 py-1.5 rounded-lg bg-white border border-[#ffd1dc] hover:border-[#FF0055] text-[#FF0055] text-[11px] font-mono-num font-bold transition-colors cursor-pointer shadow-xs shrink-0"
-                title="Simulate cashier desk payment confirmation"
+                title="Verify cashier desk payment confirmation"
               >
-                Simulate Cashier Stamp
+                Register Payment Stamp
               </button>
             </div>
           </div>

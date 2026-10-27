@@ -5,15 +5,10 @@ import { AsciiBackground } from '../components/ui/AsciiBackground';
 
 export const HomePage: React.FC = () => {
   const activeTable = useAppStore((state) => state.activeTable);
-  const addSampleOrder = useAppStore((state) => state.addSampleOrder);
   const submitPlatformFeedback = useAppStore((state) => state.submitPlatformFeedback);
   const showToast = useAppStore((state) => state.showToast);
 
   const menuLink = activeTable ? `/menu?table=${activeTable}` : '/menu';
-
-  // Live Conduit State
-  const [isFiringDemo, setIsFiringDemo] = useState<boolean>(false);
-  const [conduitText, setConduitText] = useState<string>('··:++*##*++:·· 142MS');
 
   // ROI Estimator State (EGP)
   const [tableCount, setTableCount] = useState<number>(24);
@@ -26,17 +21,6 @@ export const HomePage: React.FC = () => {
   const [priority, setPriority] = useState('Normal');
   const [message, setMessage] = useState('');
   const [submittedTicket, setSubmittedTicket] = useState<string | null>(null);
-
-  const handleFireDemoOrder = () => {
-    setIsFiringDemo(true);
-    setConduitText('==##**PULSE**##== 24MS');
-    addSampleOrder();
-
-    setTimeout(() => {
-      setIsFiringDemo(false);
-      setConduitText('··:++*##*++:·· 142MS');
-    }, 700);
-  };
 
   const handleFeedbackSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,96 +50,60 @@ export const HomePage: React.FC = () => {
 
   return (
     <div className="flex-1 w-full bg-white select-none" data-ui-container="home-overview">
-      {/* Cloudflare-Style Vibrant Engulfing Hero with Full-Bleed ASCII Swell Dots Background */}
-      <section className="relative bg-[#FF0055] text-white pt-20 pb-24 md:pt-28 md:pb-32 overflow-hidden border-b border-[#e5e7eb]">
-        {/* Full-Bleed Ambient ASCII Background across the entire Hero */}
-        <AsciiBackground theme="crimson" />
+      {/* Sculpted Floating Hero Card with Rounded Edges and Ambient ASCII Matrix */}
+      <section className="p-4 sm:p-6 lg:p-8">
+        <div className="relative bg-[#FF0055] text-white pt-16 pb-20 md:pt-24 md:pb-28 rounded-3xl sm:rounded-[32px] overflow-hidden shadow-xl shadow-[#FF0055]/10">
+          {/* Ambient ASCII Background across the Hero Canvas */}
+          <AsciiBackground theme="crimson" />
 
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-          {/* Top Status Capsule */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/20 backdrop-blur-xs border border-white/30 mb-8 shadow-xs">
-            <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
-            <span className="text-[12px] font-mono-num font-bold text-white tracking-wider uppercase">
-              FLAMELINK v2.0 // MULTIPLAYER DINE-IN OS
-            </span>
-          </div>
-
-          {/* Cloudflare-Class Display Headline */}
-          <h1
-            className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white max-w-4xl mx-auto leading-[1.08]"
-            data-ui-balance
-          >
-            Turn Every Table into a Synchronized Multiplayer Kitchen
-          </h1>
-
-          {/* Calm Technical Subtitle */}
-          <p
-            className="mt-6 text-lg sm:text-xl text-white/90 max-w-2xl mx-auto leading-relaxed font-normal"
-            data-ui-pretty
-          >
-            Zero tablet leasing fees. Zero mandatory account logins. First diner sets table PIN; table pool orders together. The Payment Gate verifies settlement before food ever hits the grill line.
-          </p>
-
-          {/* High-Contrast Hero CTAs (Cloudflare-style White CTA on Crimson) */}
-          <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4" data-ui-actions="hero-cta">
-            <Link
-              to={menuLink}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-white hover:bg-[#fafafa] text-[#FF0055] text-[15px] font-bold transition-all shadow-lg active:scale-95 cursor-pointer"
+          <div className="max-w-4xl mx-auto px-6 sm:px-8 text-center relative z-10">
+            {/* Display Headline */}
+            <h1
+              className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white max-w-4xl mx-auto leading-[1.08]"
+              data-ui-balance
             >
-              <span>Launch Dine-In Menu -&gt;</span>
-            </Link>
+              Turn Every Table into a Shared Dine-In Experience
+            </h1>
 
-            <Link
-              to="/companion"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-4 rounded-full bg-white/15 hover:bg-white/25 border border-white/30 text-white text-[15px] font-medium backdrop-blur-xs transition-all active:scale-95 cursor-pointer"
+            {/* Subtitle */}
+            <p
+              className="mt-6 text-base sm:text-lg text-white/90 max-w-2xl mx-auto leading-relaxed font-normal"
+              data-ui-pretty
             >
-              <span>Companion Guest POV</span>
-            </Link>
+              Zero tablet leasing fees. Zero mandatory account logins. First diner sets table PIN; table pool orders together. The Payment Gate verifies settlement before food ever hits the grill line.
+            </p>
 
-            <Link
-              to="/cashier"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-4 rounded-full bg-white/15 hover:bg-white/25 border border-white/30 text-white text-[15px] font-medium backdrop-blur-xs transition-all active:scale-95 cursor-pointer"
-            >
-              <span>Cashier POS</span>
-            </Link>
+            {/* High-Contrast Hero Actions */}
+            <div className="mt-10 flex flex-wrap items-center justify-center gap-3.5" data-ui-actions="hero-cta">
+              <Link
+                to={menuLink}
+                className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-full bg-white hover:bg-[#fafafa] text-[#FF0055] text-[15px] font-bold transition-all shadow-md active:scale-95 cursor-pointer"
+              >
+                <span>Open Dine-In Menu -&gt;</span>
+              </Link>
 
-            <Link
-              to="/kds"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-4 rounded-full bg-white/15 hover:bg-white/25 border border-white/30 text-white text-[15px] font-medium backdrop-blur-xs transition-all active:scale-95 cursor-pointer"
-            >
-              <span>Kitchen Pass</span>
-            </Link>
+              <Link
+                to="/companion"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-white/15 hover:bg-white/25 border border-white/30 text-white text-[14px] font-medium backdrop-blur-xs transition-all active:scale-95 cursor-pointer"
+              >
+                <span>Companion Order</span>
+              </Link>
+
+              <Link
+                to="/cashier"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-white/15 hover:bg-white/25 border border-white/30 text-white text-[14px] font-medium backdrop-blur-xs transition-all active:scale-95 cursor-pointer"
+              >
+                <span>Cashier POS</span>
+              </Link>
+
+              <Link
+                to="/kds"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-white/15 hover:bg-white/25 border border-white/30 text-white text-[14px] font-medium backdrop-blur-xs transition-all active:scale-95 cursor-pointer"
+              >
+                <span>Kitchen Pass</span>
+              </Link>
+            </div>
           </div>
-        </div>
-      </section>
-
-      {/* Live ASCII WebSocket Conduit Bar */}
-      <section className="bg-white border-b border-[#e5e7eb] py-4">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#15803d]" />
-            <span className="text-[12px] font-mono-num font-bold text-[#262626]">
-              LINE BROADCAST CONDUIT:
-            </span>
-          </div>
-
-          {/* ASCII Wire */}
-          <div
-            className={`font-mono-num text-[12px] sm:text-[13px] px-4 py-1.5 rounded-lg border transition-all ${
-              isFiringDemo
-                ? 'bg-[#fff0f3] border-[#FF0055] text-[#FF0055] btn-crimson-glow-sm'
-                : 'bg-[#f9f9f9] border-[#e5e7eb] text-[#262626]'
-            }`}
-          >
-            TABLE T-04 ──[ <span className="text-[#FF0055] font-bold">{conduitText}</span> ]──&gt; FLAME PASS
-          </div>
-
-          <button
-            onClick={handleFireDemoOrder}
-            className="px-4 py-2 rounded-full bg-[#262626] hover:bg-black text-white text-[12px] font-mono-num font-bold transition-all active:scale-95 cursor-pointer shadow-xs shrink-0"
-          >
-            Fire Demo Ticket to Kitchen
-          </button>
         </div>
       </section>
 
@@ -168,7 +116,7 @@ export const HomePage: React.FC = () => {
                 Architecture Blueprint
               </div>
               <h2 className="text-2xl font-bold text-[#262626]" data-ui-balance>
-                Synchronized 4-Stage Dine-In Flow
+                4-Stage Dine-In Flow
               </h2>
             </div>
             <span className="hidden sm:inline text-[12px] font-mono-num text-[#727272]">

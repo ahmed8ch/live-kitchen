@@ -39,7 +39,7 @@ export const CashierPage: React.FC = () => {
     showToast(`Table ${tableNum} marked Cleared & Available.`);
   };
 
-  const handleSimulatePendingOrder = (tableNum: string) => {
+  const handleCreateSampleOrder = (tableNum: string) => {
     addSampleOrder(tableNum);
   };
 
@@ -158,10 +158,10 @@ export const CashierPage: React.FC = () => {
 
             <div className="flex items-center gap-2">
               <button
-                onClick={() => handleSimulatePendingOrder(selectedTableNum)}
+                onClick={() => handleCreateSampleOrder(selectedTableNum)}
                 className="px-3 py-1.5 rounded-lg border border-[#ffd1dc] bg-[#fff0f3] text-[#FF0055] text-[12px] font-medium hover:bg-[#ffe0e8] cursor-pointer"
               >
-                + Simulate Test Chit on {selectedTableNum}
+                + Test Chit on {selectedTableNum}
               </button>
             </div>
           </div>
@@ -300,10 +300,10 @@ export const CashierPage: React.FC = () => {
                 </p>
                 <div className="mt-4">
                   <button
-                    onClick={() => handleSimulatePendingOrder(selectedTableNum)}
+                    onClick={() => handleCreateSampleOrder(selectedTableNum)}
                     className="px-4 py-2 rounded-full bg-[#262626] text-white text-[12px] font-medium hover:bg-black cursor-pointer shadow-xs"
                   >
-                    Simulate Sample Order on {selectedTableNum}
+                    Add Test Order on {selectedTableNum}
                   </button>
                 </div>
               </div>

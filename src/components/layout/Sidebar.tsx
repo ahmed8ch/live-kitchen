@@ -41,16 +41,15 @@ export const Sidebar: React.FC = () => {
     },
     {
       id: 'menu',
-      label: 'Dine-In Menu (Host)',
+      label: 'Menu',
       to: `/menu${tableParam}`,
       badge: activeTable ? activeTable : undefined,
       icon: UtensilsCrossed,
     },
     {
       id: 'companion',
-      label: 'Companion POV (Guest)',
+      label: 'Companion Order',
       to: `/companion${tableParam}`,
-      badge: 'Guest',
       icon: Users,
     },
     {
@@ -62,7 +61,7 @@ export const Sidebar: React.FC = () => {
     },
     {
       id: 'settlement',
-      label: 'Table Bill & Split',
+      label: 'Bill & Split',
       to: `${settlementTarget}${tableParam}`,
       icon: Receipt,
     },
@@ -82,7 +81,7 @@ export const Sidebar: React.FC = () => {
     },
     {
       id: 'stand',
-      label: 'Acrylic QR Stand',
+      label: 'Table QR Stand',
       to: '/stand',
       icon: QrCode,
     },
@@ -152,10 +151,10 @@ export const Sidebar: React.FC = () => {
                       to={item.to}
                       onClick={() => setMobileDrawerOpen(false)}
                       className={({ isActive }) =>
-                        `flex items-center justify-between px-3.5 py-2.5 rounded-xl text-[13px] font-medium transition-all ${
+                        `flex items-center justify-between px-3.5 py-2.5 rounded-xl text-[13px] transition-[background-color,color,border-color,box-shadow] duration-150 ${
                           isActive
-                            ? 'bg-white text-[#FF0055] border-l-2 border-l-[#FF0055] shadow-xs font-bold'
-                            : 'text-[#727272] hover:bg-white hover:text-[#262626]'
+                            ? 'bg-[#fff0f3] text-[#FF0055] font-semibold border border-[#ffd1dc]/80 shadow-[0_1px_2px_rgba(255,0,85,0.06)]'
+                            : 'text-[#727272] hover:bg-white hover:text-[#262626] border border-transparent'
                         }`
                       }
                     >
@@ -230,19 +229,21 @@ export const Sidebar: React.FC = () => {
                 key={item.id}
                 to={item.to}
                 className={`flex items-center ${
-                  isOpen ? 'justify-between px-3' : 'justify-center px-2'
-                } py-2.5 rounded-xl text-[13px] font-medium transition-all group relative ${
+                  isOpen ? 'justify-between px-3 h-10' : 'justify-center w-10 h-10 mx-auto'
+                } rounded-xl text-[13px] transition-[background-color,color,border-color,box-shadow] duration-150 group relative ${
                   isActive
-                    ? 'bg-white text-[#262626] shadow-xs border-l-2 border-l-[#FF0055] font-semibold'
-                    : 'text-[#727272] hover:text-[#262626] hover:bg-white'
+                    ? 'bg-[#fff0f3] text-[#FF0055] font-semibold border border-[#ffd1dc]/80 shadow-[0_1px_2px_rgba(255,0,85,0.06)]'
+                    : 'text-[#727272] hover:text-[#262626] hover:bg-white/80 border border-transparent'
                 }`}
                 title={!isOpen ? item.label : undefined}
                 aria-label={item.label}
               >
-                <div className="flex items-center gap-3 min-w-0">
+                <div className={`flex items-center ${isOpen ? 'gap-3 min-w-0' : 'justify-center'}`}>
                   <Icon
                     className={`w-4 h-4 shrink-0 transition-colors ${
-                      isActive ? 'text-[#FF0055]' : 'text-[#727272] group-hover:text-[#262626]'
+                      isActive
+                        ? 'text-[#FF0055] stroke-[2.25px]'
+                        : 'text-[#727272] group-hover:text-[#262626] stroke-[1.75px]'
                     }`}
                   />
                   {isOpen && (
@@ -252,9 +253,9 @@ export const Sidebar: React.FC = () => {
 
                 {isOpen && item.badge && (
                   <span
-                    className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono-num font-bold ${
+                    className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono-num font-bold transition-colors ${
                       isActive
-                        ? 'bg-[#fff0f3] text-[#FF0055] border border-[#ffd1dc]'
+                        ? 'bg-white text-[#FF0055] border border-[#ffd1dc] shadow-xs'
                         : 'bg-white border border-[#e5e7eb] text-[#727272]'
                     }`}
                   >

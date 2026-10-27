@@ -137,7 +137,7 @@ export const KdsPage: React.FC = () => {
           </span>
         </div>
 
-        {/* Action Controls & Simulated Test Order Trigger */}
+        {/* Action Controls & Test Order Trigger */}
         <div className="flex items-center gap-3">
           <button
             onClick={() => addSampleOrder()}

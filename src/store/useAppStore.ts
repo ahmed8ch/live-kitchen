@@ -65,7 +65,7 @@ interface AppState {
     priority: string;
   }) => string;
 
-  // Companion (2nd Diner POV) actions
+  // Companion diner actions
   companionMember: MemberProfile | null;
   initCompanionSession: (tableNumber: string) => MemberProfile;
   addToCartAsCompanion: (menuItem: MenuItem, selectedModifiers: ModifierOption[], quantity: number, notes?: string) => void;
@@ -202,7 +202,7 @@ export const useAppStore = create<AppState>()(
       // Table & Multiplayer Lobby Management
       setActiveTable: (table) => {
         if (!table) {
-          set({ activeTable: null, activeTablePin: null, currentMember: null });
+          set({ activeTable: null, activeTablePin: null });
           return;
         }
 
@@ -217,54 +217,22 @@ export const useAppStore = create<AppState>()(
           if (existingUser) {
             set({
               activeTable: cleanTable,
-              activeTablePin: session.pin,
+              activeTablePin: existingUser.isHost ? session.pin : null,
               currentMember: existingUser,
             });
             return;
           }
 
-          // Automatically seat guest with an untaken identity so they can browse dishes immediately without barrier!
-          const takenNames = new Set(
-            session.members.map((m) => (m?.name || '').replace(/\s*\(Host\)$/, '').trim().toLowerCase())
-          );
-          const ROSTER = ['Orange Fox', 'Golden Eagle', 'Blue Falcon', 'Emerald Owl', 'Silver Wolf'];
-          const autoGuestName = ROSTER.find((name) => !takenNames.has(name.toLowerCase())) || `Diner #${session.members.length + 1}`;
-          const newGuest: MemberProfile = {
-            id: `guest-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-            name: autoGuestName,
-            isHost: false,
-            isReadyToPay: false,
-            joinedAt: Date.now(),
-          };
-          const updatedSession: TableSession = {
-            ...session,
-            members: [...session.members, newGuest],
-            lastUpdated: Date.now(),
-          };
-          const updatedSessions = {
-            ...tableSessions,
-            [cleanTable]: updatedSession,
-          };
+          // When opening /menu without a specific member profile, seat as the table host
+          const hostMember = session.members.find((m) => m?.isHost) || session.members[0];
           set({
-            tableSessions: updatedSessions,
             activeTable: cleanTable,
-            activeTablePin: session.pin,
-            currentMember: newGuest,
-            isPinModalOpen: false,
-            pendingJoinTable: null,
+            activeTablePin: hostMember?.isHost ? session.pin : null,
+            currentMember: hostMember,
           });
-
-          if (broadcastChannel) {
-            broadcastChannel.postMessage({
-              type: 'GUEST_JOINED',
-              tableSessions: updatedSessions,
-              guestName: newGuest.name,
-              tableNumber: cleanTable,
-            });
-          }
         } else {
-          // Table is idle or new: This user automatically becomes Host! No PIN modal needed!
-          get().initTableSession(cleanTable, 'Host', 'Crown');
+          // Table is idle or new: This user automatically becomes Host!
+          get().initTableSession(cleanTable, 'Red Panda (Host)', 'Red Panda');
         }
       },
 
@@ -409,9 +377,7 @@ export const useAppStore = create<AppState>()(
 
         // If companionMember is already set and seated in this session, return it
         if (companionMember && (session.members || []).some((m) => m?.id === companionMember.id)) {
-          if (!get().currentMember) {
-            set({ currentMember: companionMember });
-          }
+          set({ currentMember: companionMember, activeTable: cleanTable, activeTablePin: null });
           return companionMember;
         }
 
@@ -444,8 +410,12 @@ export const useAppStore = create<AppState>()(
         set({
           tableSessions: updatedSessions,
           companionMember: newCompanion,
-          currentMember: get().currentMember || newCompanion,
+          currentMember: newCompanion,
+          activeTable: cleanTable,
+          activeTablePin: null,
         });
+
+        queueHostToast(`${newCompanion.name} joined Table ${cleanTable}`);
 
         if (broadcastChannel) {
           broadcastChannel.postMessage({
@@ -650,7 +620,7 @@ export const useAppStore = create<AppState>()(
 
       removeMemberFromTable: (tableNumber, targetMemberId) => {
         const cleanTable = tableNumber.trim().toUpperCase();
-        const { tableSessions, currentMember } = get();
+        const { tableSessions, currentMember, companionMember } = get();
         const session = tableSessions[cleanTable];
         if (!session) return;
 
@@ -664,17 +634,19 @@ export const useAppStore = create<AppState>()(
         };
 
         const updatedSessions = { ...tableSessions, [cleanTable]: updatedSession };
+        const hostMember = remainingMembers.find((m) => m.isHost) || remainingMembers[0] || null;
 
         set({
           tableSessions: updatedSessions,
-          currentMember: currentMember?.id === targetMemberId ? null : currentMember,
+          currentMember: currentMember?.id === targetMemberId ? hostMember : currentMember,
+          companionMember: companionMember?.id === targetMemberId ? null : companionMember,
         });
 
         if (broadcastChannel) {
           broadcastChannel.postMessage({ type: 'SESSIONS_SYNC', tableSessions: updatedSessions });
         }
 
-        get().showToast(`Removed ${target?.name || 'Diner'} from Table ${cleanTable}.`);
+        get().showToast(`Removed ${target?.name || 'Diner'} from Table ${cleanTable}`);
       },
 
       resetTableSession: (tableNumber) => {
@@ -1202,7 +1174,52 @@ export const useAppStore = create<AppState>()(
   )
 );
 
-// Cross-tab real-time telemetry listener
+// Helper for queuing and delivering notifications intended strictly for the Table Host
+export const queueHostToast = (msg: string) => {
+  if (typeof window === 'undefined') return;
+  try {
+    const list = JSON.parse(localStorage.getItem('flamelink_pending_host_toasts') || '[]');
+    list.push(msg);
+    localStorage.setItem('flamelink_pending_host_toasts', JSON.stringify(list));
+  } catch (e) {
+    // Ignore
+  }
+};
+
+export const flushPendingHostToasts = () => {
+  if (typeof window === 'undefined') return;
+  try {
+    const isHostScreen =
+      !window.location.pathname.startsWith('/companion') &&
+      !window.location.pathname.startsWith('/guest-order');
+    if (!isHostScreen) return;
+
+    const raw = localStorage.getItem('flamelink_pending_host_toasts');
+    if (!raw) return;
+    const list: string[] = JSON.parse(raw);
+    if (Array.isArray(list) && list.length > 0) {
+      localStorage.removeItem('flamelink_pending_host_toasts');
+      const store = useAppStore.getState();
+      list.forEach((msg, idx) => {
+        setTimeout(() => {
+          store.showToast(msg);
+        }, idx * 1200);
+      });
+    }
+  } catch (e) {
+    // Ignore
+  }
+};
+
+if (typeof window !== 'undefined') {
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      flushPendingHostToasts();
+    }
+  });
+}
+
+// Cross-tab real-time listener
 if (broadcastChannel) {
   broadcastChannel.onmessage = (event) => {
     const data = event.data;
@@ -1221,14 +1238,38 @@ if (broadcastChannel) {
     if (data.type === 'GUEST_JOINED') {
       if (store.activeTable === data.tableNumber) {
         store.syncTableSessions(data.tableSessions);
-        if (store.currentMember?.isHost) {
-          store.showToast(`${data.guestName} has joined your table.`);
+        const isHostScreen =
+          typeof window !== 'undefined' &&
+          !window.location.pathname.startsWith('/companion') &&
+          !window.location.pathname.startsWith('/guest-order');
+        if (isHostScreen && store.currentMember?.isHost) {
+          if (typeof document !== 'undefined' && document.visibilityState === 'hidden') {
+            queueHostToast(`${data.guestName} joined your table`);
+          } else {
+            store.showToast(`${data.guestName} joined your table`);
+          }
         }
       }
     }
     if (data.type === 'MEMBER_READY_CHANGE') {
       if (store.activeTable === data.tableNumber) {
         store.syncTableSessions(data.tableSessions);
+        const isHostScreen =
+          typeof window !== 'undefined' &&
+          !window.location.pathname.startsWith('/companion') &&
+          !window.location.pathname.startsWith('/guest-order');
+        if (isHostScreen && store.currentMember?.isHost) {
+          const session = data.tableSessions[data.tableNumber];
+          const member = session?.members?.find((m: any) => m.id === data.memberId);
+          const msg = data.isReady
+            ? `${member?.name || 'Diner'} is ready to settle`
+            : `${member?.name || 'Diner'} is still choosing dishes`;
+          if (typeof document !== 'undefined' && document.visibilityState === 'hidden') {
+            queueHostToast(msg);
+          } else {
+            store.showToast(msg);
+          }
+        }
       }
     }
     if (data.type === 'CASHIER_VERIFIED') {

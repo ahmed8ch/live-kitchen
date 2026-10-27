@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useAppStore } from '../../store/useAppStore';
 
 export const TableLobbyBar: React.FC = () => {
@@ -33,9 +34,11 @@ export const TableLobbyBar: React.FC = () => {
     );
   }
 
+  const location = useLocation();
+  const isCompanionView = location.pathname.startsWith('/companion') || location.pathname.startsWith('/guest-order');
   const session = tableSessions[activeTable];
   const members = session?.members || [];
-  const isHost = currentMember?.isHost ?? false;
+  const isHost = !isCompanionView && (currentMember?.isHost ?? false) && (session?.hostId === currentMember?.id);
   const pin = activeTablePin || session?.pin || '----';
 
   const handleCopyPin = () => {
@@ -181,20 +184,9 @@ export const TableLobbyBar: React.FC = () => {
           )}
 
           {isHost && (
-            <a
-              href={`/companion?table=${activeTable}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-3 py-1 text-[11px] font-mono-num text-[#262626] hover:text-[#FF0055] bg-white rounded-full border border-[#e5e7eb] hover:border-[#ffd1dc] transition-colors cursor-pointer shadow-xs"
-              title="Open Companion Guest POV in a separate window or tab to test multiplayer ordering"
-            >
-              <span>+ Companion Tab</span>
-              <svg className="w-3 h-3 text-[#727272]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                <polyline points="15 3 21 3 21 9" />
-                <line x1="10" y1="14" x2="21" y2="3" />
-              </svg>
-            </a>
+            <span className="text-[11px] font-mono-num text-[#727272] px-2 py-1 rounded bg-white border border-[#ffd1dc]/60">
+              Table Host Active
+            </span>
           )}
         </div>
       </div>

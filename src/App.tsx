@@ -61,15 +61,12 @@ export const App: React.FC = () => {
                 <div className="space-y-2">
                   <FlameLinkLogo size="xl" />
                   <p className="text-[13px] text-[#727272] max-w-sm">
-                    Digital Dine-In & Kitchen Synchronization Platform. Zero tablet hardware leases.
+                    Multiplayer Dine-In Operating System for high-volume dining rooms. Zero tablet hardware leases.
                   </p>
                 </div>
 
-                <div className="flex items-center gap-2.5 px-4 py-2 rounded-full bg-white border border-[#e5e7eb] text-[12px] font-mono-num shadow-xs">
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#15803d] animate-pulse" />
-                  <span className="font-semibold text-[#262626]">All Systems Operational</span>
-                  <span className="text-[#949494]">•</span>
-                  <span className="text-[#727272]">Live Kitchen Synchronization</span>
+                <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-[#e5e7eb] text-[12px] font-mono-num text-[#727272] shadow-xs">
+                  <span>FlameLink Dine-In OS</span>
                 </div>
               </div>
 
@@ -81,8 +78,8 @@ export const App: React.FC = () => {
                   </span>
                   <ul className="space-y-2 text-[#727272]">
                     <li><a href="/menu" className="hover:text-[#FF0055] transition-colors">Customer Menu</a></li>
-                    <li><a href="/companion" className="hover:text-[#FF0055] transition-colors">Companion Guest POV</a></li>
-                    <li><a href="/stand" className="hover:text-[#FF0055] transition-colors">Acrylic Table Stand Studio</a></li>
+                    <li><a href="/companion" className="hover:text-[#FF0055] transition-colors">Companion Order</a></li>
+                    <li><a href="/stand" className="hover:text-[#FF0055] transition-colors">Table QR Stand</a></li>
                   </ul>
                 </div>
 
@@ -115,7 +112,7 @@ export const App: React.FC = () => {
                   <ul className="space-y-2 text-[#727272]">
                     <li><span className="text-[#949494]">FlameLink OS v2.0</span></li>
                     <li><span className="text-[#949494]">Changa Brand Typography</span></li>
-                    <li><span className="text-[#949494]">Sub-150ms Synchronization</span></li>
+                    <li><span className="text-[#949494]">Multiplayer Real-Time State</span></li>
                   </ul>
                 </div>
               </div>
