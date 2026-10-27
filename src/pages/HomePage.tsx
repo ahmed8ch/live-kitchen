@@ -231,7 +231,7 @@ export const HomePage: React.FC = () => {
                 </p>
               </div>
               <div className="mt-6 pt-4 border-t border-[#f0f0f0] text-[11px] font-mono-num text-[#949494]">
-                ETA 14% VAT Engine
+                Split Settlement Engine
               </div>
             </div>
 

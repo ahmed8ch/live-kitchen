@@ -63,7 +63,7 @@ export interface OrderTicket {
   tablePin?: string;
   items: CartItem[];
   subtotal: number;
-  vatAmount: number; // Strictly 14% ETA VAT
+  vatAmount: number; // Taxes & fees (14%)
   total: number;
   status: OrderStatus;
   isPaid: boolean;

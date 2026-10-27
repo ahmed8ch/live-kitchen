@@ -420,7 +420,7 @@ export const SettlementPage: React.FC = () => {
             </div>
 
             <div className="flex justify-between text-[#727272]">
-              <span>Value Added Tax (ETA Standard 14%)</span>
+              <span>Taxes &amp; Service (14%)</span>
               <span className="font-mono-num text-[#262626]" data-ui-number>{ticket.vatAmount.toFixed(2)} EGP</span>
             </div>
 
@@ -544,7 +544,7 @@ export const SettlementPage: React.FC = () => {
                             <span className="font-mono-num">{group.subtotal.toFixed(2)} EGP</span>
                           </div>
                           <div className="flex justify-between text-[#727272]">
-                            <span>ETA 14% VAT:</span>
+                            <span>Taxes (14%):</span>
                             <span className="font-mono-num">{group.vatAmount.toFixed(2)} EGP</span>
                           </div>
                           <div className="flex justify-between text-[13px] font-bold text-[#262626] pt-1">
@@ -666,7 +666,7 @@ export const SettlementPage: React.FC = () => {
                   <ThermalText text="PAID IN FULL // VERIFIED AT REGISTER" durationMs={350} />
                 </div>
                 <div className="text-[12px] font-mono-num text-emerald-700" data-ui-number>
-                  Auth: #AUTH-{ticket.id.replace('ORD-', '99')}-ETA • Method: {ticket.paymentMethod?.replace('_', ' ').toUpperCase()}
+                  Auth: #AUTH-{ticket.id.replace('ORD-', '99')}-01 • Method: {ticket.paymentMethod?.replace('_', ' ').toUpperCase()}
                 </div>
               </div>
             ) : (

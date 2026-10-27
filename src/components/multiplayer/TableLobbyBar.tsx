@@ -109,36 +109,40 @@ export const TableLobbyBar: React.FC = () => {
             Diners ({members.length}):
           </span>
 
-          {members.map((member) => (
-            <div
-              key={member.id}
-              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] font-medium shrink-0 border transition-colors ${
-                member.id === currentMember?.id
-                  ? 'bg-white border-[#FF0055] text-[#262626] shadow-xs'
-                  : 'bg-white/80 border-[#e5e7eb] text-[#616161]'
-              }`}
-            >
-              <span
-                className={`w-2 h-2 rounded-full ${
-                  member.isReadyToPay ? 'bg-[#15803d]' : 'bg-[#e5e7eb]'
+          {members.map((member, idx) => {
+            if (!member) return null;
+            const isMe = member.id === currentMember?.id;
+            return (
+              <div
+                key={member.id || `mem-${idx}`}
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] font-medium shrink-0 border transition-colors ${
+                  isMe
+                    ? 'bg-white border-[#FF0055] text-[#262626] shadow-xs'
+                    : 'bg-white/80 border-[#e5e7eb] text-[#616161]'
                 }`}
-                title={member.isReadyToPay ? 'Ready to pay' : 'Browsing dishes'}
-              />
-              <span>{member.name}{member.isHost ? ' (Host)' : ''}</span>
+              >
+                <span
+                  className={`w-2 h-2 rounded-full ${
+                    member.isReadyToPay ? 'bg-[#15803d]' : 'bg-[#e5e7eb]'
+                  }`}
+                  title={member.isReadyToPay ? 'Ready to pay' : 'Browsing dishes'}
+                />
+                <span>{member.name || 'Diner'}{member.isHost ? ' (Host)' : ''}</span>
 
-              {/* Host can kick unwanted/duplicate companions */}
-              {isHost && !member.isHost && (
-                <button
-                  type="button"
-                  onClick={() => removeMemberFromTable(activeTable, member.id)}
-                  className="w-4 h-4 rounded-full bg-[#f9f9f9] hover:bg-red-100 text-[#949494] hover:text-red-600 flex items-center justify-center text-[11px] ml-1 cursor-pointer transition-colors"
-                  title={`Remove ${member.name}`}
-                >
-                  ×
-                </button>
-              )}
-            </div>
-          ))}
+                {/* Host can kick unwanted/duplicate companions */}
+                {isHost && !member.isHost && (
+                  <button
+                    type="button"
+                    onClick={() => removeMemberFromTable(activeTable, member.id)}
+                    className="w-4 h-4 rounded-full bg-[#f9f9f9] hover:bg-red-100 text-[#949494] hover:text-red-600 flex items-center justify-center text-[11px] ml-1 cursor-pointer transition-colors"
+                    title={`Remove ${member.name || 'Diner'}`}
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+            );
+          })}
 
           {/* Quick Clean Reset for Host if duplicates exist */}
           {isHost && members.length > 1 && (

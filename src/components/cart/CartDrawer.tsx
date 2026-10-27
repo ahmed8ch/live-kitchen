@@ -32,16 +32,20 @@ export const CartDrawer: React.FC = () => {
   const members = session?.members || [];
   const readyMembersCount = members.filter((m) => m.isReadyToPay).length;
 
-  const subtotal = cart.reduce((sum, item) => {
-    const modTotal = item.selectedModifiers.reduce((mSum, m) => mSum + m.price, 0);
-    return sum + (item.menuItem.basePrice + modTotal) * item.quantity;
+  const safeCart = cart || [];
+  const subtotal = safeCart.reduce((sum, item) => {
+    const modTotal = (item?.selectedModifiers || []).reduce((mSum, m) => mSum + (m?.price || 0), 0);
+    const basePrice = item?.menuItem?.basePrice || 0;
+    const qty = item?.quantity || 1;
+    return sum + (basePrice + modTotal) * qty;
   }, 0);
 
   const vatAmount = Math.round(subtotal * 0.14 * 100) / 100;
   const total = Math.round((subtotal + vatAmount) * 100) / 100;
 
   // Group cart items by diner who added them
-  const groupedCart = cart.reduce((acc, item) => {
+  const groupedCart = safeCart.reduce((acc, item) => {
+    if (!item) return acc;
     const memberKey = item.addedBy?.memberId || 'unassigned';
     const memberName = item.addedBy?.name || 'Table Diner';
     if (!acc[memberKey]) {
@@ -179,8 +183,10 @@ export const CartDrawer: React.FC = () => {
                 </div>
 
                 {group.items.map((item) => {
-                  const itemModifiersTotal = item.selectedModifiers.reduce((sum, m) => sum + m.price, 0);
-                  const itemUnitPrice = item.menuItem.basePrice + itemModifiersTotal;
+                  const itemModifiersTotal = (item?.selectedModifiers || []).reduce((sum, m) => sum + (m?.price || 0), 0);
+                  const basePrice = item?.menuItem?.basePrice || 0;
+                  const itemUnitPrice = basePrice + itemModifiersTotal;
+                  const qty = item?.quantity || 1;
 
                   return (
                     <div
@@ -205,7 +211,7 @@ export const CartDrawer: React.FC = () => {
                               {item.menuItem.name}
                             </h4>
                             <span className="font-mono-num font-medium text-[13px] text-[#262626] shrink-0" data-ui-number>
-                              {(itemUnitPrice * item.quantity).toFixed(2)} EGP
+                              {(itemUnitPrice * qty).toFixed(2)} EGP
                             </span>
                           </div>
 
@@ -216,7 +222,7 @@ export const CartDrawer: React.FC = () => {
                       </div>
 
                       {/* Modifiers */}
-                      {item.selectedModifiers.length > 0 && (
+                      {(item.selectedModifiers || []).length > 0 && (
                         <div className="text-[11px] text-[#727272] space-y-0.5 pl-2 border-l border-[#e5e7eb]">
                           {item.selectedModifiers.map((m) => (
                             <div key={m.id} className="flex justify-between">
@@ -280,7 +286,7 @@ export const CartDrawer: React.FC = () => {
                 <span className="font-mono-num text-[#262626]" data-ui-number>{subtotal.toFixed(2)} EGP</span>
               </div>
               <div className="flex justify-between text-[#727272]">
-                <span>ETA 14% VAT</span>
+                <span>Taxes &amp; Fees (14%)</span>
                 <span className="font-mono-num text-[#262626]" data-ui-number>{vatAmount.toFixed(2)} EGP</span>
               </div>
               <div className="flex justify-between text-[16px] font-medium text-[#262626] pt-1 border-t border-[#e5e7eb]">

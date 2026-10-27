@@ -69,7 +69,7 @@ export const App: React.FC = () => {
                   <span className="w-2.5 h-2.5 rounded-full bg-[#15803d] animate-pulse" />
                   <span className="font-semibold text-[#262626]">All Systems Operational</span>
                   <span className="text-[#949494]">•</span>
-                  <span className="text-[#727272]">ETA 14% VAT Engine Active</span>
+                  <span className="text-[#727272]">Live Kitchen Synchronization</span>
                 </div>
               </div>
 
@@ -103,8 +103,8 @@ export const App: React.FC = () => {
                   </span>
                   <ul className="space-y-2 text-[#727272]">
                     <li><a href="/settlement" className="hover:text-[#FF0055] transition-colors">Itemized Bill Split</a></li>
-                    <li><span className="text-[#949494]">ETA Fiscal Invoicing</span></li>
-                    <li><span className="text-[#949494]">Apple Pay & Meeza</span></li>
+                    <li><span className="text-[#949494]">Digital Receipt &amp; Split</span></li>
+                    <li><span className="text-[#949494]">Apple Pay &amp; Meeza</span></li>
                   </ul>
                 </div>
 

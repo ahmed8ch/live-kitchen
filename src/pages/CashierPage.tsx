@@ -349,7 +349,7 @@ export const CashierPage: React.FC = () => {
                     <span className="font-mono-num text-[#262626]">{tableOrder.subtotal.toFixed(2)} EGP</span>
                   </div>
                   <div className="flex justify-between text-[#727272]">
-                    <span>ETA 14% VAT:</span>
+                    <span>Taxes (14%):</span>
                     <span className="font-mono-num text-[#262626]">{tableOrder.vatAmount.toFixed(2)} EGP</span>
                   </div>
                   <div className="flex justify-between text-[15px] font-bold text-[#262626] pt-1 border-t border-[#e5e7eb]">

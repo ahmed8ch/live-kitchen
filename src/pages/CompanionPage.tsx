@@ -36,7 +36,7 @@ export const CompanionPage: React.FC = () => {
   useEffect(() => {
     setActiveTable(cleanTable);
     initCompanionSession(cleanTable);
-  }, [cleanTable, setActiveTable, initCompanionSession]);
+  }, [cleanTable]);
 
   const filteredDishes =
     activeCategory === 'all'

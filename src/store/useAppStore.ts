@@ -211,9 +211,9 @@ export const useAppStore = create<AppState>()(
         const session = tableSessions[cleanTable];
 
         // Check if session has active members
-        if (session && session.members.length > 0) {
+        if (session && session.members && session.members.length > 0) {
           // If current browser is already in this session's members, keep them
-          const existingUser = currentMember && session.members.find((m) => m.id === currentMember.id);
+          const existingUser = currentMember && session.members.find((m) => m?.id === currentMember?.id);
           if (existingUser) {
             set({
               activeTable: cleanTable,
@@ -223,13 +223,45 @@ export const useAppStore = create<AppState>()(
             return;
           }
 
-          // Otherwise, another device is Host! Prompt this user to join as guest
+          // Automatically seat guest with an untaken identity so they can browse dishes immediately without barrier!
+          const takenNames = new Set(
+            session.members.map((m) => (m?.name || '').replace(/\s*\(Host\)$/, '').trim().toLowerCase())
+          );
+          const ROSTER = ['Orange Fox', 'Golden Eagle', 'Blue Falcon', 'Emerald Owl', 'Silver Wolf'];
+          const autoGuestName = ROSTER.find((name) => !takenNames.has(name.toLowerCase())) || `Diner #${session.members.length + 1}`;
+          const newGuest: MemberProfile = {
+            id: `guest-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+            name: autoGuestName,
+            isHost: false,
+            isReadyToPay: false,
+            joinedAt: Date.now(),
+          };
+          const updatedSession: TableSession = {
+            ...session,
+            members: [...session.members, newGuest],
+            lastUpdated: Date.now(),
+          };
+          const updatedSessions = {
+            ...tableSessions,
+            [cleanTable]: updatedSession,
+          };
           set({
+            tableSessions: updatedSessions,
             activeTable: cleanTable,
             activeTablePin: session.pin,
-            pendingJoinTable: cleanTable,
-            isPinModalOpen: true,
+            currentMember: newGuest,
+            isPinModalOpen: false,
+            pendingJoinTable: null,
           });
+
+          if (broadcastChannel) {
+            broadcastChannel.postMessage({
+              type: 'GUEST_JOINED',
+              tableSessions: updatedSessions,
+              guestName: newGuest.name,
+              tableNumber: cleanTable,
+            });
+          }
         } else {
           // Table is idle or new: This user automatically becomes Host! No PIN modal needed!
           get().initTableSession(cleanTable, 'Host', 'Crown');
@@ -376,13 +408,16 @@ export const useAppStore = create<AppState>()(
         }
 
         // If companionMember is already set and seated in this session, return it
-        if (companionMember && session.members.some((m) => m.id === companionMember.id)) {
+        if (companionMember && (session.members || []).some((m) => m?.id === companionMember.id)) {
+          if (!get().currentMember) {
+            set({ currentMember: companionMember });
+          }
           return companionMember;
         }
 
         // Find taken identities
         const takenNames = new Set(
-          session.members.map((m) => m.name.replace(/\s*\(Host\)$/, '').trim().toLowerCase())
+          (session.members || []).map((m) => (m?.name || '').replace(/\s*\(Host\)$/, '').trim().toLowerCase())
         );
         const ROSTER = ['Orange Fox', 'Golden Eagle', 'Blue Falcon', 'Emerald Owl', 'Silver Wolf', 'Red Panda'];
         const nextAvailable = ROSTER.find((name) => !takenNames.has(name.toLowerCase())) || 'Orange Fox';
@@ -397,7 +432,7 @@ export const useAppStore = create<AppState>()(
 
         const updatedSession: TableSession = {
           ...session,
-          members: [...session.members, newCompanion],
+          members: [...(session.members || []), newCompanion],
           lastUpdated: Date.now(),
         };
 
@@ -409,6 +444,7 @@ export const useAppStore = create<AppState>()(
         set({
           tableSessions: updatedSessions,
           companionMember: newCompanion,
+          currentMember: get().currentMember || newCompanion,
         });
 
         if (broadcastChannel) {
@@ -424,25 +460,31 @@ export const useAppStore = create<AppState>()(
       },
 
       addToCartAsCompanion: (menuItem, selectedModifiers, quantity, notes) => {
-        const { companionMember, activeTable, cart } = get();
-        if (!companionMember) return;
+        const { companionMember, currentMember, activeTable, cart } = get();
+        const activeUser = companionMember || currentMember || {
+          id: `guest-${Date.now()}`,
+          name: 'Orange Fox',
+          isHost: false,
+          isReadyToPay: false,
+          joinedAt: Date.now(),
+        };
 
         const newItem: CartItem = {
           cartItemId: `cart-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
           menuItem,
-          selectedModifiers,
-          quantity,
+          selectedModifiers: selectedModifiers || [],
+          quantity: Math.max(1, quantity),
           notes,
           addedBy: {
-            memberId: companionMember.id,
-            name: companionMember.name,
-            isHost: false,
+            memberId: activeUser.id,
+            name: activeUser.name,
+            isHost: activeUser.isHost,
           },
         };
 
-        const nextCart = [...cart, newItem];
+        const nextCart = [...(cart || []), newItem];
         set({ cart: nextCart });
-        get().showToast(`Added ${quantity}x ${menuItem.name} (${companionMember.name})`);
+        get().showToast(`Added ${quantity}x ${menuItem.name} (${activeUser.name})`);
 
         if (broadcastChannel && activeTable) {
           broadcastChannel.postMessage({ type: 'CART_SYNC', cart: nextCart, tableNumber: activeTable });
@@ -1142,14 +1184,18 @@ export const useAppStore = create<AppState>()(
       syncCart: (cart) => set({ cart }),
     }),
     {
-      name: 'flamelink_multiplayer_store_v4',
+      name: 'flamelink_multiplayer_store_v5',
       partialize: (state) => ({
-        cart: state.cart,
-        orders: state.orders,
+        cart: (state.cart || []).map((item) => ({
+          ...item,
+          selectedModifiers: item.selectedModifiers || [],
+        })),
+        orders: state.orders || [],
         activeTable: state.activeTable,
         activeTablePin: state.activeTablePin,
         activeOrderId: state.activeOrderId,
         currentMember: state.currentMember,
+        companionMember: state.companionMember,
         tableSessions: state.tableSessions,
       }),
     }

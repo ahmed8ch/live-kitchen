@@ -8,7 +8,8 @@ export const FloatingCartBar: React.FC = () => {
 
   const [counterPop, setCounterPop] = useState(false);
 
-  const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+  const safeCart = cart || [];
+  const totalItems = safeCart.reduce((sum, item) => sum + (item?.quantity || 1), 0);
 
   // Trigger tactile spring pop whenever totalItems changes (Agent 09)
   useEffect(() => {
@@ -19,13 +20,15 @@ export const FloatingCartBar: React.FC = () => {
     }
   }, [totalItems]);
 
-  if (cart.length === 0 || isCartDrawerOpen) {
+  if (safeCart.length === 0 || isCartDrawerOpen) {
     return null;
   }
 
-  const subtotal = cart.reduce((sum, item) => {
-    const modTotal = item.selectedModifiers.reduce((mSum, m) => mSum + m.price, 0);
-    return sum + (item.menuItem.basePrice + modTotal) * item.quantity;
+  const subtotal = safeCart.reduce((sum, item) => {
+    const modTotal = (item?.selectedModifiers || []).reduce((mSum, m) => mSum + (m?.price || 0), 0);
+    const basePrice = item?.menuItem?.basePrice || 0;
+    const qty = item?.quantity || 1;
+    return sum + (basePrice + modTotal) * qty;
   }, 0);
 
   return (

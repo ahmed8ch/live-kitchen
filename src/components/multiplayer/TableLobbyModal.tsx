@@ -28,12 +28,12 @@ export const TableLobbyModal: React.FC = () => {
 
   const targetTable = pendingJoinTable.trim().toUpperCase();
   const existingSession = tableSessions[targetTable];
-  const isNewSession = !existingSession || existingSession.members.length === 0;
+  const isNewSession = !existingSession || !existingSession.members || existingSession.members.length === 0;
 
   // Set of names already taken by active table diners
   const takenNames = new Set(
     (existingSession?.members || []).map((m) =>
-      m.name.replace(/\s*\(Host\)$/, '').trim().toLowerCase()
+      (m?.name || '').replace(/\s*\(Host\)$/, '').trim().toLowerCase()
     )
   );
 
