@@ -66,7 +66,7 @@ export const MenuPage: React.FC = () => {
                 data-ui-radius="999"
                 className={`px-4 py-2 rounded-full text-[13px] font-medium transition-all shrink-0 cursor-pointer ${
                   activeCategory === cat.id
-                    ? 'bg-[#262626] text-white shadow-xs border-2 border-[#FF0055]'
+                    ? 'bg-[#fff0f3] text-[#FF0055] shadow-xs border-2 border-[#FF0055] font-bold'
                     : 'bg-white hover:bg-[#f0f0f0] text-[#727272] border border-[#e5e7eb]'
                 }`}
               >
@@ -115,8 +115,10 @@ export const MenuPage: React.FC = () => {
                 )}
                 {dish.rating && (
                   <div className="absolute top-3 right-3 px-2 py-0.5 rounded-full bg-white/95 text-[#262626] text-[11px] font-mono-num font-medium shadow-xs flex items-center gap-1">
-                    <span className="text-[#FF0055] font-bold">•</span>
-                    <span>{dish.rating}</span>
+                    <svg className="w-3.5 h-3.5 fill-[#FBBF24] text-[#FBBF24]" viewBox="0 0 20 20">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                    <span className="font-bold">{dish.rating}</span>
                   </div>
                 )}
               </div>

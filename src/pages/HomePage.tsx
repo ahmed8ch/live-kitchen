@@ -253,7 +253,7 @@ export const HomePage: React.FC = () => {
                     <line x1="14" y1="1" x2="14" y2="4" />
                   </svg>
                 </div>
-                <div className="text-[12px] font-mono-num text-[#949494] uppercase">02 // Culinary Menu</div>
+                <div className="text-[12px] font-mono-num text-[#949494] uppercase">02 // Table Menu</div>
                 <h3 className="text-[17px] font-medium text-[#262626] mt-1">Shared Touch Cart</h3>
                 <p className="mt-2 text-[13px] text-[#616161] leading-relaxed">
                   Touch anywhere on dish cards to customize. Items group by diner: "Sarah's Order", "Your Order".

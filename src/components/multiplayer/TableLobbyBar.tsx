@@ -17,7 +17,7 @@ export const TableLobbyBar: React.FC = () => {
       <div className="w-full bg-[#f9f9f9] border-b border-[#e5e7eb] px-4 py-2.5">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-[13px]">
           <span className="text-[#727272]">
-            Dine-In Self Ordering
+            Dine-In Self-Ordering Active
           </span>
           <button
             onClick={() => openPinModal('T-04')}
@@ -53,41 +53,51 @@ export const TableLobbyBar: React.FC = () => {
   return (
     <div className="w-full bg-[#fff0f3] border-b border-[#ffd1dc] px-4 py-2.5 transition-colors">
       <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
-        {/* Left: Table ID, PIN, and Copy Action (NO FLICKING DOTS) */}
+        {/* Left: Table Seating (Strictly 0 flicking dots per user directive) */}
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
             <span className="font-mono-num font-bold text-[14px] text-[#262626]">
               Table {activeTable}
             </span>
-            {isHost && (
+            {isHost ? (
               <span className="text-[10px] font-mono-num font-semibold uppercase px-2 py-0.5 rounded-full bg-[#FF0055] text-white">
                 Host
+              </span>
+            ) : (
+              <span className="text-[10px] font-mono-num font-semibold uppercase px-2 py-0.5 rounded-full bg-white border border-[#ffd1dc] text-[#FF0055]">
+                {currentMember?.name || 'Guest'}
               </span>
             )}
           </div>
 
           <div className="h-4 w-[1px] bg-[#ffd1dc]" />
 
-          {/* 4-digit PIN Badge with Copy Trigger */}
-          <div className="flex items-center gap-1.5">
-            <span className="text-[11px] font-mono-num uppercase tracking-wider text-[#727272]">
-              PIN:
+          {/* 4-digit PIN Badge: Strictly visible ONLY to the first scanner / Host (Agent 01 spec) */}
+          {isHost ? (
+            <div className="flex items-center gap-1.5">
+              <span className="text-[11px] font-mono-num uppercase tracking-wider text-[#727272]">
+                Table PIN:
+              </span>
+              <button
+                onClick={handleCopyPin}
+                title="Click to copy 4-digit PIN for companions sitting at your table"
+                className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-white border border-[#ffd1dc] text-[#FF0055] text-[13px] font-mono-num font-bold shadow-xs hover:border-[#FF0055] transition-colors cursor-pointer"
+              >
+                <span>{pin}</span>
+                <svg className="w-3.5 h-3.5 text-[#727272]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                </svg>
+              </button>
+              {copied && (
+                <span className="text-[11px] font-mono-num text-[#15803d]">Copied!</span>
+              )}
+            </div>
+          ) : (
+            <span className="text-[11px] font-mono-num text-[#727272]">
+              Shared Table Pool
             </span>
-            <button
-              onClick={handleCopyPin}
-              title="Click to copy 4-digit PIN for companions"
-              className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-white border border-[#ffd1dc] text-[#FF0055] text-[13px] font-mono-num font-semibold shadow-xs hover:border-[#FF0055] transition-colors cursor-pointer"
-            >
-              <span>{pin}</span>
-              <svg className="w-3.5 h-3.5 text-[#727272]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-              </svg>
-            </button>
-            {copied && (
-              <span className="text-[11px] font-mono-num text-[#15803d]">Copied!</span>
-            )}
-          </div>
+          )}
         </div>
 
         {/* Center: Party Members seated */}
@@ -109,9 +119,9 @@ export const TableLobbyBar: React.FC = () => {
                 className={`w-2 h-2 rounded-full ${
                   member.isReadyToPay ? 'bg-[#15803d]' : 'bg-[#e5e7eb]'
                 }`}
-                title={member.isReadyToPay ? 'Ready to settle bill' : 'Choosing dishes'}
+                title={member.isReadyToPay ? 'Ready to pay' : 'Browsing dishes'}
               />
-              <span>{member.name}</span>
+              <span>{member.name}{member.isHost ? ' (Host)' : ''}</span>
             </div>
           ))}
         </div>

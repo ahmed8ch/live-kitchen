@@ -4,11 +4,9 @@
   :root {
     /* Brand Pivot: Crimson Flame (#FF0055) */
     --color-crimson: #FF0055;
-    --color-crimson-glow: #ffd1dc;
-    --color-crimson-wash: #ffe0e8;
-    --color-ember-orange: #FF0055;
-    --color-ember-glow-light: #ffd1dc;
-    --color-ember-wash-deep: #ffe0e8;
+    --color-crimson-glow: rgba(255, 0, 85, 0.18);
+    --color-crimson-wash: #fff0f3;
+    --color-star-yellow: #FBBF24;
 
     --color-vellum: #f9f9f9;
     --color-paper: #ffffff;
@@ -33,10 +31,9 @@
     --font-mono: 'Geist Mono', 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 
-    /* Concentric Shadows & Crimson Halo */
-    --shadow-crimson-pill: 0px 0px 0px 6px #ffd1dc;
-    --shadow-crimson-sm: 0px 0px 0px 4px #ffd1dc;
-    --shadow-ember-pill: 0px 0px 0px 6px #ffd1dc;
+    /* Concentric Shadows & Vibrant Crimson Halo */
+    --shadow-crimson-pill: 0px 0px 0px 4px rgba(255, 0, 85, 0.22);
+    --shadow-crimson-sm: 0px 0px 0px 3px rgba(255, 0, 85, 0.22);
     --shadow-vellum-ring: 0px 0px 0px 6px #f9f9f9;
     --shadow-card-quiet: 0px 1px 2px rgba(0, 0, 0, 0.03), 0px 12px 24px -8px rgba(0, 0, 0, 0.02);
     --shadow-float-elevated: 0px 24px 32px -12px rgba(0, 0, 0, 0.06), 0px 0px 0px 1px #e5e7eb;
@@ -87,15 +84,28 @@
   background-size: 24px 24px;
 }
 
-/* Crimson Glow Rings */
+/* Vibrant Crimson Glow Rings (Signal Hex #FF0055) */
 .btn-crimson-glow,
 .btn-ember-glow {
-  box-shadow: 0 0 0 6px #ffd1dc;
+  box-shadow: 0 0 0 4px rgba(255, 0, 85, 0.22);
 }
 
 .btn-crimson-glow-sm,
 .btn-ember-glow-sm {
-  box-shadow: 0 0 0 4px #ffd1dc;
+  box-shadow: 0 0 0 3px rgba(255, 0, 85, 0.2);
+}
+
+/* Tactile Spring Physics for Cart Pop (Agent 09) */
+@keyframes cartSpringPop {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.15); }
+  60% { transform: scale(0.95); }
+  85% { transform: scale(1.03); }
+  100% { transform: scale(1); }
+}
+
+.animate-spring-pop {
+  animation: cartSpringPop 420ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 /* Selected 2px Solid Crimson Border */
@@ -110,7 +120,7 @@
 
 .card-glow-hover:hover {
   border-color: #FF0055;
-  box-shadow: 0 0 0 4px #ffd1dc;
+  box-shadow: 0 0 0 4px rgba(255, 0, 85, 0.18);
 }
 
 /* Physical Perforated Thermal Ticket Shape */
@@ -145,7 +155,7 @@
 /* KDS Perforated Thermal Chit Paper */
 .thermal-chit-kds {
   position: relative;
-  background: #fcfbf7;
+  background: #ffffff;
   color: #111827;
   border-radius: 8px;
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(0, 0, 0, 0.15);

@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAppStore } from '../store/useAppStore';
 import { PaymentMethod } from '../types/domain';
 import { FlameLinkLogo } from '../components/ui/FlameLinkLogo';
+import { ThermalText } from '../components/ui/ThermalText';
 
 const SPLIT_OPTIONS = [1, 2, 3, 4, 5, 6, 8];
 const TIP_PERCENTAGES = [0, 10, 12, 15];
@@ -227,7 +228,7 @@ export const SettlementPage: React.FC = () => {
                   <span>PAYMENT REQUIRED BEFORE COOKING</span>
                 </div>
                 <h3 className="text-lg font-bold text-[#262626] mt-1">
-                  Chit #{ticket.cashierChitCode || ticket.id}
+                  Chit #<ThermalText text={ticket.cashierChitCode || ticket.id} durationMs={300} />
                 </h3>
                 <p className="text-[13px] text-[#727272] mt-0.5">
                   Present this chit at the front register, or settle online below to fire order to kitchen line.
@@ -265,7 +266,7 @@ export const SettlementPage: React.FC = () => {
                 {ticket.tableNumber ? `Table ${ticket.tableNumber}` : 'Dine-In'}
               </span>
               <span className="text-[15px] font-mono-num font-bold text-[#262626]" data-ui-number>
-                #{ticket.id}
+                #<ThermalText text={ticket.id} durationMs={350} />
               </span>
             </div>
           </div>
@@ -465,7 +466,7 @@ export const SettlementPage: React.FC = () => {
             {isVerifiedPaid ? (
               <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-center space-y-1">
                 <div className="text-emerald-800 font-bold text-[14px]">
-                  PAID IN FULL // VERIFIED AT REGISTER
+                  <ThermalText text="PAID IN FULL // VERIFIED AT REGISTER" durationMs={350} />
                 </div>
                 <div className="text-[12px] font-mono-num text-emerald-700" data-ui-number>
                   Auth: #AUTH-{ticket.id.replace('ORD-', '99')}-ETA • Method: {ticket.paymentMethod?.replace('_', ' ').toUpperCase()}
@@ -610,7 +611,7 @@ export const SettlementPage: React.FC = () => {
                     value={feedback}
                     onChange={(e) => setFeedback(e.target.value)}
                     rows={2}
-                    placeholder="Culinary notes or comments (optional)"
+                    placeholder="Kitchen notes or comments (optional)"
                     className="w-full px-3 py-2 text-[13px] rounded-lg border border-[#e5e7eb] focus:outline-none focus:border-[#FF0055]"
                   />
                 </div>
@@ -637,6 +638,29 @@ export const SettlementPage: React.FC = () => {
               </div>
             )}
           </section>
+        )}
+
+        {/* Prominent Loopback: Order Again (Maintains Table Session, Clears Cart) */}
+        {isVerifiedPaid && (
+          <div className="no-print mt-6 p-6 rounded-2xl bg-[#fff0f3] border-2 border-[#ffd1dc] text-center space-y-3 shadow-xs">
+            <h3 className="text-base font-bold text-[#262626]">
+              Still at Table {ticket.tableNumber || activeTable}?
+            </h3>
+            <p className="text-[13px] text-[#727272] max-w-sm mx-auto">
+              Ready for another round? Order drinks, desserts, or extra plates without losing your table session.
+            </p>
+            <div className="pt-1">
+              <button
+                onClick={handleOrderAgain}
+                className="w-full sm:w-auto px-8 py-3.5 rounded-full bg-[#FF0055] hover:opacity-95 text-white font-bold text-[14px] btn-crimson-glow shadow-md cursor-pointer transition-all active:scale-[0.99] inline-flex items-center justify-center gap-2"
+              >
+                <span>+ Order Another Round</span>
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
+          </div>
         )}
 
         {/* Print / Download / Share Actions Strip (NO-PRINT) */}

@@ -263,7 +263,7 @@ export const KdsPage: React.FC = () => {
                   </div>
 
                   {/* Chit Header: 24px Font Size Table & Order ID (Agent 06 spec) */}
-                  <div className="px-5 pt-4 pb-3 border-b border-[#e2e8f0] flex items-start justify-between bg-[#fcfbf7]">
+                  <div className="px-5 pt-4 pb-3 border-b border-[#e2e8f0] flex items-start justify-between bg-white">
                     <div>
                       <div className="text-[24px] font-mono-num font-bold text-[#111827] leading-none" data-ui-number>
                         {ticket.tableNumber ? `TABLE ${ticket.tableNumber}` : 'ONLINE ORDER'}
@@ -287,7 +287,7 @@ export const KdsPage: React.FC = () => {
                   <div className="thermal-tear-line my-1" />
 
                   {/* Ticket Items: 20px Dish Font, 18px Bold Modifiers (Agent 06 spec) */}
-                  <div className="px-5 py-4 space-y-5 flex-1 bg-[#fcfbf7]">
+                  <div className="px-5 py-4 space-y-5 flex-1 bg-white">
                     {ticket.items.map((item, idx) => (
                       <div key={item.cartItemId || idx} className="space-y-1.5 border-b border-dashed border-[#e2e8f0] pb-3 last:border-b-0 last:pb-0">
                         <div className="flex items-start justify-between gap-2">
@@ -333,7 +333,7 @@ export const KdsPage: React.FC = () => {
                   </div>
 
                   {/* Bottom Action Footer & Bump Button */}
-                  <div className="p-4 bg-[#f4f2ea] border-t border-[#e2e8f0] rounded-b-[5px]">
+                  <div className="p-4 bg-[#f9f9f9] border-t border-[#e2e8f0] rounded-b-[5px]">
                     {ticket.status !== 'served' ? (
                       <button
                         onClick={() => advanceOrderStatus(ticket.id)}

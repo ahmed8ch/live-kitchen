@@ -10,11 +10,11 @@ export const FloatingCartBar: React.FC = () => {
 
   const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
 
-  // Trigger tactile spring pop whenever totalItems changes
+  // Trigger tactile spring pop whenever totalItems changes (Agent 09)
   useEffect(() => {
     if (totalItems > 0) {
       setCounterPop(true);
-      const timer = setTimeout(() => setCounterPop(false), 220);
+      const timer = setTimeout(() => setCounterPop(false), 420);
       return () => clearTimeout(timer);
     }
   }, [totalItems]);
@@ -40,8 +40,8 @@ export const FloatingCartBar: React.FC = () => {
         style={{
           boxShadow: '0 0 0 6px rgba(38, 38, 38, 0.08), 0 20px 30px -10px rgba(0, 0, 0, 0.25)',
         }}
-        className={`w-full flex items-center justify-between px-5 py-3.5 rounded-full bg-[#262626] text-white hover:bg-[#1a1a1a] border border-[#383838] transition-transform duration-200 cursor-pointer group ${
-          counterPop ? 'scale-105' : 'scale-100'
+        className={`w-full flex items-center justify-between px-5 py-3.5 rounded-full bg-[#262626] text-white hover:bg-[#1a1a1a] border border-[#383838] transition-all cursor-pointer group ${
+          counterPop ? 'animate-spring-pop ring-2 ring-[#FF0055]' : ''
         } active:scale-95`}
       >
         {/* Left: Item Count Badge & Label */}

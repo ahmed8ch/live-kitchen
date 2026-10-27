@@ -56,15 +56,6 @@ export const CashierPage: React.FC = () => {
       };
     }
 
-    if (session?.status === 'paid_cooking') {
-      return {
-        status: 'paid_cooking',
-        label: 'Paid & Cooking',
-        badgeClass: 'bg-emerald-50 text-emerald-800 border-emerald-300 font-medium',
-        amount: undefined,
-      };
-    }
-
     if (session && session.members.length > 0) {
       return {
         status: 'ordering',
@@ -76,7 +67,7 @@ export const CashierPage: React.FC = () => {
 
     return {
       status: 'idle',
-      label: 'Cleared / Available',
+      label: 'Cleared',
       badgeClass: 'bg-[#f9f9f9] text-[#727272] border-[#e5e7eb]',
       amount: undefined,
     };

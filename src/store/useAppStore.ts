@@ -205,12 +205,12 @@ export const useAppStore = create<AppState>()(
         }
       },
 
-      initTableSession: (tableNumber, memberName = 'Host', _avatar = 'Crown') => {
+      initTableSession: (tableNumber, memberName = 'Red Panda (Host)', _avatar = 'Red Panda') => {
         const cleanTable = tableNumber.trim().toUpperCase();
         const { tableSessions } = get();
-        const existingSession = tableSessions[cleanTable];
 
-        const hostPin = existingSession?.pin || Math.floor(1000 + Math.random() * 9000).toString();
+        // Always generate a fresh, dynamic 4-digit PIN for new table sessions
+        const hostPin = Math.floor(1000 + Math.random() * 9000).toString();
         const hostMember: MemberProfile = {
           id: `host-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
           name: memberName,
@@ -496,7 +496,7 @@ export const useAppStore = create<AppState>()(
       openCartDrawer: () => set({ isCartDrawerOpen: true }),
       closeCartDrawer: () => set({ isCartDrawerOpen: false }),
 
-      // THE PAYMENT GATE: Dynamic order creation from cart
+      // THE PAYMENT GATE: Dynamic order creation from cart (starts as Draft until settled)
       createOrder: (paymentMethod) => {
         const { cart, activeTable, activeTablePin, orders, tableSessions } = get();
         if (cart.length === 0) {
@@ -514,8 +514,8 @@ export const useAppStore = create<AppState>()(
         const orderId = `ORD-${ticketNumber}`;
         const cashierCode = `PAY-${activeTable?.replace('T-', '') || '00'}-${ticketNumber}`;
 
-        const isInstantOnline = paymentMethod === 'apple_pay' || paymentMethod === 'card';
-
+        // PAYMENT GATE: All orders strictly start in 'pending_verification' (Draft)
+        // Only payOrderOnline or verifyCashierPayment transitions to 'verified_paid'!
         const newTicket: OrderTicket = {
           id: orderId,
           tableNumber: activeTable,
@@ -525,25 +525,23 @@ export const useAppStore = create<AppState>()(
           vatAmount,
           total,
           status: 'received',
-          isPaid: isInstantOnline,
+          isPaid: false,
           paymentMethod,
-          paymentStatus: isInstantOnline ? 'verified_paid' : 'pending_verification',
+          paymentStatus: 'pending_verification',
           cashierChitCode: cashierCode,
           createdAt: Date.now(),
-          paidAt: isInstantOnline ? Date.now() : undefined,
         };
 
         const updatedOrders = [newTicket, ...orders];
 
-        // Update table session status
+        // Update table session status to waiting_for_payment
         let updatedSessions = tableSessions;
         if (activeTable && tableSessions[activeTable]) {
-          const nextStatus: TableStatus = isInstantOnline ? 'paid_cooking' : 'waiting_for_payment';
           updatedSessions = {
             ...tableSessions,
             [activeTable]: {
               ...tableSessions[activeTable],
-              status: nextStatus,
+              status: 'waiting_for_payment' as TableStatus,
               activeOrderId: orderId,
               lastUpdated: Date.now(),
             },
@@ -558,11 +556,7 @@ export const useAppStore = create<AppState>()(
           isCartDrawerOpen: false,
         });
 
-        if (isInstantOnline) {
-          get().showToast(`Payment verified! Order #${orderId} fired to kitchen line`);
-        } else {
-          get().showToast(`Cashier Chit #${cashierCode} generated. Settle at front register.`);
-        }
+        get().showToast(`Order #${orderId} placed. Ready for settlement.`);
 
         if (broadcastChannel) {
           broadcastChannel.postMessage({
@@ -835,7 +829,9 @@ if (broadcastChannel) {
     if (data.type === 'GUEST_JOINED') {
       if (store.activeTable === data.tableNumber) {
         store.syncTableSessions(data.tableSessions);
-        store.showToast(`${data.guestName} has joined your table pool.`);
+        if (store.currentMember?.isHost) {
+          store.showToast(`${data.guestName} has joined your table.`);
+        }
       }
     }
     if (data.type === 'MEMBER_READY_CHANGE') {
