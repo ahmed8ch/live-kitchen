@@ -1541,12 +1541,21 @@ export const useAppStore = create<AppState>()(
         const target = orders.find((o) => o.id === orderId);
         if (!target) return;
 
-        const updatedOrders = orders.filter((o) => o.id !== orderId);
+        const updatedOrders = orders.map((o) =>
+          o.id === orderId
+            ? {
+                ...o,
+                status: 'voided' as const,
+                voidReason: reason || 'Cashier Void',
+                voidedAt: Date.now(),
+              }
+            : o
+        );
 
         let updatedSessions = { ...tableSessions };
         if (target.tableNumber && updatedSessions[target.tableNumber]) {
           const tableNum = target.tableNumber;
-          const remainingForTable = updatedOrders.filter((o) => o.tableNumber === tableNum);
+          const remainingForTable = updatedOrders.filter((o) => o.tableNumber === tableNum && o.status !== 'voided');
           const hasPending = remainingForTable.some((o) => o.paymentStatus === 'pending_verification');
           const hasCooking = remainingForTable.some((o) => o.paymentStatus === 'verified_paid' && o.status !== 'served');
 

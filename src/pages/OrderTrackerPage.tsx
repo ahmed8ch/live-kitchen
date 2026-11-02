@@ -40,15 +40,15 @@ export const OrderTrackerPage: React.FC = () => {
             <polyline points="12 6 12 12 16 14" />
           </svg>
         </div>
-        <h2 className="text-[20px] sm:text-xl font-bold tracking-tight text-[#262626]">No Active Order Found</h2>
-        <p className="mt-2 text-[#727272] text-[14px] leading-relaxed max-w-sm mx-auto">
+        <h2 className="text-xl font-bold tracking-tight text-[#262626]">No Active Order Found</h2>
+        <p className="mt-2 text-[#727272] text-sm leading-relaxed max-w-sm mx-auto">
           You have not placed an order yet. Visit our dine-in menu to order dishes.
         </p>
         <div className="mt-6">
           <Link
             to={activeTable ? `/menu?table=${activeTable}` : '/menu'}
             data-ui-radius="999"
-            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#FF0055] text-white text-[13px] font-bold transition-all btn-crimson-glow shadow-xs hover:bg-[#e0004d] active:scale-95"
+            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#FF0055] text-white text-sm font-bold transition-all btn-crimson-glow shadow-xs hover:bg-[#e0004d] active:scale-95"
           >
             <span>Open Dine-In Menu -&gt;</span>
           </Link>
@@ -69,7 +69,7 @@ export const OrderTrackerPage: React.FC = () => {
           <div className="flex items-center gap-3">
             <Link
               to={ticket.tableNumber ? `/menu?table=${ticket.tableNumber}` : '/menu'}
-              className="inline-flex items-center gap-1.5 text-[13px] text-[#727272] hover:text-[#262626] transition-colors"
+              className="inline-flex items-center gap-1.5 text-sm text-[#727272] hover:text-[#262626] transition-colors"
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M19 12H5M12 19l-7-7 7-7" />
@@ -79,7 +79,7 @@ export const OrderTrackerPage: React.FC = () => {
 
             <button
               onClick={handleOrderAgain}
-              className="px-3 py-1 rounded-full bg-[#262626] hover:bg-black text-white text-[12px] font-bold transition-all cursor-pointer shadow-xs"
+              className="px-3 py-1 rounded-full bg-[#262626] hover:bg-black text-white text-xs font-bold transition-all cursor-pointer shadow-xs"
             >
               + Order Again
             </button>
@@ -87,7 +87,7 @@ export const OrderTrackerPage: React.FC = () => {
 
           {/* Live Kitchen Status Indicator (Diner View) */}
           {!isCompleted && isVerifiedPaid && (
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#fff0f3] border border-[#ffd1dc] text-[12px] font-mono-num text-[#FF0055]">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#fff0f3] border border-[#ffd1dc] text-xs font-semibold text-[#FF0055]">
               <span className="w-2 h-2 rounded-full bg-[#FF0055] animate-pulse" />
               <span>Station Active: {STAGES[currentStageIndex]?.label || 'Cooking'}</span>
             </div>
@@ -99,18 +99,18 @@ export const OrderTrackerPage: React.FC = () => {
           <div className="mb-6 p-4 rounded-2xl bg-[#fff0f3] border-2 border-[#ffd1dc] space-y-2">
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-[#FF0055]" />
-              <span className="text-[13px] font-bold text-[#FF0055] font-mono-num">
-                AWAITING CASHIER SETTLEMENT (CHIT #{ticket.cashierChitCode || ticket.id})
+              <span className="text-sm font-bold text-[#FF0055]">
+                Awaiting Cashier Settlement (Chit #<span className="font-mono-num">{ticket.cashierChitCode || ticket.id}</span>)
               </span>
             </div>
-            <p className="text-[12px] text-[#727272]">
+            <p className="text-xs text-[#727272]">
               Kitchen cooking is strictly on hold until payment is confirmed by the front register.
               Please present your Chit code at the front counter.
             </p>
             <div className="pt-1">
               <Link
                 to={`/settlement/${ticket.id}`}
-                className="text-[12px] font-medium text-[#FF0055] hover:underline"
+                className="text-xs font-semibold text-[#FF0055] hover:underline"
               >
                 Go to Bill & Settlement / Pay Online Now -&gt;
               </Link>
@@ -124,16 +124,16 @@ export const OrderTrackerPage: React.FC = () => {
           <div className="flex items-start justify-between pb-6 border-b border-[#e5e7eb]">
             <div>
               <FlameLinkLogo size="md" />
-              <div className="text-[12px] text-[#727272] mt-1.5">
+              <div className="text-xs text-[#727272] mt-1.5">
                 Live Kitchen Dispatch Monitor
               </div>
             </div>
 
             <div className="text-right">
-              <span className="text-[11px] font-mono-num text-[#949494] block">
+              <span className="text-xs font-medium text-[#727272] block">
                 {ticket.tableNumber ? `Table ${ticket.tableNumber}` : 'Online Guest'}
               </span>
-              <span className="text-[15px] font-mono-num font-medium text-[#262626]" data-ui-number>
+              <span className="text-base font-mono-num font-bold text-[#262626]" data-ui-number>
                 #<ThermalText text={ticket.cashierChitCode || ticket.id} durationMs={350} />
               </span>
             </div>
@@ -141,10 +141,10 @@ export const OrderTrackerPage: React.FC = () => {
 
           {/* Tear Line / Status Headline */}
           <div className="py-3 thermal-tear-line flex items-center justify-between">
-            <span className="text-[12px] font-medium text-[#727272]">
+            <span className="text-xs font-medium text-[#727272]">
               Current Kitchen Status:
             </span>
-            <span className="px-3 py-1 rounded-full bg-[#fff0f3] border border-[#ffd1dc] text-[#FF0055] text-[12px] font-mono-num font-medium">
+            <span className="px-3 py-1 rounded-full bg-[#fff0f3] border border-[#ffd1dc] text-[#FF0055] text-xs font-semibold">
               <ThermalText text={STAGES[currentStageIndex]?.label.toUpperCase() || 'COOKING'} />
             </span>
           </div>
@@ -169,7 +169,7 @@ export const OrderTrackerPage: React.FC = () => {
 
                     {/* Step Icon / Dot */}
                     <div
-                      className={`w-7 h-7 rounded-full flex items-center justify-center text-[12px] font-mono-num shrink-0 z-10 transition-colors ${
+                      className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-mono-num shrink-0 z-10 transition-colors ${
                         isPassed
                           ? 'bg-[#FF0055] text-white shadow-xs'
                           : isCurrent
@@ -191,7 +191,7 @@ export const OrderTrackerPage: React.FC = () => {
                     <div className="flex-1 pt-0.5">
                       <div className="flex items-center justify-between">
                         <span
-                          className={`text-[14px] font-medium ${
+                          className={`text-sm font-semibold ${
                             isCurrent
                               ? 'text-[#FF0055]'
                               : isPassed
@@ -202,12 +202,12 @@ export const OrderTrackerPage: React.FC = () => {
                           {stage.label}
                         </span>
                         {isCurrent && (
-                          <span className="text-[11px] font-medium text-[#FF0055]">
+                          <span className="text-xs font-semibold text-[#FF0055]">
                             Active Station
                           </span>
                         )}
                       </div>
-                      <p className="text-[12px] text-[#727272] mt-0.5">
+                      <p className="text-xs text-[#727272] mt-0.5">
                         {stage.desc}
                       </p>
                     </div>
@@ -219,7 +219,7 @@ export const OrderTrackerPage: React.FC = () => {
 
           {/* Ticket Items Overview */}
           <div className="py-4 border-b border-[#e5e7eb] space-y-2.5">
-            <div className="text-[12px] font-medium text-[#727272]">
+            <div className="text-xs font-semibold text-[#727272]">
               Dishes in Preparation ({ticket.items.reduce((s, i) => s + i.quantity, 0)} Items)
             </div>
 
@@ -229,7 +229,7 @@ export const OrderTrackerPage: React.FC = () => {
                 const itemTotal = (item.menuItem.basePrice + modTotal) * item.quantity;
 
                 return (
-                  <div key={item.cartItemId} className="text-[13px] pb-2 border-b border-[#f0f0f0] last:border-b-0">
+                  <div key={item.cartItemId} className="text-sm pb-2 border-b border-[#f0f0f0] last:border-b-0">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <span className="font-mono-num font-bold text-[#262626]" data-ui-number>
@@ -237,17 +237,17 @@ export const OrderTrackerPage: React.FC = () => {
                         </span>
                         <span className="text-[#262626] font-medium">{item.menuItem.name}</span>
                         {item.addedBy && (
-                          <span className="text-[11px] text-[#727272]">({item.addedBy.name})</span>
+                          <span className="text-xs text-[#727272]">({item.addedBy.name})</span>
                         )}
                       </div>
-                      <span className="text-[13px] font-mono-num font-medium text-[#262626]">
+                      <span className="text-sm font-mono-num font-medium text-[#262626]">
                         {itemTotal.toFixed(2)} EGP
                       </span>
                     </div>
 
                     {/* Modifiers List */}
                     {item.selectedModifiers && item.selectedModifiers.length > 0 && (
-                      <div className="pl-6 text-[11px] text-[#727272] space-y-0.5 mt-0.5">
+                      <div className="pl-6 text-xs text-[#727272] space-y-0.5 mt-0.5">
                         {item.selectedModifiers.map((m) => (
                           <div key={m.id}>
                             + {m.name} {m.price > 0 && `(+${m.price.toFixed(2)} EGP)`}
@@ -258,7 +258,7 @@ export const OrderTrackerPage: React.FC = () => {
 
                     {/* Kitchen Notes */}
                     {item.notes && (
-                      <div className="pl-6 text-[11px] text-[#FF0055] italic mt-0.5">
+                      <div className="pl-6 text-xs text-[#FF0055] font-medium mt-0.5">
                         &quot;{item.notes}&quot;
                       </div>
                     )}
@@ -271,10 +271,10 @@ export const OrderTrackerPage: React.FC = () => {
           {/* Action Footer: Link to Settle Bill & Loopback */}
           <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div>
-              <div className="text-[11px] font-mono-num uppercase text-[#949494]">
+              <div className="text-xs font-medium text-[#727272]">
                 Total Payable (incl. 14% VAT)
               </div>
-              <div className="text-[18px] font-mono-num font-medium text-[#262626]" data-ui-number>
+              <div className="text-lg font-mono-num font-bold text-[#262626]" data-ui-number>
                 {ticket.total.toFixed(2)} EGP
               </div>
             </div>
@@ -283,7 +283,7 @@ export const OrderTrackerPage: React.FC = () => {
               {ticket.isPaid && (
                 <button
                   onClick={handleOrderAgain}
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full bg-[#262626] hover:bg-black text-white text-[13px] font-bold transition-all active:scale-[0.99] shadow-xs cursor-pointer"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full bg-[#262626] hover:bg-black text-white text-sm font-bold transition-all active:scale-[0.99] shadow-xs cursor-pointer"
                 >
                   <span>+ Order Again</span>
                 </button>
@@ -292,7 +292,7 @@ export const OrderTrackerPage: React.FC = () => {
               <Link
                 to={`/settlement/${ticket.id}`}
                 data-ui-radius="999"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[13px] font-medium transition-all btn-crimson-glow active:scale-[0.99] shadow-xs"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-sm font-semibold transition-all btn-crimson-glow active:scale-[0.99] shadow-xs"
               >
                 <span>{ticket.isPaid ? 'View Fiscal Receipt' : 'Split & Settle Table Bill ->'}</span>
               </Link>

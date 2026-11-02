@@ -291,8 +291,8 @@ export const HomePage: React.FC = () => {
                       Table T-04 Active Session
                     </span>
                   </div>
-                  <span className="px-2.5 py-0.5 rounded-full bg-white text-[#FF0055] border border-[#ffd1dc] text-xs font-mono-num font-bold">
-                    PIN: 4892
+                  <span className="px-2.5 py-0.5 rounded-full bg-white text-[#FF0055] border border-[#ffd1dc] text-xs font-bold">
+                    PIN: <span className="font-mono-num">4892</span>
                   </span>
                 </div>
 
@@ -313,7 +313,7 @@ export const HomePage: React.FC = () => {
                 </div>
 
                 {/* Live Shared Cart Items */}
-                <div className="mt-4 space-y-2.5 bg-white p-3.5 rounded-xl border border-[#e5e7eb] text-xs">
+                <div className="mt-4 space-y-2.5 bg-white p-3.5 rounded-2xl border border-[#e5e7eb] text-xs">
                   <div className="flex justify-between items-center pb-2 border-b border-[#f0f0f0]">
                     <div>
                       <div className="font-bold text-[#262626]">Angus Flame-Grilled Burger</div>
@@ -359,12 +359,12 @@ export const HomePage: React.FC = () => {
                 </div>
 
                 {/* Real-Time Gate Indicator */}
-                <div className="mt-4 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs flex items-center justify-between">
+                <div className="mt-4 p-3 rounded-2xl bg-[#f9f9f9] border border-[#e5e7eb] text-xs flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-emerald-600" />
-                    <span className="font-bold text-emerald-900">Payment Gate Verified</span>
+                    <span className="w-2 h-2 rounded-full bg-[#FF0055]" />
+                    <span className="font-bold text-[#262626]">Payment Gate Verified</span>
                   </div>
-                  <span className="font-mono-num text-emerald-800 font-semibold">Broadcasted to KDS</span>
+                  <span className="font-medium text-[#727272]">Broadcasted to KDS</span>
                 </div>
               </div>
             </div>
@@ -394,7 +394,7 @@ export const HomePage: React.FC = () => {
             <div className="bg-white p-7 rounded-2xl border border-[#e5e7eb] flex flex-col justify-between hover:border-[#FF0055]/50 transition-colors">
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <span className="text-xs font-mono-num font-bold text-[#FF0055] px-2.5 py-1 rounded-full bg-[#fff0f3] border border-[#ffd1dc]">
+                  <span className="text-xs font-bold text-[#FF0055] px-2.5 py-1 rounded-full bg-[#fff0f3] border border-[#ffd1dc]">
                     Stage 01
                   </span>
                   <span className="text-xs font-medium text-[#949494]">Acrylic Tent Stand</span>
@@ -408,7 +408,7 @@ export const HomePage: React.FC = () => {
               </div>
               <div className="mt-6 pt-4 border-t border-[#f0f0f0] flex items-center justify-between text-xs text-[#727272]">
                 <span className="font-medium">Device: Diner Phone (BYOD)</span>
-                <span className="font-mono-num font-semibold text-[#262626]">Table PIN Generated</span>
+                <span className="font-semibold text-[#262626]">Table PIN Generated</span>
               </div>
             </div>
 
@@ -416,7 +416,7 @@ export const HomePage: React.FC = () => {
             <div className="bg-white p-7 rounded-2xl border border-[#e5e7eb] flex flex-col justify-between hover:border-[#FF0055]/50 transition-colors">
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <span className="text-xs font-mono-num font-bold text-[#FF0055] px-2.5 py-1 rounded-full bg-[#fff0f3] border border-[#ffd1dc]">
+                  <span className="text-xs font-bold text-[#FF0055] px-2.5 py-1 rounded-full bg-[#fff0f3] border border-[#ffd1dc]">
                     Stage 02
                   </span>
                   <span className="text-xs font-medium text-[#949494]">Multiplayer Pool</span>
@@ -430,7 +430,7 @@ export const HomePage: React.FC = () => {
               </div>
               <div className="mt-6 pt-4 border-t border-[#f0f0f0] flex items-center justify-between text-xs text-[#727272]">
                 <span className="font-medium">Telemetry: BroadcastChannel Sync</span>
-                <span className="font-mono-num font-semibold text-[#262626]">Itemized Per Guest</span>
+                <span className="font-semibold text-[#262626]">Itemized Per Guest</span>
               </div>
             </div>
 
@@ -438,7 +438,7 @@ export const HomePage: React.FC = () => {
             <div className="bg-white p-7 rounded-2xl border border-[#e5e7eb] flex flex-col justify-between hover:border-[#FF0055]/50 transition-colors">
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <span className="text-xs font-mono-num font-bold text-[#FF0055] px-2.5 py-1 rounded-full bg-[#fff0f3] border border-[#ffd1dc]">
+                  <span className="text-xs font-bold text-[#FF0055] px-2.5 py-1 rounded-full bg-[#fff0f3] border border-[#ffd1dc]">
                     Stage 03
                   </span>
                   <span className="text-xs font-medium text-[#949494]">Strict Payment Gate</span>
@@ -452,7 +452,7 @@ export const HomePage: React.FC = () => {
               </div>
               <div className="mt-6 pt-4 border-t border-[#f0f0f0] flex items-center justify-between text-xs text-[#727272]">
                 <span className="font-medium">Gate: Payment Lock Active</span>
-                <span className="font-mono-num font-semibold text-[#15803d]">Verified Settlement</span>
+                <span className="font-semibold text-[#262626]">Verified Settlement</span>
               </div>
             </div>
 
@@ -460,7 +460,7 @@ export const HomePage: React.FC = () => {
             <div className="bg-white p-7 rounded-2xl border border-[#e5e7eb] flex flex-col justify-between hover:border-[#FF0055]/50 transition-colors">
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <span className="text-xs font-mono-num font-bold text-[#FF0055] px-2.5 py-1 rounded-full bg-[#fff0f3] border border-[#ffd1dc]">
+                  <span className="text-xs font-bold text-[#FF0055] px-2.5 py-1 rounded-full bg-[#fff0f3] border border-[#ffd1dc]">
                     Stage 04
                   </span>
                   <span className="text-xs font-medium text-[#949494]">Dedicated KDS</span>
@@ -474,7 +474,7 @@ export const HomePage: React.FC = () => {
               </div>
               <div className="mt-6 pt-4 border-t border-[#f0f0f0] flex items-center justify-between text-xs text-[#727272]">
                 <span className="font-medium">Portal: /kds Workstation</span>
-                <span className="font-mono-num font-semibold text-[#262626]">Sub-150ms Grill Dispatch</span>
+                <span className="font-semibold text-[#262626]">Sub-150ms Grill Dispatch</span>
               </div>
             </div>
           </div>
@@ -601,9 +601,9 @@ export const HomePage: React.FC = () => {
             </div>
 
             {submittedTicket ? (
-              <div className="p-6 rounded-xl bg-[#f9f9f9] border border-[#e5e7eb] text-center space-y-3">
-                <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center mx-auto text-base font-bold">
-                  <svg className="w-5 h-5 text-emerald-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <div className="p-6 rounded-2xl bg-[#f9f9f9] border border-[#e5e7eb] text-center space-y-3">
+                <div className="w-10 h-10 rounded-full bg-[#fff0f3] text-[#FF0055] flex items-center justify-center mx-auto text-base font-bold">
+                  <svg className="w-5 h-5 text-[#FF0055]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="20 6 9 17 4 12" />
                   </svg>
                 </div>

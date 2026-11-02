@@ -142,7 +142,7 @@
   position: relative;
   background: #ffffff;
   border: 1px solid #e5e7eb;
-  border-radius: 12px;
+  border-radius: 16px;
 }
 
 .thermal-ticket-light::before,
@@ -210,7 +210,8 @@
 
 .acrylic-stand-3d:hover {
   transform: perspective(1000px) rotateY(0deg) rotateX(0deg) translateY(-4px);
-  box-shadow: 0 28px 48px -12px rgba(0, 0, 0, 0.16), 0 0 0 1px #FF0055;
+  box-shadow: 0 28px 48px -12px rgba(0, 0, 0, 0.16);
+  outline: 1px solid #FF0055;
 }
 
 /* Flying to Cart Animation */

@@ -76,11 +76,11 @@ export const TableLobbyBar: React.FC = () => {
               Table {activeTable}
             </span>
             {isHost ? (
-              <span className="text-[10px] font-mono-num font-semibold uppercase px-2 py-0.5 rounded-full bg-[#FF0055] text-white">
+              <span className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full bg-[#FF0055] text-white">
                 Host
               </span>
             ) : (
-              <span className="text-[10px] font-mono-num font-semibold uppercase px-2 py-0.5 rounded-full bg-white border border-[#ffd1dc] text-[#FF0055]">
+              <span className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full bg-white border border-[#ffd1dc] text-[#FF0055]">
                 {effectiveUser?.name || 'Guest'}
               </span>
             )}
@@ -91,13 +91,13 @@ export const TableLobbyBar: React.FC = () => {
           {/* 4-digit PIN Badge: Strictly visible ONLY to the first scanner / Host (Agent 01 spec) */}
           {isHost ? (
             <div className="flex items-center gap-1.5">
-              <span className="text-[11px] font-mono-num uppercase tracking-wider text-[#727272]">
+              <span className="text-[11px] font-semibold text-[#727272]">
                 Table PIN:
               </span>
               <button
                 onClick={handleCopyPin}
                 title="Click to copy 4-digit PIN for companions sitting at your table"
-                className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-white border border-[#ffd1dc] text-[#FF0055] text-[13px] font-mono-num font-bold shadow-xs hover:border-[#FF0055] transition-colors cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-white border border-[#ffd1dc] text-[#FF0055] text-[13px] font-mono-num font-bold shadow-xs hover:border-[#FF0055] transition-colors cursor-pointer"
               >
                 <span>{pin}</span>
                 <svg className="w-3.5 h-3.5 text-[#727272]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -106,11 +106,11 @@ export const TableLobbyBar: React.FC = () => {
                 </svg>
               </button>
               {copied && (
-                <span className="text-[11px] font-mono-num text-[#15803d]">Copied!</span>
+                <span className="text-[11px] text-[#262626] font-medium">Copied!</span>
               )}
             </div>
           ) : (
-            <span className="text-[11px] font-mono-num text-[#727272]">
+            <span className="text-[11px] text-[#727272]">
               Shared Table Pool
             </span>
           )}
@@ -118,7 +118,7 @@ export const TableLobbyBar: React.FC = () => {
 
         {/* Center: Party Members seated with Kick / Leave Controls */}
         <div className="flex items-center gap-2 overflow-x-auto max-w-full pb-1 md:pb-0 scrollbar-none">
-          <span className="text-[11px] text-[#727272] shrink-0 font-mono-num">
+          <span className="text-[11px] text-[#727272] shrink-0 font-medium">
             Diners ({members.length}):
           </span>
 
@@ -163,7 +163,7 @@ export const TableLobbyBar: React.FC = () => {
           {isHost && members.length > 1 && (
             <button
               onClick={() => resetTableSession(activeTable)}
-              className="text-[10px] font-mono-num text-[#727272] hover:text-[#FF0055] px-2 py-0.5 rounded bg-white border border-[#e5e7eb] shrink-0 cursor-pointer"
+              className="text-[10px] text-[#727272] hover:text-[#FF0055] px-2 py-0.5 rounded-full bg-white border border-[#e5e7eb] shrink-0 cursor-pointer"
               title="Reset table session to single host"
             >
               Reset Diners
@@ -185,7 +185,7 @@ export const TableLobbyBar: React.FC = () => {
                 }
                 className={`px-3 py-1 rounded-full text-[12px] font-medium transition-all cursor-pointer shadow-xs ${
                   effectiveUser.isReadyToPay
-                    ? 'bg-[#15803d] text-white hover:bg-[#166534]'
+                    ? 'bg-[#262626] text-white hover:bg-black'
                     : 'bg-white text-[#262626] border border-[#e5e7eb] hover:border-[#FF0055]'
                 }`}
               >
@@ -195,7 +195,7 @@ export const TableLobbyBar: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => leaveTableSession(activeTable, effectiveUser.id)}
-                  className="text-[11px] font-mono-num text-red-600 hover:underline px-1 cursor-pointer"
+                  className="text-[11px] text-red-600 hover:underline px-1 cursor-pointer"
                   title="Leave table pool"
                 >
                   Leave
@@ -205,8 +205,8 @@ export const TableLobbyBar: React.FC = () => {
           )}
 
           {isHost && (
-            <span className="text-[11px] font-mono-num text-[#727272] px-2.5 py-1 rounded bg-white border border-[#ffd1dc]/60">
-              Host Controls Active ({members.filter((m) => m?.isReadyToPay).length}/{members.length} Diners Ready)
+            <span className="text-[11px] text-[#727272] px-2.5 py-1 rounded-full bg-white border border-[#ffd1dc]/60">
+              Host Controls Active (<span className="font-mono-num">{members.filter((m) => m?.isReadyToPay).length}/{members.length}</span> Diners Ready)
             </span>
           )}
         </div>

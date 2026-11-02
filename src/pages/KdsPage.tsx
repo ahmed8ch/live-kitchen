@@ -149,20 +149,20 @@ export const KdsPage: React.FC = () => {
       description="The FlameLink Kitchen Display System (KDS) is an operational pass terminal engineered strictly for line expeditor screens and high-temperature kitchen displays (minimum 1024px horizontal resolution). Mobile phone access is locked to maintain order dispatch safety and line coordination."
     >
       <div
-        className="min-h-screen bg-[#0d0f12] blueprint-dots-dark text-white flex flex-col font-sans select-none overflow-x-hidden pb-16"
+        className="min-h-screen bg-white blueprint-dots text-[#262626] flex flex-col font-sans select-none overflow-x-hidden pb-16"
         data-ui-container="kds-screen"
       >
       {/* High-Contrast Kitchen Top Header */}
-      <header className="h-16 px-6 sm:px-8 bg-[#151921] border-b border-[#252b36] flex items-center justify-between shrink-0 z-20">
+      <header className="h-16 px-6 sm:px-8 bg-white border-b border-[#e5e7eb] flex items-center justify-between shrink-0 z-20">
         <div className="flex items-center gap-6">
           <Link to="/" className="inline-flex items-center gap-2.5">
             <span className="w-2.5 h-2.5 rounded-full bg-[#FF0055]" />
-            <span className="text-[18px] font-bold tracking-tight text-white">
-              Flame<span className="text-[#FF0055]">Link</span> <span className="text-[#94a3b8] text-[13px] font-mono-num uppercase tracking-wider ml-1">KDS PASS</span>
+            <span className="text-[18px] font-bold tracking-tight text-[#262626]">
+              Flame<span className="text-[#FF0055]">Link</span> <span className="text-[#727272] text-[13px] uppercase font-semibold tracking-wider ml-1">KDS PASS</span>
             </span>
           </Link>
 
-          <span className="hidden sm:inline text-[13px] font-mono-num text-[#94a3b8]">
+          <span className="hidden sm:inline text-[13px] text-[#727272]">
             Kitchen Expeditor Pass // Station 01
           </span>
         </div>
@@ -172,7 +172,7 @@ export const KdsPage: React.FC = () => {
           <button
             onClick={() => addSampleOrder()}
             data-ui-radius="999"
-            className="px-4 py-1.5 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[12px] font-mono-num font-medium transition-all shadow-xs cursor-pointer btn-crimson-glow-sm active:scale-95"
+            className="px-4 py-1.5 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[12px] font-medium transition-all shadow-xs cursor-pointer btn-crimson-glow-sm active:scale-95"
             title="Inject a realistic incoming order ticket"
           >
             + Fire Verified Test Chit
@@ -181,7 +181,7 @@ export const KdsPage: React.FC = () => {
           <Link
             to="/cashier"
             data-ui-radius="999"
-            className="px-4 py-1.5 rounded-full bg-[#252b36] hover:bg-[#333b49] text-[#e2e8f0] text-[12px] font-medium transition-all cursor-pointer"
+            className="px-4 py-1.5 rounded-full bg-[#f9f9f9] hover:bg-[#e5e7eb] text-[#262626] border border-[#e5e7eb] text-[12px] font-medium transition-all cursor-pointer"
           >
             Cashier Station -&gt;
           </Link>
@@ -189,15 +189,15 @@ export const KdsPage: React.FC = () => {
       </header>
 
       {/* Real-Time Kitchen Metric Counters Bar */}
-      <section className="px-6 sm:px-8 py-3.5 bg-[#11141a] border-b border-[#1f242d] flex flex-wrap items-center justify-between gap-4 text-[13px] font-mono-num">
+      <section className="px-6 sm:px-8 py-3.5 bg-[#f9f9f9] border-b border-[#e5e7eb] flex flex-wrap items-center justify-between gap-4 text-[13px]">
         {/* Stage Filter Pills */}
         <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
           <button
             onClick={() => setStatusFilter('active')}
             className={`px-3.5 py-1 rounded-full text-[12px] transition-all cursor-pointer ${
               statusFilter === 'active'
-                ? 'bg-white text-[#0d0f12] font-semibold'
-                : 'bg-[#1a202c] text-[#94a3b8] hover:text-white'
+                ? 'bg-[#262626] text-white font-semibold'
+                : 'bg-white text-[#727272] border border-[#e5e7eb] hover:text-[#262626]'
             }`}
           >
             Active Tickets ({openTickets.length + cookingTickets.length + readyTickets.length})
@@ -208,7 +208,7 @@ export const KdsPage: React.FC = () => {
             className={`px-3.5 py-1 rounded-full text-[12px] transition-all cursor-pointer ${
               statusFilter === 'received'
                 ? 'bg-[#0284c7] text-white font-semibold shadow-xs'
-                : 'bg-[#1a202c] text-[#94a3b8] hover:text-white'
+                : 'bg-white text-[#727272] border border-[#e5e7eb] hover:text-[#262626]'
             }`}
           >
             New ({openTickets.length})
@@ -219,7 +219,7 @@ export const KdsPage: React.FC = () => {
             className={`px-3.5 py-1 rounded-full text-[12px] transition-all cursor-pointer ${
               statusFilter === 'cooking'
                 ? 'bg-[#d97706] text-white font-semibold'
-                : 'bg-[#1a202c] text-[#94a3b8] hover:text-white'
+                : 'bg-white text-[#727272] border border-[#e5e7eb] hover:text-[#262626]'
             }`}
           >
             On Grill ({cookingTickets.length})
@@ -230,7 +230,7 @@ export const KdsPage: React.FC = () => {
             className={`px-3.5 py-1 rounded-full text-[12px] transition-all cursor-pointer ${
               statusFilter === 'ready'
                 ? 'bg-[#15803d] text-white font-semibold'
-                : 'bg-[#1a202c] text-[#94a3b8] hover:text-white'
+                : 'bg-white text-[#727272] border border-[#e5e7eb] hover:text-[#262626]'
             }`}
           >
             Ready for Pass ({readyTickets.length})
@@ -240,24 +240,24 @@ export const KdsPage: React.FC = () => {
             onClick={() => setStatusFilter('served')}
             className={`px-3.5 py-1 rounded-full text-[12px] transition-all cursor-pointer ${
               statusFilter === 'served'
-                ? 'bg-[#475569] text-white font-semibold'
-                : 'bg-[#1a202c] text-[#94a3b8] hover:text-white'
+                ? 'bg-[#64748b] text-white font-semibold'
+                : 'bg-white text-[#727272] border border-[#e5e7eb] hover:text-[#262626]'
             }`}
           >
             Served ({servedTickets.length})
           </button>
 
-          <div className="w-[1px] h-4 bg-[#2d3748] mx-1 shrink-0" />
+          <div className="w-[1px] h-4 bg-[#e5e7eb] mx-1 shrink-0" />
 
           {/* Station Filters */}
           {(['all', 'grill', 'oven', 'fry', 'pantry'] as const).map((st) => (
             <button
               key={st}
               onClick={() => setStationFilter(st)}
-              className={`px-2.5 py-1 rounded-full text-[11px] font-mono-num uppercase tracking-wider transition-all cursor-pointer shrink-0 ${
+              className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-all cursor-pointer shrink-0 ${
                 stationFilter === st
                   ? 'bg-[#FF0055] text-white font-bold shadow-xs'
-                  : 'bg-[#1e2532] text-[#94a3b8] hover:text-white'
+                  : 'bg-white text-[#727272] border border-[#e5e7eb] hover:text-[#262626]'
               }`}
             >
               {st === 'all' ? 'All Stations' : st}
@@ -266,16 +266,16 @@ export const KdsPage: React.FC = () => {
         </div>
 
         {/* Live Clock & Queue Stack Indicator */}
-        <div className="flex items-center gap-4 text-[#94a3b8]">
+        <div className="flex items-center gap-4 text-[#727272]">
           {filteredOrders.length > 4 && (
-            <span className="px-2.5 py-0.5 rounded-full bg-[#252b36] text-[#FF0055] font-semibold text-[11px]">
+            <span className="px-2.5 py-0.5 rounded-full bg-[#fff0f3] text-[#FF0055] border border-[#ffd1dc] font-semibold text-[11px]">
               +{filteredOrders.length - 4} in queue
             </span>
           )}
 
           <div className="flex items-center gap-2">
             <span>STATION CLOCK:</span>
-            <span className="text-white font-medium" data-ui-number>
+            <span className="text-[#262626] font-mono-num font-medium" data-ui-number>
               {new Date(currentTime).toLocaleTimeString()}
             </span>
           </div>
@@ -285,15 +285,15 @@ export const KdsPage: React.FC = () => {
       {/* Main Single Unsectioned Auto-Fill Grid (DESIGN.md §5.5) with Large Legible Font Hierarchy */}
       <main className="flex-1 p-6 sm:p-8 overflow-y-auto">
         {filteredOrders.length === 0 ? (
-          <div className="h-96 flex flex-col items-center justify-center text-center text-[#94a3b8]">
-            <div className="w-16 h-16 rounded-full bg-[#151921] border border-[#252b36] flex items-center justify-center text-[#64748b] mb-4">
+          <div className="h-96 flex flex-col items-center justify-center text-center text-[#727272]">
+            <div className="w-16 h-16 rounded-full bg-[#f9f9f9] border border-[#e5e7eb] flex items-center justify-center text-[#262626] mb-4">
               <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                 <polyline points="20 6 9 17 4 12" />
               </svg>
             </div>
-            <h3 className="text-xl font-medium text-white">Line All Clear</h3>
-            <p className="text-[14px] text-[#64748b] mt-1">
-              No orders pending. Orders awaiting cashier verification will appear once settled.
+            <h3 className="text-xl font-bold text-[#262626]">Line All Clear</h3>
+            <p className="text-[14px] text-[#727272] mt-1">
+              No tickets matching current station or active filter. Pass is currently empty.
             </p>
           </div>
         ) : (
@@ -336,7 +336,7 @@ export const KdsPage: React.FC = () => {
                     </div>
 
                     <div className="text-right">
-                      <span className="text-[11px] font-mono-num text-[#64748b] block uppercase">
+                      <span className="text-[11px] text-[#64748b] block font-medium uppercase">
                         FIRED
                       </span>
                       <span className="text-[13px] font-mono-num font-semibold text-[#111827]">
@@ -386,7 +386,7 @@ export const KdsPage: React.FC = () => {
 
                         {/* Diner Attribution */}
                         {item.addedBy && (
-                          <div className="pl-6 text-[11px] font-mono-num text-[#727272]">
+                          <div className="pl-6 text-[11px] text-[#727272]">
                             Diner: {item.addedBy.name}
                           </div>
                         )}
@@ -400,12 +400,12 @@ export const KdsPage: React.FC = () => {
                       <button
                         onClick={() => advanceOrderStatus(ticket.id)}
                         data-ui-radius="6"
-                        className={`w-full py-3.5 px-4 rounded text-[15px] font-mono-num font-bold transition-all active:scale-[0.99] cursor-pointer shadow-md ${theme.buttonClass}`}
+                        className={`w-full py-3.5 px-4 rounded text-[15px] font-bold transition-all active:scale-[0.99] cursor-pointer shadow-md ${theme.buttonClass}`}
                       >
                         {getStatusActionText(ticket.status)}
                       </button>
                     ) : (
-                      <div className="w-full py-2.5 text-center text-[13px] font-mono-num text-[#64748b]">
+                      <div className="w-full py-2.5 text-center text-[13px] text-[#64748b]">
                         Ticket Completed & Expedited
                       </div>
                     )}
@@ -418,22 +418,22 @@ export const KdsPage: React.FC = () => {
       </main>
 
       {/* Sticky Bottom Footer: Whole Number Totals across all active orders */}
-      <footer className="fixed bottom-0 inset-x-0 bg-[#151921] border-t border-[#252b36] py-2.5 px-6 z-30 flex items-center justify-between text-[12px] font-mono-num shadow-2xl">
-        <div className="flex items-center gap-2 text-[#94a3b8] shrink-0 mr-4">
+      <footer className="fixed bottom-0 inset-x-0 bg-white border-t border-[#e5e7eb] py-2.5 px-6 z-30 flex items-center justify-between text-[12px] shadow-sm">
+        <div className="flex items-center gap-2 text-[#727272] shrink-0 mr-4">
           <span className="w-2 h-2 rounded-full bg-[#FF0055]" />
-          <span className="font-semibold text-white uppercase">Kitchen Batch Totals:</span>
+          <span className="font-semibold text-[#262626] uppercase">Kitchen Batch Totals:</span>
         </div>
 
         <div className="flex items-center gap-4 overflow-x-auto scrollbar-none py-1">
           {Object.keys(dishAggregations).length === 0 ? (
-            <span className="text-[#64748b]">No active dishes on the grill line</span>
+            <span className="text-[#727272]">No active dishes on the grill line</span>
           ) : (
             Object.entries(dishAggregations).map(([name, count]) => (
               <div
                 key={name}
-                className="px-2.5 py-1 rounded bg-[#252b36] border border-[#333b49] text-white shrink-0 flex items-center gap-1.5"
+                className="px-2.5 py-1 rounded-full bg-[#f9f9f9] border border-[#e5e7eb] text-[#262626] shrink-0 flex items-center gap-1.5"
               >
-                <span className="text-[#FF0055] font-bold text-[13px]">{count}x</span>
+                <span className="text-[#FF0055] font-mono-num font-bold text-[13px]">{count}x</span>
                 <span>{name}</span>
               </div>
             ))

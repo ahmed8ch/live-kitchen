@@ -173,12 +173,12 @@ export const CompanionPage: React.FC = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-[#FF0055]" />
-                <span className="text-[12px] font-bold text-[#FF0055]">
+                <span className="text-xs font-bold text-[#FF0055]">
                   Table Settlement Active
                 </span>
               </div>
-              <span className="text-[12px] font-mono-num text-[#727272]">
-                Chit #{activeTicket.cashierChitCode || activeTicket.id}
+              <span className="text-xs text-[#727272]">
+                Chit #<span className="font-mono-num">{activeTicket.cashierChitCode || activeTicket.id}</span>
               </span>
             </div>
 
@@ -186,7 +186,7 @@ export const CompanionPage: React.FC = () => {
             <div className="bg-white rounded-2xl p-5 border border-[#e5e7eb] shadow-xs space-y-4">
               <div className="flex items-start justify-between border-b border-[#f0f0f0] pb-3">
                 <div>
-                  <div className="text-[12px] font-medium text-[#727272]">
+                  <div className="text-xs font-medium text-[#727272]">
                     Your Personal Dine-In Share
                   </div>
                   <h3 className="text-lg font-bold text-[#262626] mt-0.5">
@@ -195,7 +195,7 @@ export const CompanionPage: React.FC = () => {
                 </div>
 
                 <div className="text-right">
-                  <div className="text-[11px] font-medium text-[#727272]">
+                  <div className="text-xs font-medium text-[#727272]">
                     Share Total
                   </div>
                   <div className="text-lg font-mono-num font-bold text-[#FF0055]">
@@ -206,8 +206,8 @@ export const CompanionPage: React.FC = () => {
 
               {/* Exact Companion Item Breakdown */}
               {companionItems.length > 0 ? (
-                <div className="space-y-2 text-[13px]">
-                  <div className="text-[11px] font-mono-num uppercase text-[#949494]">
+                <div className="space-y-2 text-sm">
+                  <div className="text-xs font-semibold text-[#727272]">
                     Dishes Added by You ({companionItems.length}):
                   </div>
                   {companionItems.map((item) => {
@@ -218,7 +218,7 @@ export const CompanionPage: React.FC = () => {
                         <div>
                           <span className="font-medium">{item.quantity}x {item.menuItem.name}</span>
                           {item.selectedModifiers.length > 0 && (
-                            <div className="text-[11px] text-[#727272]">
+                            <div className="text-xs text-[#727272]">
                               +{item.selectedModifiers.map((m) => m.name).join(', ')}
                             </div>
                           )}
@@ -230,24 +230,24 @@ export const CompanionPage: React.FC = () => {
                     );
                   })}
 
-                  <div className="pt-2 border-t border-[#f0f0f0] flex justify-between text-[11px] text-[#727272]">
-                    <span>Net Subtotal: {companionSubtotal.toFixed(2)} EGP</span>
-                    <span>14% VAT: {companionVat.toFixed(2)} EGP</span>
+                  <div className="pt-2 border-t border-[#f0f0f0] flex justify-between text-xs text-[#727272]">
+                    <span>Net Subtotal: <span className="font-mono-num">{companionSubtotal.toFixed(2)} EGP</span></span>
+                    <span>14% VAT: <span className="font-mono-num">{companionVat.toFixed(2)} EGP</span></span>
                   </div>
                 </div>
               ) : (
-                <div className="text-[13px] text-[#727272] py-2">
+                <div className="text-sm text-[#727272] py-2">
                   No individual dishes were attributed to your profile in this round.
                 </div>
               )}
 
               {/* Settlement Action State */}
               {isCompanionSharePaid ? (
-                <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-center space-y-1">
-                  <div className="text-emerald-800 font-bold text-[13px]">
-                    Share Settled: {paidRecord?.amount.toFixed(2)} EGP via {paidRecord?.paymentMethod?.replace('_', ' ').toUpperCase()}
+                <div className="p-3.5 rounded-2xl bg-[#f9f9f9] border border-[#e5e7eb] text-center space-y-1">
+                  <div className="text-[#262626] font-bold text-sm">
+                    Share Settled: <span className="font-mono-num">{paidRecord?.amount.toFixed(2)} EGP</span> via {paidRecord?.paymentMethod?.replace('_', ' ').toUpperCase()}
                   </div>
-                  <div className="text-[11px] font-mono-num text-emerald-700">
+                  <div className="text-xs text-[#727272]">
                     {isOrderFullySettled
                       ? 'All table shares settled. Dishes are firing to the kitchen pass.'
                       : `Awaiting other table diners (${remainingTableBalance.toFixed(2)} EGP remaining).`}
@@ -255,7 +255,7 @@ export const CompanionPage: React.FC = () => {
                 </div>
               ) : companionTotalShare > 0 ? (
                 <div className="space-y-3 pt-1">
-                  <div className="text-[12px] font-medium text-[#262626]">
+                  <div className="text-xs font-semibold text-[#262626]">
                     Select Your Payment Method:
                   </div>
 
@@ -269,8 +269,8 @@ export const CompanionPage: React.FC = () => {
                           : 'border-[#e5e7eb] bg-white hover:bg-[#f9f9f9]'
                       }`}
                     >
-                      <div className="text-[12px] font-bold text-[#262626]">Apple Pay</div>
-                      <div className="text-[10px] text-[#727272] mt-0.5">Biometric Auth</div>
+                      <div className="text-xs font-bold text-[#262626]">Apple Pay</div>
+                      <div className="text-xs text-[#727272] mt-0.5">Biometric Auth</div>
                     </button>
 
                     <button
@@ -282,8 +282,8 @@ export const CompanionPage: React.FC = () => {
                           : 'border-[#e5e7eb] bg-white hover:bg-[#f9f9f9]'
                       }`}
                     >
-                      <div className="text-[12px] font-bold text-[#262626]">Card</div>
-                      <div className="text-[10px] text-[#727272] mt-0.5">Visa / Meeza</div>
+                      <div className="text-xs font-bold text-[#262626]">Card</div>
+                      <div className="text-xs text-[#727272] mt-0.5">Visa / Meeza</div>
                     </button>
 
                     <button
@@ -295,8 +295,8 @@ export const CompanionPage: React.FC = () => {
                           : 'border-[#e5e7eb] bg-white hover:bg-[#f9f9f9]'
                       }`}
                     >
-                      <div className="text-[12px] font-bold text-[#262626]">Cashier</div>
-                      <div className="text-[10px] text-[#727272] mt-0.5">Desk Chit</div>
+                      <div className="text-xs font-bold text-[#262626]">Cashier</div>
+                      <div className="text-xs text-[#727272] mt-0.5">Desk Chit</div>
                     </button>
                   </div>
 
@@ -305,7 +305,7 @@ export const CompanionPage: React.FC = () => {
                     onClick={handlePayMyShare}
                     disabled={isProcessing}
                     data-ui-radius="999"
-                    className="w-full py-3 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[13px] font-bold transition-all btn-crimson-glow shadow-xs cursor-pointer flex items-center justify-center gap-2 active:scale-[0.99]"
+                    className="w-full py-3 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-sm font-bold transition-all btn-crimson-glow shadow-xs cursor-pointer flex items-center justify-center gap-2 active:scale-[0.99]"
                   >
                     {isProcessing ? (
                       <span>Authorizing Payment...</span>
@@ -318,9 +318,9 @@ export const CompanionPage: React.FC = () => {
 
               {/* Table Progress Bar */}
               <div className="pt-2 border-t border-[#f0f0f0] space-y-1.5">
-                <div className="flex justify-between text-[11px] font-mono-num text-[#727272]">
+                <div className="flex justify-between text-xs text-[#727272]">
                   <span>Table Balance Remaining:</span>
-                  <span className="font-bold text-[#FF0055]">{remainingTableBalance.toFixed(2)} EGP</span>
+                  <span className="font-mono-num font-bold text-[#FF0055]">{remainingTableBalance.toFixed(2)} EGP</span>
                 </div>
                 <div className="w-full bg-[#e5e7eb] h-1.5 rounded-full overflow-hidden">
                   <div
@@ -336,7 +336,7 @@ export const CompanionPage: React.FC = () => {
               <div className="text-center pt-1">
                 <Link
                   to={`/settlement/${activeTicket.id}?table=${cleanTable}`}
-                  className="text-[12px] text-[#727272] hover:text-[#262626] underline font-medium"
+                  className="text-xs text-[#727272] hover:text-[#262626] underline font-medium"
                 >
                   View Full Table Thermal Chit -&gt;
                 </Link>
@@ -355,17 +355,17 @@ export const CompanionPage: React.FC = () => {
                 <h1 className="text-2xl sm:text-3xl font-bold text-[#262626] tracking-tight">
                   Menu
                 </h1>
-                <span className="px-2.5 py-0.5 rounded-full bg-[#fff0f3] border border-[#ffd1dc] text-[#FF0055] text-[11px] font-mono-num font-bold">
+                <span className="px-2.5 py-0.5 rounded-full bg-[#fff0f3] border border-[#ffd1dc] text-[#FF0055] text-xs font-semibold">
                   {effectiveMember?.name || 'Guest'}
                 </span>
               </div>
-              <p className="text-[13px] text-[#727272]">
+              <p className="text-sm text-[#727272]">
                 Cooked fresh over wood flame coals upon payment confirmation. Touch any dish to customize.
               </p>
             </div>
 
             <div className="sm:text-right bg-[#f9f9f9] px-4 py-2 rounded-xl border border-[#e5e7eb] shrink-0">
-              <div className="text-[11px] font-medium text-[#727272]">
+              <div className="text-xs font-medium text-[#727272]">
                 Table Seating
               </div>
               <div className="text-base font-mono-num font-bold text-[#FF0055]">
@@ -381,7 +381,7 @@ export const CompanionPage: React.FC = () => {
                 key={cat.id}
                 onClick={() => setActiveCategory(cat.id)}
                 data-ui-radius="999"
-                className={`px-4 py-2 rounded-full text-[13px] font-medium transition-all shrink-0 cursor-pointer ${
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-all shrink-0 cursor-pointer ${
                   activeCategory === cat.id
                     ? 'bg-[#fff0f3] text-[#FF0055] shadow-xs border-2 border-[#FF0055] font-bold'
                     : 'bg-white hover:bg-[#f0f0f0] text-[#727272] border border-[#e5e7eb]'
@@ -400,8 +400,8 @@ export const CompanionPage: React.FC = () => {
           <h2 className="text-lg font-bold text-[#262626]">
             {CATEGORIES.find((c) => c.id === activeCategory)?.label}
           </h2>
-          <span className="text-[12px] font-mono-num text-[#949494]">
-            {filteredDishes.length} dishes
+          <span className="text-xs text-[#949494]">
+            <span className="font-mono-num">{filteredDishes.length}</span> dishes
           </span>
         </div>
 
@@ -425,43 +425,43 @@ export const CompanionPage: React.FC = () => {
                   }}
                 />
                 {dish.badge && (
-                  <div className="absolute top-3 left-3 px-2.5 py-0.5 rounded-full bg-[#FF0055] text-white text-[11px] font-mono-num font-semibold shadow-xs">
+                  <div className="absolute top-3 left-3 px-2.5 py-0.5 rounded-full bg-[#FF0055] text-white text-xs font-semibold shadow-xs">
                     {dish.badge}
                   </div>
                 )}
                 {dish.rating && (
-                  <div className="absolute top-3 right-3 px-2 py-0.5 rounded-full bg-white/95 text-[#262626] text-[11px] font-mono-num font-medium shadow-xs flex items-center gap-1">
+                  <div className="absolute top-3 right-3 px-2 py-0.5 rounded-full bg-white/95 text-[#262626] text-xs font-medium shadow-xs flex items-center gap-1">
                     <svg className="w-3.5 h-3.5 fill-[#FBBF24] text-[#FBBF24]" viewBox="0 0 20 20">
                       <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                     </svg>
-                    <span className="font-bold">{dish.rating}</span>
+                    <span className="font-bold font-mono-num">{dish.rating}</span>
                   </div>
                 )}
               </div>
 
               <div className="p-5 flex-1 flex flex-col justify-between">
                 <div>
-                  <h3 className="text-[16px] font-bold text-[#262626] group-hover:text-[#FF0055] transition-colors leading-snug">
+                  <h3 className="text-base font-bold text-[#262626] group-hover:text-[#FF0055] transition-colors leading-snug">
                     {dish.name}
                   </h3>
-                  <div className="mt-1 flex items-center gap-2 text-[12px] font-mono-num text-[#949494]">
-                    <span>{dish.calories} KCAL</span>
-                    <span>•</span>
+                  <div className="mt-1 flex items-center gap-2 text-xs text-[#949494]">
+                    <span><span className="font-mono-num">{dish.calories}</span> KCAL</span>
+                    <span>/</span>
                     <span>{dish.prepTime || '10 min'}</span>
                   </div>
-                  <p className="mt-2 text-[13px] text-[#727272] line-clamp-2 leading-relaxed">
+                  <p className="mt-2 text-sm text-[#727272] line-clamp-2 leading-relaxed">
                     {dish.description}
                   </p>
                 </div>
 
                 <div className="mt-5 pt-4 border-t border-[#f0f0f0] flex items-center justify-between">
-                  <div className="text-[17px] font-mono-num font-bold text-[#FF0055]" data-ui-number>
+                  <div className="text-base font-mono-num font-bold text-[#FF0055]" data-ui-number>
                     {dish.basePrice.toFixed(2)} EGP
                   </div>
 
                   <span
                     data-ui-radius="999"
-                    className="px-3.5 py-1.5 rounded-full bg-[#f9f9f9] group-hover:bg-[#FF0055] text-[#262626] group-hover:text-white border border-[#e5e7eb] group-hover:border-[#FF0055] text-[12px] font-medium transition-all shadow-xs"
+                    className="px-3.5 py-1.5 rounded-full bg-[#f9f9f9] group-hover:bg-[#FF0055] text-[#262626] group-hover:text-white border border-[#e5e7eb] group-hover:border-[#FF0055] text-xs font-medium transition-all shadow-xs"
                   >
                     Customize +
                   </span>

@@ -34,7 +34,7 @@ export const App: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col bg-white text-[#262626]">
       {/* Primary Navigation System (Desktop macOS Dock + Mobile Header) */}
-      {!isKds && <Sidebar />}
+      {!isKds && !isCashier && <Sidebar />}
 
       {/* Main Content Viewport */}
       <div className="flex-1 flex flex-col min-w-0 min-h-screen">
@@ -79,7 +79,7 @@ export const App: React.FC = () => {
                     <li><Link to="/menu" className="hover:text-[#FF0055] transition-colors">Digital Table Menu</Link></li>
                     <li><Link to="/companion" className="hover:text-[#FF0055] transition-colors">Companion Table Order</Link></li>
                     <li><Link to="/tracker" className="hover:text-[#FF0055] transition-colors">Live Order Status</Link></li>
-                    <li><Link to="/stand" className="hover:text-[#FF0055] transition-colors">Acrylic Stand Generator</Link></li>
+                    <li><Link to="/settlement" className="hover:text-[#FF0055] transition-colors">Table Self-Checkout</Link></li>
                   </ul>
                 </div>
 
@@ -100,7 +100,7 @@ export const App: React.FC = () => {
                     Live Kitchen (لايف كيتشن)
                   </span>
                   <ul className="space-y-2 text-[#727272]">
-                    <li><span>Port Said · Republic Street</span></li>
+                    <li><span>Republic Street, adjacent to El-Montazah Park</span></li>
                     <li><span>Sat - Thu: 12:00 PM - 12:00 AM</span></li>
                     <li><span>Friday: 1:00 PM - 12:00 AM</span></li>
                     <li><span>Tel: 0100 000 0000</span></li>
@@ -113,11 +113,9 @@ export const App: React.FC = () => {
                 <div className="flex items-center gap-4">
                   <span>FlameLink Dine-In OS &copy; 2026</span>
                   <span>·</span>
-                  <span>Live Kitchen Operations</span>
+                  <span>Live Kitchen Dining</span>
                   <span>·</span>
-                  <Link to="/kds" className="hover:text-[#FF0055] transition-colors">Staff KDS Line</Link>
-                  <span>·</span>
-                  <Link to="/cashier" className="hover:text-[#FF0055] transition-colors">Cashier Register</Link>
+                  <span>Direct BYOD Table Self-Ordering</span>
                 </div>
                 <div className="flex items-center gap-4">
                   <span>Privacy Policy</span>

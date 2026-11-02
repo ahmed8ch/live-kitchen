@@ -334,7 +334,7 @@ export const SettlementPage: React.FC = () => {
         {!isVerifiedPaid && (
           <div className="no-print mb-6 p-4 rounded-2xl bg-[#fff0f3] border-2 border-[#ffd1dc] space-y-3">
             <div>
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#ffe0e8] text-[#FF0055] text-[11px] font-mono-num font-bold">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#ffe0e8] text-[#FF0055] text-[11px] font-bold">
                 <span>PAYMENT REQUIRED BEFORE COOKING</span>
               </div>
               <h3 className="text-lg font-bold text-[#262626] mt-1">
@@ -363,7 +363,7 @@ export const SettlementPage: React.FC = () => {
             </div>
 
             <div className="shrink-0 text-right whitespace-nowrap">
-              <span className="text-[11px] font-mono-num text-[#949494] block">
+              <span className="text-[11px] text-[#949494] block">
                 {ticket.tableNumber ? `Table ${ticket.tableNumber}` : 'Dine-In'}
               </span>
               <span className="text-[15px] font-mono-num font-bold text-[#262626]" data-ui-number>
@@ -373,14 +373,14 @@ export const SettlementPage: React.FC = () => {
           </div>
 
           {/* Notch Line Indicator */}
-          <div className="py-2.5 my-1 thermal-tear-line flex items-center justify-between text-[11px] text-[#949494] font-mono-num">
+          <div className="py-2.5 my-1 thermal-tear-line flex items-center justify-between text-[11px] text-[#949494]">
             <span>Fiscal ID: 849-204-118</span>
             <span>{new Date(ticket.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
           </div>
 
           {/* Itemized Line Items */}
           <div className="py-4 space-y-3.5 border-b border-[#e5e7eb]">
-            <div className="text-[11px] font-mono-num text-[#949494]">
+            <div className="text-[11px] font-medium text-[#949494]">
               Itemized Order Summary
             </div>
 
@@ -405,7 +405,7 @@ export const SettlementPage: React.FC = () => {
                         )}
                       </div>
                       {item.addedBy && (
-                        <div className="text-[11px] font-mono-num text-[#727272] mt-0.5">
+                        <div className="text-[11px] text-[#727272] mt-0.5">
                           Ordered by {item.addedBy.name}
                         </div>
                       )}
@@ -457,18 +457,18 @@ export const SettlementPage: React.FC = () => {
 
             {totalPaidShares > 0 && (
               <div className="pt-2.5 mt-2 border-t border-dashed border-[#e5e7eb] space-y-1.5 text-[12px]">
-                <div className="text-[11px] font-mono-num uppercase text-emerald-700 font-semibold tracking-wide">
+                <div className="text-[11px] uppercase text-[#727272] font-semibold tracking-wide">
                   Pre-Settled Companion Shares:
                 </div>
                 {Object.values(ticket.paidDiners || {}).map((rec) => (
-                  <div key={rec.memberId} className="flex justify-between text-emerald-700 font-mono-num">
+                  <div key={rec.memberId} className="flex justify-between text-[#262626]">
                     <span>Less: Settled by {rec.name} ({rec.paymentMethod.replace('_', ' ').toUpperCase()})</span>
-                    <span>-{rec.amount.toFixed(2)} EGP</span>
+                    <span className="font-mono-num font-medium">-{rec.amount.toFixed(2)} EGP</span>
                   </div>
                 ))}
                 <div className="flex justify-between text-[15px] font-bold text-[#262626] pt-1.5 border-t border-[#e5e7eb]">
                   <span>{isVerifiedPaid ? 'Balance Due:' : 'Net Balance Due (Host):'}</span>
-                  <span className={`font-mono-num ${isVerifiedPaid ? 'text-emerald-700' : 'text-[#FF0055]'}`}>
+                  <span className={`font-mono-num ${isVerifiedPaid ? 'text-[#262626]' : 'text-[#FF0055]'}`}>
                     {isVerifiedPaid ? '0.00 EGP' : `${remainingTableBalance.toFixed(2)} EGP`}
                   </span>
                 </div>
@@ -481,10 +481,10 @@ export const SettlementPage: React.FC = () => {
             <div className="no-print py-4 border-b border-[#e5e7eb] space-y-3">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                 <span className="text-[12px] font-medium text-[#262626]">Split Bill Mode</span>
-                <div className="grid grid-cols-3 sm:flex items-center gap-1 bg-[#f9f9f9] p-1 rounded-xl border border-[#e5e7eb] w-full sm:w-auto">
+                <div className="grid grid-cols-3 sm:flex items-center gap-1 bg-[#f9f9f9] p-1.5 rounded-full border border-[#e5e7eb] w-full sm:w-auto">
                   <button
                     onClick={() => setSplitMode('by_diner')}
-                    className={`px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-colors cursor-pointer text-center whitespace-nowrap ${
+                    className={`min-h-[44px] flex items-center justify-center px-3.5 py-2 rounded-full text-[12px] font-medium transition-colors cursor-pointer text-center whitespace-nowrap ${
                       splitMode === 'by_diner' ? 'bg-[#262626] text-white shadow-xs' : 'text-[#727272] hover:text-[#262626]'
                     }`}
                   >
@@ -492,7 +492,7 @@ export const SettlementPage: React.FC = () => {
                   </button>
                   <button
                     onClick={() => setSplitMode('equal')}
-                    className={`px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-colors cursor-pointer text-center whitespace-nowrap ${
+                    className={`min-h-[44px] flex items-center justify-center px-3.5 py-2 rounded-full text-[12px] font-medium transition-colors cursor-pointer text-center whitespace-nowrap ${
                       splitMode === 'equal' ? 'bg-[#262626] text-white shadow-xs' : 'text-[#727272] hover:text-[#262626]'
                     }`}
                   >
@@ -503,7 +503,7 @@ export const SettlementPage: React.FC = () => {
                       setSplitMode('itemized');
                       if (selectedItemIds.length === 0) selectAllItems();
                     }}
-                    className={`px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-colors cursor-pointer text-center whitespace-nowrap ${
+                    className={`min-h-[44px] flex items-center justify-center px-3.5 py-2 rounded-full text-[12px] font-medium transition-colors cursor-pointer text-center whitespace-nowrap ${
                       splitMode === 'itemized' ? 'bg-[#262626] text-white shadow-xs' : 'text-[#727272] hover:text-[#262626]'
                     }`}
                   >
@@ -531,9 +531,9 @@ export const SettlementPage: React.FC = () => {
                         }}
                       />
                     </div>
-                    <div className="flex justify-between text-[11px] font-mono-num text-[#727272]">
-                      <span>Settled: {totalPaidShares.toFixed(2)} EGP</span>
-                      <span>Total: {ticket.total.toFixed(2)} EGP</span>
+                    <div className="flex justify-between text-[11px] text-[#727272]">
+                      <span>Settled: <span className="font-mono-num font-medium">{totalPaidShares.toFixed(2)} EGP</span></span>
+                      <span>Total: <span className="font-mono-num font-medium">{ticket.total.toFixed(2)} EGP</span></span>
                     </div>
                   </div>
 
@@ -542,9 +542,9 @@ export const SettlementPage: React.FC = () => {
                     {dinerGroups.map((group) => (
                       <div
                         key={group.memberId}
-                        className={`p-4 rounded-xl border transition-all ${
+                        className={`p-4 rounded-2xl border transition-all ${
                           group.isPaid
-                            ? 'bg-emerald-50/50 border-emerald-200'
+                            ? 'bg-[#f9f9f9] border-[#262626]'
                             : 'bg-white border-[#e5e7eb] shadow-xs'
                         }`}
                       >
@@ -554,7 +554,7 @@ export const SettlementPage: React.FC = () => {
                               {group.name}
                             </span>
                             {group.isCurrentUser && (
-                              <span className="px-2 py-0.5 rounded-full bg-[#FF0055]/10 text-[#FF0055] text-[10px] font-mono-num font-bold">
+                              <span className="px-2 py-0.5 rounded-full bg-[#FF0055]/10 text-[#FF0055] text-[10px] font-bold">
                                 You
                               </span>
                             )}
@@ -562,24 +562,24 @@ export const SettlementPage: React.FC = () => {
 
                           {group.isPaid ? (
                             <span
-                              className={`px-2.5 py-0.5 rounded-full text-[11px] font-mono-num font-bold ${
+                              className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
                                 group.isDeparted
                                   ? 'bg-slate-100 text-slate-700 border border-slate-200'
-                                  : 'bg-emerald-100 text-emerald-800'
+                                  : 'bg-[#262626] text-white'
                               }`}
                             >
                               {group.isDeparted ? 'PAID & DEPARTED' : 'PAID'}
                             </span>
                           ) : group.isDeparted ? (
-                            <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-mono-num">
+                            <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[10px]">
                               LEFT TABLE
                             </span>
                           ) : group.isCurrentUser ? (
-                            <span className="text-[11px] font-mono-num text-[#FF0055] font-bold">
+                            <span className="text-[11px] text-[#FF0055] font-bold">
                               YOUR SHARE
                             </span>
                           ) : (
-                            <span className="px-2.5 py-0.5 rounded-full bg-[#f9f9f9] border border-[#e5e7eb] text-[#727272] text-[10px] font-mono-num">
+                            <span className="px-2.5 py-0.5 rounded-full bg-[#f9f9f9] border border-[#e5e7eb] text-[#727272] text-[10px]">
                               AWAITING DINER DEVICE
                             </span>
                           )}
@@ -627,12 +627,14 @@ export const SettlementPage: React.FC = () => {
                         {/* Multi-Device Dynamic Actions */}
                         <div className="mt-3 pt-2">
                           {group.isPaid ? (
-                            <div className={`py-1.5 px-3 rounded-lg border text-center text-[11px] font-mono-num font-bold ${
+                            <div className={`py-1.5 px-3 rounded-lg border text-center text-[11px] font-medium ${
                               group.isDeparted
                                 ? 'bg-slate-50 border-slate-200 text-slate-700'
-                                : 'bg-emerald-100/70 border-emerald-200 text-emerald-800'
+                                : 'bg-[#f9f9f9] border-[#e5e7eb] text-[#262626]'
                             }`}>
-                              {group.isDeparted ? 'PAID & DEPARTED' : 'PAID'} // {group.total.toFixed(2)} EGP via {group.paymentRecord?.paymentMethod?.toUpperCase() || 'ONLINE'}
+                              <span>{group.isDeparted ? 'PAID & DEPARTED' : 'PAID'} // </span>
+                              <span className="font-mono-num font-bold">{group.total.toFixed(2)} EGP</span>
+                              <span> via {group.paymentRecord?.paymentMethod?.toUpperCase() || 'ONLINE'}</span>
                             </div>
                           ) : group.isCurrentUser ? (
                             <button
@@ -681,7 +683,7 @@ export const SettlementPage: React.FC = () => {
                         key={num}
                         onClick={() => setSplitWays(num)}
                         data-ui-radius="8"
-                        className={`px-3 py-1.5 rounded-lg text-[12px] font-mono-num transition-all cursor-pointer shrink-0 ${
+                        className={`px-3 py-1.5 rounded-lg text-[12px] font-medium transition-all cursor-pointer shrink-0 ${
                           splitWays === num
                             ? 'bg-[#FF0055] text-white font-bold shadow-xs'
                             : 'bg-[#f9f9f9] hover:bg-[#f0f0f0] text-[#727272] border border-[#e5e7eb]'
@@ -695,7 +697,7 @@ export const SettlementPage: React.FC = () => {
               )}
 
               {splitMode === 'itemized' && (
-                <div className="space-y-2.5 bg-[#f9f9f9] p-3 rounded-xl border border-[#e5e7eb]">
+                <div className="space-y-2.5 bg-[#f9f9f9] p-3 rounded-2xl border border-[#e5e7eb]">
                   <div className="flex items-center justify-between text-[12px]">
                     <span className="font-medium text-[#262626]">Select Dishes You Consumed:</span>
                     <button
@@ -752,11 +754,11 @@ export const SettlementPage: React.FC = () => {
           {/* Settlement Status / Payment Action (NO-PRINT) */}
           <div className="pt-5">
             {isVerifiedPaid ? (
-              <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-center space-y-1">
-                <div className="text-emerald-800 font-bold text-[14px]">
+              <div className="p-4 rounded-2xl bg-[#f9f9f9] border border-[#e5e7eb] text-center space-y-1">
+                <div className="text-[#262626] font-bold text-[14px]">
                   <ThermalText text="PAID IN FULL // VERIFIED AT REGISTER" durationMs={350} />
                 </div>
-                <div className="text-[12px] font-mono-num text-emerald-700" data-ui-number>
+                <div className="text-[12px] text-[#727272]">
                   Auth: #AUTH-{ticket.id.replace('ORD-', '99')}-01 • Method: {ticket.paymentMethod?.replace('_', ' ').toUpperCase()}
                 </div>
               </div>
@@ -886,7 +888,7 @@ export const SettlementPage: React.FC = () => {
                         key={pct}
                         type="button"
                         onClick={() => setTipPercent(pct)}
-                        className={`py-1.5 rounded-lg text-[12px] font-mono-num transition-colors cursor-pointer ${
+                        className={`py-1.5 rounded-lg text-[12px] font-medium transition-colors cursor-pointer ${
                           tipPercent === pct
                             ? 'bg-[#262626] text-white font-bold'
                             : 'bg-[#f9f9f9] border border-[#e5e7eb] text-[#727272] hover:bg-[#f0f0f0]'
@@ -925,7 +927,7 @@ export const SettlementPage: React.FC = () => {
                 </div>
               </form>
             ) : (
-              <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-center text-emerald-800 text-[13px] font-bold">
+              <div className="p-4 rounded-2xl bg-[#f9f9f9] border border-[#e5e7eb] text-center text-[#262626] text-[13px] font-bold">
                 Thank you! Your review and gratuity have been credited to the kitchen team.
               </div>
             )}

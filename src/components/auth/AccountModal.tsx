@@ -106,7 +106,7 @@ export const AccountModal: React.FC = () => {
               <h2 id="account-modal-title" className="text-[15px] font-bold text-[#262626]">
                 {userAccount ? userAccount.fullName : 'Dine-In Guest Profile'}
               </h2>
-              <p className="text-[11px] text-[#727272] font-mono-num">
+              <p className="text-[11px] text-[#727272]">
                 {userAccount
                   ? `${userAccount.phone} // 10% Loyalty Active`
                   : 'Fast 1-touch sign-in & past order history'}
@@ -380,7 +380,7 @@ export const AccountModal: React.FC = () => {
               <div className="bg-gradient-to-br from-[#262626] to-[#171717] text-white p-5 rounded-2xl relative overflow-hidden shadow-md">
                 <div className="flex items-start justify-between">
                   <div>
-                    <span className="text-[11px] uppercase tracking-wider text-[#999999] font-mono-num">
+                    <span className="text-[11px] text-[#999999] font-medium">
                       Live Kitchen Loyalty Balance
                     </span>
                     <div className="text-3xl font-mono-num font-bold text-white mt-1">
@@ -388,7 +388,7 @@ export const AccountModal: React.FC = () => {
                       <span className="text-[14px] text-[#FF0055] font-normal">EGP</span>
                     </div>
                   </div>
-                  <div className="px-2.5 py-1 bg-white/10 rounded-full text-[11px] font-mono-num text-white">
+                  <div className="px-2.5 py-1 bg-white/10 rounded-full text-[11px] font-medium text-white">
                     10% Cashback Tier
                   </div>
                 </div>
@@ -434,8 +434,8 @@ export const AccountModal: React.FC = () => {
 
               {/* Account Quick Stats */}
               <div className="grid grid-cols-2 gap-3 pt-2">
-                <div className="p-3 bg-[#f9f9f9] border border-[#e5e7eb] rounded-xl">
-                  <span className="text-[10px] uppercase font-mono-num text-[#727272] block">
+                <div className="p-3 bg-[#f9f9f9] border border-[#e5e7eb] rounded-2xl">
+                  <span className="text-[10px] text-[#727272] block font-medium">
                     Completed Visits
                   </span>
                   <span className="text-[16px] font-mono-num font-bold text-[#262626]">
@@ -443,11 +443,11 @@ export const AccountModal: React.FC = () => {
                   </span>
                 </div>
 
-                <div className="p-3 bg-[#f9f9f9] border border-[#e5e7eb] rounded-xl">
-                  <span className="text-[10px] uppercase font-mono-num text-[#727272] block">
+                <div className="p-3 bg-[#f9f9f9] border border-[#e5e7eb] rounded-2xl">
+                  <span className="text-[10px] text-[#727272] block font-medium">
                     Member Since
                   </span>
-                  <span className="text-[12px] font-mono-num text-[#262626]">
+                  <span className="text-[12px] text-[#262626] font-medium">
                     {new Date(userAccount.createdAt).toLocaleDateString()}
                   </span>
                 </div>
@@ -494,20 +494,20 @@ export const AccountModal: React.FC = () => {
                 pastOrders.map((order) => (
                   <div
                     key={order.id}
-                    className="p-4 bg-white border border-[#e5e7eb] rounded-xl hover:border-[#262626] transition-colors space-y-3"
+                    className="p-4 bg-white border border-[#e5e7eb] rounded-2xl hover:border-[#262626] transition-colors space-y-3"
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <span className="px-2 py-0.5 bg-[#f9f9f9] border border-[#e5e7eb] rounded-md font-mono-num text-[11px] font-bold text-[#262626]">
+                        <span className="px-2 py-0.5 bg-[#f9f9f9] border border-[#e5e7eb] rounded-lg font-mono-num text-[11px] font-bold text-[#262626]">
                           {order.id}
                         </span>
                         {order.cashierChitCode && (
-                          <span className="text-[11px] font-mono-num text-[#727272]">
-                            Chit #{order.cashierChitCode}
+                          <span className="text-[11px] text-[#727272]">
+                            Chit #<span className="font-mono-num">{order.cashierChitCode}</span>
                           </span>
                         )}
                         {order.tableNumber && (
-                          <span className="text-[11px] font-mono-num text-[#727272]">
+                          <span className="text-[11px] text-[#727272]">
                             Table {order.tableNumber}
                           </span>
                         )}
@@ -550,7 +550,7 @@ export const AccountModal: React.FC = () => {
 
                     {/* Bottom Re-Order Bar */}
                     <div className="pt-2 border-t border-[#e5e7eb] flex items-center justify-between">
-                      <span className="text-[11px] text-[#727272] font-mono-num">
+                      <span className="text-[11px] text-[#727272]">
                         {new Date(order.createdAt).toLocaleDateString()} at{' '}
                         {new Date(order.createdAt).toLocaleTimeString([], {
                           hour: '2-digit',

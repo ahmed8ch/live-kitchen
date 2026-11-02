@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import QRCode from 'qrcode';
 import { useAppStore } from '../store/useAppStore';
 import { FlameLinkLogo } from '../components/ui/FlameLinkLogo';
 
@@ -38,11 +39,25 @@ export const TableStandPage: React.FC = () => {
 
   const targetUrl = typeof window !== 'undefined'
     ? `${window.location.origin}/menu?table=${activeTableCode}`
-    : `https://flamelink.dev/menu?table=${activeTableCode}`;
+    : `https://live-kitchen.pages.dev/menu?table=${activeTableCode}`;
 
-  const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=320x320&data=${encodeURIComponent(
-    targetUrl
-  )}&margin=2`;
+  const qrSvg = useMemo(() => {
+    try {
+      const qr = QRCode.create(targetUrl, { errorCorrectionLevel: 'M' });
+      const size = qr.modules.size;
+      const cells: string[] = [];
+      for (let r = 0; r < size; r++) {
+        for (let c = 0; c < size; c++) {
+          if (qr.modules.get(r, c)) {
+            cells.push(`M${c},${r}h1v1h-1z`);
+          }
+        }
+      }
+      return { size, path: cells.join(' ') };
+    } catch {
+      return { size: 25, path: '' };
+    }
+  }, [targetUrl]);
 
   const handleSelectTable = (id: string) => {
     setSelectedTable(id);
@@ -152,12 +167,12 @@ export const TableStandPage: React.FC = () => {
           </div>
 
           {/* Base Style Toggles */}
-          <div className="mt-4 flex items-center justify-center gap-2 text-[12px] font-mono-num">
+          <div className="mt-4 flex items-center justify-center gap-2 text-[12px]">
             <span className="text-[#727272] mr-1">Preview Base:</span>
             <div className="flex items-center gap-1 bg-white p-1 rounded-lg border border-[#e5e7eb]">
               <button
                 onClick={() => setBaseStyle('oak')}
-                className={`px-3 py-1 rounded-md transition-colors cursor-pointer ${
+                className={`px-3 py-1 rounded-lg transition-colors cursor-pointer ${
                   baseStyle === 'oak' ? 'bg-[#262626] text-white font-bold' : 'text-[#727272]'
                 }`}
               >
@@ -165,7 +180,7 @@ export const TableStandPage: React.FC = () => {
               </button>
               <button
                 onClick={() => setBaseStyle('acrylic')}
-                className={`px-3 py-1 rounded-md transition-colors cursor-pointer ${
+                className={`px-3 py-1 rounded-lg transition-colors cursor-pointer ${
                   baseStyle === 'acrylic' ? 'bg-[#262626] text-white font-bold' : 'text-[#727272]'
                 }`}
               >
@@ -212,35 +227,49 @@ export const TableStandPage: React.FC = () => {
             }}
           >
             {/* Double-Beveled Glass Refractive Sheen for Screen Preview */}
-            <div className="no-print absolute inset-2 rounded-xl border border-white/80 pointer-events-none shadow-[inset_0_1px_3px_rgba(255,255,255,0.9)]" />
+            <div className="no-print absolute inset-2 rounded-2xl border border-white/80 pointer-events-none shadow-[inset_0_1px_3px_rgba(255,255,255,0.9)]" />
 
             <div className="h-full flex flex-col justify-between text-center relative z-10 py-1">
               {/* Brand Header & Table Indicator */}
               <div className="flex items-center justify-between pb-3 border-b border-[#f0f0f0]">
-                <FlameLinkLogo size="md" />
-                <span className="px-3 py-1 rounded-full bg-[#fff0f3] border-2 border-[#FF0055] text-[#FF0055] text-[12px] font-mono-num font-extrabold">
+                <div className="flex items-center gap-2.5">
+                  <FlameLinkLogo size="sm" showWordmark={false} />
+                  <div className="text-left">
+                    <div className="font-bold text-[#262626] text-[15px] leading-tight">
+                      Live Kitchen (لايف كيتشن)
+                    </div>
+                    <div className="text-[11px] text-[#727272]">
+                      Republic Street, adjacent to El-Montazah Park
+                    </div>
+                  </div>
+                </div>
+                <span className="px-3 py-1 rounded-full bg-[#fff0f3] border-2 border-[#FF0055] text-[#FF0055] text-xs font-bold">
                   {activeTableCode}
                 </span>
               </div>
 
               {/* Table Identification */}
               <div className="py-2">
-                <div className="text-[11px] font-mono-num uppercase tracking-widest text-[#949494]">
+                <div className="text-xs font-semibold text-[#727272]">
                   DINE-IN ORDERING
                 </div>
-                <div className="text-2xl font-extrabold font-changa text-[#262626] mt-0.5">
+                <div className="text-2xl font-bold text-[#262626] mt-0.5">
                   {getTableLabel(activeTableCode)}
                 </div>
               </div>
 
               {/* Scannable Physical QR Code */}
               <div className="w-52 h-52 mx-auto bg-white p-3 rounded-2xl border border-[#e5e7eb] shadow-sm flex items-center justify-center">
-                <img
-                  src={qrImageUrl}
-                  alt={`QR Code to view menu and order for ${getTableLabel(activeTableCode)}`}
+                <svg
+                  viewBox={`0 0 ${qrSvg.size} ${qrSvg.size}`}
+                  role="img"
+                  aria-label={`QR Code to view menu and order for ${getTableLabel(activeTableCode)}`}
                   className="w-full h-full object-contain"
-                  loading="eager"
-                />
+                  shapeRendering="crispEdges"
+                >
+                  <title>{`QR Code for ${getTableLabel(activeTableCode)} - Live Kitchen (لايف كيتشن)`}</title>
+                  <path d={qrSvg.path} fill="#262626" />
+                </svg>
               </div>
 
               {/* Diner Instructions */}
@@ -248,30 +277,35 @@ export const TableStandPage: React.FC = () => {
                 <div className="text-[15px] font-bold text-[#262626]">
                   Scan with camera to view menu &amp; order
                 </div>
-                <div className="text-[11px] text-[#727272] leading-relaxed max-w-[260px] mx-auto">
+                <div className="text-xs text-[#727272] leading-relaxed max-w-[260px] mx-auto">
                   Point your smartphone camera at this code to explore our menu, customize dishes, and order directly to the kitchen.
                 </div>
-                <div className="text-[9px] font-mono-num text-[#949494] truncate pt-1 border-t border-[#f0f0f0]">
+                <div className="text-[10px] text-[#949494] truncate pt-1 border-t border-[#f0f0f0]">
                   {targetUrl}
                 </div>
               </div>
 
-              {/* Tabletop Wi-Fi Strip */}
-              <div className="pt-2 border-t border-[#f0f0f0] flex items-center justify-center gap-3 text-[11px] font-mono-num text-[#727272]">
-                <span>Wi-Fi: <strong className="text-[#262626]">FlameLink-Guest</strong></span>
-                <span className="text-[#e5e7eb]">•</span>
-                <span>Pass: <strong className="text-[#262626]">dinein2026</strong></span>
+              {/* Tabletop Wi-Fi & Venue Notice */}
+              <div className="pt-2 border-t border-[#f0f0f0] space-y-1">
+                <div className="flex items-center justify-center gap-3 text-xs text-[#727272]">
+                  <span>Wi-Fi: <strong className="text-[#262626]">LiveKitchen-Guest</strong></span>
+                  <span className="text-[#e5e7eb]">•</span>
+                  <span>Pass: <strong className="text-[#262626]">livekitchen2026</strong></span>
+                </div>
+                <div className="text-[10px] text-[#949494]">
+                  Live Kitchen (لايف كيتشن) · Republic Street, adjacent to El-Montazah Park
+                </div>
               </div>
             </div>
           </div>
 
           {/* Physical Stand Base (Weighted Natural Oak or Clear Acrylic Foot) */}
           {baseStyle === 'oak' ? (
-            <div className="stand-base w-[108%] h-7 bg-[#b48052] rounded-b-xl border-t border-[#cfa479] shadow-[0_12px_24px_rgba(0,0,0,0.18)] flex items-center justify-center relative -mt-1.5 z-20">
+            <div className="stand-base w-[108%] h-7 bg-[#b48052] rounded-b-2xl border-t border-[#cfa479] shadow-[0_12px_24px_rgba(0,0,0,0.18)] flex items-center justify-center relative -mt-1.5 z-20">
               <div className="w-16 h-1 rounded-full bg-[#8c5a2b]/40" />
             </div>
           ) : (
-            <div className="stand-base w-[106%] h-6 bg-[#f0f2f5]/90 rounded-b-xl border border-[#e5e7eb] shadow-[0_10px_20px_rgba(0,0,0,0.08)] relative -mt-1 z-20" />
+            <div className="stand-base w-[106%] h-6 bg-[#f0f2f5]/90 rounded-b-2xl border border-[#e5e7eb] shadow-[0_10px_20px_rgba(0,0,0,0.08)] relative -mt-1 z-20" />
           )}
 
           {/* Soft Surface Shadow */}

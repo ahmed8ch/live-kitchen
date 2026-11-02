@@ -132,10 +132,10 @@ export const CartDrawer: React.FC = () => {
           <div className="flex items-center gap-2.5">
             <h2 className="text-lg font-medium text-[#262626]">Order Cart</h2>
             <span
-              className="px-2 py-0.5 rounded-full bg-[#f9f9f9] border border-[#e5e7eb] text-[12px] font-mono-num font-medium text-[#727272]"
+              className="px-2 py-0.5 rounded-full bg-[#f9f9f9] border border-[#e5e7eb] text-[12px] font-medium text-[#727272]"
               data-ui-number
             >
-              {cart.reduce((s, i) => s + i.quantity, 0)} items
+              <span className="font-mono-num">{cart.reduce((s, i) => s + i.quantity, 0)}</span> items
             </span>
           </div>
 
@@ -165,7 +165,7 @@ export const CartDrawer: React.FC = () => {
           <div className="px-5 py-2.5 bg-[#fff0f3] border-b border-[#ffd1dc] flex items-center justify-between text-[12px]">
             <div className="flex items-center gap-2">
               <span className="text-[#262626] font-bold">Table {activeTable}</span>
-              <span className="text-[11px] font-mono-num text-[#727272]">
+              <span className="text-[11px] text-[#727272]">
                 {members.length > 0 ? `(${readyMembersCount}/${members.length} Ready)` : '(Shared Pool)'}
               </span>
             </div>
@@ -176,7 +176,7 @@ export const CartDrawer: React.FC = () => {
                     leaveTableSession(activeTable, currentMember.id);
                     closeCartDrawer();
                   }}
-                  className="text-[11px] font-mono-num text-red-600 hover:underline cursor-pointer"
+                  className="text-[11px] text-red-600 hover:underline cursor-pointer"
                 >
                   Leave Table
                 </button>
@@ -211,14 +211,14 @@ export const CartDrawer: React.FC = () => {
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-[11px] font-mono-num text-[#727272]">
-                      {group.items.reduce((s, i) => s + i.quantity, 0)} items
+                    <span className="text-[11px] text-[#727272]">
+                      <span className="font-mono-num">{group.items.reduce((s, i) => s + i.quantity, 0)}</span> items
                     </span>
                     {isHost && !group.isYou && activeTable && (
                       <button
                         type="button"
                         onClick={() => removeMemberFromTable(activeTable, memberId)}
-                        className="text-[10px] text-red-600 hover:underline cursor-pointer font-mono-num"
+                        className="text-[10px] text-red-600 hover:underline cursor-pointer"
                         title="Remove member from table"
                       >
                         [Remove]
@@ -236,7 +236,7 @@ export const CartDrawer: React.FC = () => {
                   return (
                     <div
                       key={item.cartItemId}
-                      className="p-3 rounded-xl border border-[#e5e7eb] bg-white space-y-2.5 shadow-xs"
+                      className="p-3 rounded-2xl border border-[#e5e7eb] bg-white space-y-2.5 shadow-xs"
                     >
                       <div className="flex items-start gap-3">
                         {/* 48x48px Thumbnail (Fixes Image 5 flaw) */}
@@ -260,8 +260,8 @@ export const CartDrawer: React.FC = () => {
                             </span>
                           </div>
 
-                          <div className="text-[11px] font-mono-num text-[#727272]" data-ui-number>
-                            {itemUnitPrice.toFixed(2)} EGP each
+                          <div className="text-[11px] text-[#727272]">
+                            <span className="font-mono-num">{itemUnitPrice.toFixed(2)} EGP</span> each
                           </div>
                         </div>
                       </div>
@@ -317,7 +317,7 @@ export const CartDrawer: React.FC = () => {
                             </button>
                           </>
                         ) : (
-                          <div className="text-[11px] font-mono-num text-[#949494] py-1">
+                          <div className="text-[11px] text-[#949494] py-1">
                             Chosen by {group.name} ({item.quantity}x)
                           </div>
                         )}
@@ -482,11 +482,11 @@ export const CartDrawer: React.FC = () => {
 
                 {/* Diner Readiness Status */}
                 {members.length > 1 && (
-                  <div className="flex items-center justify-between pt-1 text-[11px] font-mono-num text-[#727272]">
+                  <div className="flex items-center justify-between pt-1 text-[11px] text-[#727272]">
                     <span>
-                      Table Diners Ready: {readyMembersCount}/{members.length}
+                      Table Diners Ready: <span className="font-mono-num">{readyMembersCount}/{members.length}</span>
                     </span>
-                    <span className="text-[11px] font-mono-num text-[#727272]">
+                    <span className="text-[11px] text-[#727272]">
                       {readyMembersCount === members.length
                         ? 'All companions ready'
                         : `${members.length - readyMembersCount} browsing`}

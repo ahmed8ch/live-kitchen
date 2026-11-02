@@ -205,8 +205,23 @@ export const Sidebar: React.FC = () => {
     return 1;
   };
 
-  // Unified navigation items across all pages (consistent across overview, dine-in, and operations)
-  const visibleNavItems = navItems;
+  // Consumer routes vs Operations routes persona separation
+  const isConsumerRoute =
+    location.pathname === '/' ||
+    location.pathname.startsWith('/menu') ||
+    location.pathname.startsWith('/companion') ||
+    location.pathname.startsWith('/guest-order') ||
+    location.pathname.startsWith('/tracker') ||
+    location.pathname.startsWith('/order') ||
+    location.pathname.startsWith('/settlement');
+
+  // Filter visible nav items to prevent back-office leaks in consumer dining flow
+  const visibleNavItems = navItems.filter((item) => {
+    if (['kds', 'cashier', 'stand'].includes(item.id)) {
+      return !isConsumerRoute && !activeTable;
+    }
+    return true;
+  });
 
   const isDockVisible = isPinned || isRevealed;
 
@@ -230,7 +245,7 @@ export const Sidebar: React.FC = () => {
 
           <button
             onClick={() => setMobileDrawerOpen(!mobileDrawerOpen)}
-            className="p-2 rounded-xl text-[#262626] hover:bg-[#f9f9f9] border border-[#e5e7eb] flex items-center justify-center min-w-[40px] min-h-[40px] cursor-pointer"
+            className="p-2 rounded-lg text-[#262626] hover:bg-[#f9f9f9] border border-[#e5e7eb] flex items-center justify-center min-w-[40px] min-h-[40px] cursor-pointer"
             aria-label="Toggle navigation drawer"
           >
             {mobileDrawerOpen ? <X className="w-5 h-5" /> : <MenuIcon className="w-5 h-5" />}
@@ -271,7 +286,7 @@ export const Sidebar: React.FC = () => {
                       to={item.to}
                       onClick={() => setMobileDrawerOpen(false)}
                       className={({ isActive }) =>
-                        `flex items-center justify-between px-3.5 py-3 min-h-[44px] rounded-xl text-sm active:scale-95 transition-[background-color,color,border-color,box-shadow] duration-150 ${
+                        `flex items-center justify-between px-3.5 py-3 min-h-[44px] rounded-lg text-sm active:scale-95 transition-[background-color,color,border-color,box-shadow] duration-150 ${
                           isActive
                             ? 'bg-[#fff0f3] text-[#FF0055] font-semibold border border-[#ffd1dc]/80 shadow-[0_1px_2px_rgba(255,0,85,0.06)]'
                             : 'text-[#727272] hover:bg-white hover:text-[#262626] border border-transparent'
@@ -340,7 +355,7 @@ export const Sidebar: React.FC = () => {
         {/* Brand Flame Icon */}
         <Link
           to="/"
-          className="p-1.5 rounded-xl hover:bg-[#f5f5f5] transition-transform duration-150 active:scale-90"
+          className="p-1.5 rounded-lg hover:bg-[#f5f5f5] transition-transform duration-150 active:scale-90"
           title="FlameLink Overview"
           aria-label="Home Overview"
         >
@@ -388,7 +403,7 @@ export const Sidebar: React.FC = () => {
                     transform: `scale(${scale}) translateX(${hoveredIndex === index ? '2px' : '0px'})`,
                     transformOrigin: 'left center',
                   }}
-                  className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-150 ease-out cursor-pointer active:scale-95 ${
+                  className={`w-11 h-11 rounded-lg flex items-center justify-center transition-all duration-150 ease-out cursor-pointer active:scale-95 ${
                     isActive
                       ? 'bg-[#fff0f3] text-[#FF0055] font-semibold border border-[#ffd1dc]/90 shadow-xs'
                       : 'text-[#727272] hover:text-[#262626] hover:bg-[#f5f5f5] hover:border-[#e5e7eb] border border-transparent'
@@ -401,7 +416,7 @@ export const Sidebar: React.FC = () => {
                 {/* Instantaneous Clarity Tooltip (macOS Pill anchored to right) */}
                 <div
                   role="tooltip"
-                  className="absolute left-[calc(100%+14px)] px-2.5 py-1 rounded-md bg-[#262626] text-white text-[11px] font-medium whitespace-nowrap shadow-xl opacity-0 scale-95 pointer-events-none group-hover:opacity-100 group-hover:scale-100 transition-all duration-100 ease-out z-50 flex items-center gap-1.5"
+                  className="absolute left-[calc(100%+14px)] px-2.5 py-1 rounded-lg bg-[#262626] text-white text-[11px] font-medium whitespace-nowrap shadow-xl opacity-0 scale-95 pointer-events-none group-hover:opacity-100 group-hover:scale-100 transition-all duration-100 ease-out z-50 flex items-center gap-1.5"
                 >
                   <span>{item.label}</span>
                   {item.badge && (
@@ -429,7 +444,7 @@ export const Sidebar: React.FC = () => {
               onClick={handlePinToggle}
               title={isPinned ? 'Auto-Hide Dock' : 'Pin Dock'}
               aria-label={isPinned ? 'Auto-Hide Dock' : 'Pin Dock'}
-              className={`w-11 h-11 rounded-xl flex items-center justify-center transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF0055] ${
+              className={`w-11 h-11 rounded-lg flex items-center justify-center transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF0055] ${
                 isPinned
                   ? 'bg-[#fff0f3] text-[#FF0055] border border-[#ffd1dc]'
                   : 'text-[#949494] hover:text-[#262626] hover:bg-[#f5f5f5]'
@@ -440,7 +455,7 @@ export const Sidebar: React.FC = () => {
 
             <div
               role="tooltip"
-              className="absolute left-[calc(100%+14px)] px-2.5 py-1 rounded-md bg-[#262626] text-white text-[11px] font-medium whitespace-nowrap shadow-xl opacity-0 scale-95 pointer-events-none group-hover:opacity-100 group-hover:scale-100 transition-all duration-100 ease-out z-50"
+              className="absolute left-[calc(100%+14px)] px-2.5 py-1 rounded-lg bg-[#262626] text-white text-[11px] font-medium whitespace-nowrap shadow-xl opacity-0 scale-95 pointer-events-none group-hover:opacity-100 group-hover:scale-100 transition-all duration-100 ease-out z-50"
             >
               {isPinned ? 'Auto-Hide Dock' : 'Pin Dock'}
               <div className="absolute top-1/2 -left-1 -translate-y-1/2 w-0 h-0 border-y-4 border-y-transparent border-r-4 border-r-[#262626]" />

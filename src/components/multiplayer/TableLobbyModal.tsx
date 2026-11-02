@@ -7,7 +7,7 @@ const ANIMAL_IDENTITIES = [
   { id: 'fox', name: 'Orange Fox', color: 'border-amber-500 bg-amber-50 text-amber-800', dot: '#f59e0b' },
   { id: 'eagle', name: 'Golden Eagle', color: 'border-yellow-500 bg-yellow-50 text-yellow-800', dot: '#eab308' },
   { id: 'falcon', name: 'Blue Falcon', color: 'border-sky-500 bg-sky-50 text-sky-800', dot: '#0284c7' },
-  { id: 'owl', name: 'Emerald Owl', color: 'border-emerald-500 bg-emerald-50 text-emerald-800', dot: '#10b981' },
+  { id: 'owl', name: 'Charcoal Owl', color: 'border-[#262626] bg-[#f9f9f9] text-[#262626]', dot: '#262626' },
   { id: 'wolf', name: 'Silver Wolf', color: 'border-slate-500 bg-slate-50 text-slate-800', dot: '#64748b' },
 ];
 
@@ -125,7 +125,7 @@ export const TableLobbyModal: React.FC = () => {
                     type="button"
                     disabled={isTaken}
                     onClick={() => !isTaken && setSelectedAnimal(animal.name)}
-                    className={`p-2.5 rounded-xl border text-center transition-all text-[12px] font-medium flex items-center justify-center gap-1.5 ${
+                    className={`p-2.5 rounded-lg border text-center transition-all text-[12px] font-medium flex items-center justify-center gap-1.5 ${
                       isTaken
                         ? 'border-[#e5e7eb] bg-[#f0f0f0] text-[#949494] opacity-50 cursor-not-allowed line-through'
                         : selectedAnimal === animal.name
@@ -139,7 +139,7 @@ export const TableLobbyModal: React.FC = () => {
                     />
                     <span className="truncate">{animal.name}</span>
                     {isTaken && (
-                      <span className="text-[9px] font-mono-num uppercase tracking-wider text-[#949494] no-underline">
+                      <span className="text-[9px] uppercase tracking-wider text-[#949494] no-underline">
                         (Taken)
                       </span>
                     )}
@@ -169,7 +169,7 @@ export const TableLobbyModal: React.FC = () => {
                 <label htmlFor="table-pin" className="block text-[12px] font-semibold text-[#262626]">
                   Enter 4-Digit Table PIN
                 </label>
-                <span className="text-[11px] font-mono-num text-[#949494]">
+                <span className="text-[11px] text-[#949494]">
                   Ask Seated Host
                 </span>
               </div>
