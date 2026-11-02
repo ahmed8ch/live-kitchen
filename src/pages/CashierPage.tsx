@@ -363,7 +363,7 @@ export const CashierPage: React.FC = () => {
                   type="button"
                   onClick={() => setSelectedTableNum(tableNum)}
                   className={`p-3.5 rounded-xl text-center transition-all cursor-pointer relative ${meta.badgeClass} ${
-                    isSelected ? 'ring-2 ring-[#262626] ring-offset-2 shadow-md' : 'hover:scale-[1.02]'
+                    isSelected ? 'ring-2 ring-[#262626] ring-offset-2' : 'hover:scale-[1.02]'
                   }`}
                 >
                   <div className="text-xl font-mono-num font-bold">
@@ -893,11 +893,11 @@ export const CashierPage: React.FC = () => {
       {/* VOID ORDER MODAL */}
       {isVoidModalOpen && voidTargetOrderId && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/45"
           role="dialog"
           aria-modal="true"
         >
-          <div className="bg-white border border-[#e5e7eb] rounded-2xl w-full max-w-md p-6 shadow-2xl space-y-4">
+          <div className="bg-white border border-[#e5e7eb] rounded-2xl w-full max-w-md p-6 shadow-xl space-y-4">
             <div className="flex items-center justify-between pb-2 border-b border-[#e5e7eb]">
               <h3 className="text-[16px] font-bold text-red-600">
                 Void Order #{voidTargetOrderId}
@@ -982,13 +982,13 @@ export const CashierPage: React.FC = () => {
       {/* THERMAL RECEIPT MODAL WITH ETA TAX COMPLIANCE & PRINT CAPABILITY */}
       {isReceiptModalOpen && receiptOrder && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/45"
           role="dialog"
           aria-modal="true"
         >
           <div
             id="printable-receipt"
-            className="bg-white border border-[#e5e7eb] rounded-2xl w-full max-w-sm p-6 shadow-2xl space-y-4 font-mono-num text-[12px]"
+            className="bg-white border border-[#e5e7eb] rounded-xl w-full max-w-sm p-6 shadow-xl space-y-4 font-mono-num text-[12px]"
           >
             <div className="text-center space-y-1 pb-3 border-b border-dashed border-[#262626]">
               <div className="font-bold text-[16px] tracking-wider text-[#262626]">

@@ -241,7 +241,7 @@ export const Sidebar: React.FC = () => {
       {/* Mobile Drawer Overlay */}
       {mobileDrawerOpen && (
         <div
-          className="fixed inset-0 z-50 bg-black/45 backdrop-blur-xs md:hidden"
+          className="fixed inset-0 z-50 bg-black/40 md:hidden"
           onClick={() => setMobileDrawerOpen(false)}
         >
           <div
@@ -271,7 +271,7 @@ export const Sidebar: React.FC = () => {
                       to={item.to}
                       onClick={() => setMobileDrawerOpen(false)}
                       className={({ isActive }) =>
-                        `flex items-center justify-between px-3.5 py-3 min-h-[44px] rounded-xl text-[13px] active:scale-95 transition-[background-color,color,border-color,box-shadow] duration-150 ${
+                        `flex items-center justify-between px-3.5 py-3 min-h-[44px] rounded-xl text-sm active:scale-95 transition-[background-color,color,border-color,box-shadow] duration-150 ${
                           isActive
                             ? 'bg-[#fff0f3] text-[#FF0055] font-semibold border border-[#ffd1dc]/80 shadow-[0_1px_2px_rgba(255,0,85,0.06)]'
                             : 'text-[#727272] hover:bg-white hover:text-[#262626] border border-transparent'
@@ -283,7 +283,7 @@ export const Sidebar: React.FC = () => {
                         <span>{item.label}</span>
                       </div>
                       {item.badge && (
-                        <span className="px-2 py-0.5 rounded-full bg-[#fff0f3] border border-[#ffd1dc] text-[#FF0055] text-[10px] font-mono-num font-medium">
+                        <span className="px-2 py-0.5 rounded-full bg-[#fff0f3] border border-[#ffd1dc] text-[#FF0055] text-xs font-mono-num font-medium">
                           {item.badge}
                         </span>
                       )}
@@ -293,8 +293,8 @@ export const Sidebar: React.FC = () => {
               </nav>
             </div>
 
-            <div className="pt-4 border-t border-[#e5e7eb] text-[11px] text-[#949494]">
-              Live Kitchen | Dine-In OS
+            <div className="pt-4 border-t border-[#e5e7eb] text-xs text-[#949494]">
+              Live Kitchen | Dine In OS
             </div>
           </div>
         </div>
@@ -331,7 +331,7 @@ export const Sidebar: React.FC = () => {
         data-ui-container="macos-dock"
         onMouseEnter={handleDockEnter}
         onMouseLeave={handleDockLeave}
-        className={`fixed left-4 top-1/2 -translate-y-1/2 z-40 hidden md:flex flex-col items-center py-3 px-2 rounded-[24px] bg-white/95 backdrop-blur-2xl border border-[#e5e7eb] shadow-[0_24px_50px_-12px_rgba(0,0,0,0.12),0_8px_20px_-4px_rgba(0,0,0,0.06),inset_0_1px_0_rgba(255,255,255,1)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] select-none ${
+        className={`fixed left-4 top-1/2 -translate-y-1/2 z-40 hidden md:flex flex-col items-center py-3 px-2 rounded-[24px] bg-white border border-[#e5e7eb] shadow-[0_20px_40px_-12px_rgba(0,0,0,0.1),0_0_0_1px_rgba(0,0,0,0.02)] transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] select-none ${
           isDockVisible
             ? 'translate-x-0 opacity-100 pointer-events-auto'
             : '-translate-x-[calc(100%+28px)] opacity-0 pointer-events-none'

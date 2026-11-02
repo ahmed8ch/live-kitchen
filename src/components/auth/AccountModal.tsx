@@ -87,7 +87,7 @@ export const AccountModal: React.FC = () => {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs transition-opacity"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/45 transition-opacity"
       role="dialog"
       aria-modal="true"
       aria-labelledby="account-modal-title"

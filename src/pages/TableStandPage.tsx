@@ -271,7 +271,7 @@ export const TableStandPage: React.FC = () => {
               <div className="w-16 h-1 rounded-full bg-[#8c5a2b]/40" />
             </div>
           ) : (
-            <div className="stand-base w-[106%] h-6 bg-white/70 backdrop-blur-md rounded-b-xl border border-white/80 shadow-[0_10px_20px_rgba(0,0,0,0.1)] relative -mt-1 z-20" />
+            <div className="stand-base w-[106%] h-6 bg-[#f0f2f5]/90 rounded-b-xl border border-[#e5e7eb] shadow-[0_10px_20px_rgba(0,0,0,0.08)] relative -mt-1 z-20" />
           )}
 
           {/* Soft Surface Shadow */}
