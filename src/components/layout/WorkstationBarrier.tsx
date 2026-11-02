@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useAppStore } from '../../store/useAppStore';
 import { FlameLinkLogo } from '../ui/FlameLinkLogo';
 
 interface WorkstationBarrierProps {
@@ -18,6 +19,8 @@ export const WorkstationBarrier: React.FC<WorkstationBarrierProps> = ({
   children,
 }) => {
   const [overrideAllowed, setOverrideAllowed] = useState(false);
+  const activeTable = useAppStore((state) => state.activeTable);
+  const menuTarget = activeTable ? `/menu?table=${activeTable}` : '/menu';
 
   // If developer or operator overrides for inspection on responsive DevTools
   if (overrideAllowed) {
@@ -86,7 +89,7 @@ export const WorkstationBarrier: React.FC<WorkstationBarrierProps> = ({
           </div>
 
           {/* Hardware Spec Notice */}
-          <div className="p-3 rounded-xl bg-[#f9f9f9] border border-[#e5e7eb] text-[12px] text-[#616161] space-y-1 text-left">
+          <div className="p-3 rounded-lg bg-[#f9f9f9] border border-[#e5e7eb] text-[12px] text-[#616161] space-y-1 text-left">
             <div className="flex justify-between font-medium">
               <span>Required Resolution:</span>
               <span className="font-mono-num text-[#262626]">Minimum 1024 x 768px</span>
@@ -100,7 +103,7 @@ export const WorkstationBarrier: React.FC<WorkstationBarrierProps> = ({
           {/* Direct Return Navigation Actions */}
           <div className="space-y-2.5 pt-2">
             <Link
-              to="/menu?table=T-04"
+              to={menuTarget}
               className="w-full inline-flex items-center justify-center py-3 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[13px] font-bold btn-crimson-glow shadow-xs cursor-pointer transition-all active:scale-95"
             >
               <span>Return to Dine-In Menu -&gt;</span>

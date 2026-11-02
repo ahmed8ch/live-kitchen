@@ -238,14 +238,14 @@ export const Sidebar: React.FC = () => {
         <div className="flex items-center gap-2">
           <Link
             to={menuTarget}
-            className="px-3.5 py-1.5 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[12px] font-bold btn-crimson-glow shadow-xs transition-all active:scale-95 cursor-pointer"
+            className="min-h-[44px] flex items-center px-4 py-2 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[12px] font-bold btn-crimson-glow shadow-xs transition-all active:scale-95 cursor-pointer"
           >
             Dine-In Menu
           </Link>
 
           <button
             onClick={() => setMobileDrawerOpen(!mobileDrawerOpen)}
-            className="p-2 rounded-lg text-[#262626] hover:bg-[#f9f9f9] border border-[#e5e7eb] flex items-center justify-center min-w-[40px] min-h-[40px] cursor-pointer"
+            className="p-2 rounded-lg text-[#262626] hover:bg-[#f9f9f9] border border-[#e5e7eb] flex items-center justify-center min-w-[44px] min-h-[44px] cursor-pointer"
             aria-label="Toggle navigation drawer"
           >
             {mobileDrawerOpen ? <X className="w-5 h-5" /> : <MenuIcon className="w-5 h-5" />}
@@ -260,7 +260,7 @@ export const Sidebar: React.FC = () => {
           onClick={() => setMobileDrawerOpen(false)}
         >
           <div
-            className="w-72 bg-[#f9f9f9] h-full shadow-2xl p-5 flex flex-col justify-between border-r border-[#e5e7eb]"
+            className="w-72 bg-[#f9f9f9] h-full shadow-2xl p-5 flex flex-col justify-between border-r border-[#e5e7eb] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div>
@@ -346,7 +346,7 @@ export const Sidebar: React.FC = () => {
         data-ui-container="macos-dock"
         onMouseEnter={handleDockEnter}
         onMouseLeave={handleDockLeave}
-        className={`fixed left-4 top-1/2 -translate-y-1/2 z-40 hidden md:flex flex-col items-center py-3 px-2 rounded-[24px] bg-white border border-[#e5e7eb] shadow-[0_20px_40px_-12px_rgba(0,0,0,0.1),0_0_0_1px_rgba(0,0,0,0.02)] transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] select-none ${
+        className={`fixed left-4 top-1/2 -translate-y-1/2 z-40 hidden md:flex flex-col items-center py-3 px-2 rounded-full bg-white border border-[#e5e7eb] shadow-[0_20px_40px_-12px_rgba(0,0,0,0.1),0_0_0_1px_rgba(0,0,0,0.02)] transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] select-none ${
           isDockVisible
             ? 'translate-x-0 opacity-100 pointer-events-auto'
             : '-translate-x-[calc(100%+28px)] opacity-0 pointer-events-none'
