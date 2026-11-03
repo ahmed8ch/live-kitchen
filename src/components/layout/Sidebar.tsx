@@ -206,8 +206,8 @@ export const Sidebar: React.FC = () => {
   };
 
   // Consumer routes vs Operations routes persona separation
+  // Seated dining routes (/menu, /companion, /tracker, /settlement) lock down back-office tools when a table is active
   const isConsumerRoute =
-    location.pathname === '/' ||
     location.pathname.startsWith('/menu') ||
     location.pathname.startsWith('/companion') ||
     location.pathname.startsWith('/guest-order') ||
@@ -215,10 +215,14 @@ export const Sidebar: React.FC = () => {
     location.pathname.startsWith('/order') ||
     location.pathname.startsWith('/settlement');
 
-  // Filter visible nav items to prevent back-office leaks in consumer dining flow
+  // Filter visible nav items: seated diners at Table 4 never see back-office screens
+  // When exploring the platform or on overview without an active seated table, full control bar is available
   const visibleNavItems = navItems.filter((item) => {
     if (['kds', 'cashier', 'stand'].includes(item.id)) {
-      return !isConsumerRoute && !activeTable;
+      if (activeTable && isConsumerRoute) {
+        return false;
+      }
+      return true;
     }
     return true;
   });
