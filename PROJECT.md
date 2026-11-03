@@ -61,10 +61,10 @@ FlameLink is a multi-persona restaurant ordering and operations platform synchro
 ## Milestones
 | # | Name | Scope | Dependencies | Status |
 |---|------|-------|-------------|--------|
-| M0 | E2E Testing Track | Design test runner, test cases for Tiers 1-4, publish TEST_READY.md | none | IN_PROGRESS |
-| M1 | Design Tokens, Anti-Patterns & Shell Decoupling | detect.mjs fixes, radii standardization, Sidebar.tsx/App.tsx persona isolation | none | READY |
-| M2 | Consumer Dining Experience | /menu, DishModal, CartDrawer, TableLobbyBar, AccountModal, /companion, /tracker, /settlement | M1 | PLANNED |
-| M3 | Operations Portal & Stand Generator | /cashier void retention & audit ledger, /kds light vellum redesign, /stand vector SVG | M1 | PLANNED |
+| M0 | E2E Testing Track | Design test runner, test cases for Tiers 1-4, publish TEST_READY.md | none | DONE |
+| M1 | Design Tokens, Anti-Patterns & Shell Decoupling | detect.mjs fixes, radii standardization, Sidebar.tsx/App.tsx persona isolation | none | DONE |
+| M2 | Consumer Dining Experience | /menu, DishModal, CartDrawer, TableLobbyBar, AccountModal, /companion, /tracker, /settlement | M1 | DONE |
+| M3 | Operations Portal & Stand Generator | /cashier void retention & audit ledger, /kds light vellum redesign, /stand vector SVG | M1 | READY |
 | M4 | Final Milestone: 100% E2E Pass & Cloudflare Deployment | 100% E2E test pass, adversarial coverage, Supabase persistence, git push to main | M0, M2, M3 | PLANNED |
 
 ## Interface Contracts

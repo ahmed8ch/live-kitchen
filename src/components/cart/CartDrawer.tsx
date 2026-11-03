@@ -26,6 +26,7 @@ export const CartDrawer: React.FC = () => {
   const [splitStrategy, setSplitStrategy] = useState<'host_pays_all' | 'split_by_diner' | 'equal_split'>('host_pays_all');
   const [showPaymentChoice, setShowPaymentChoice] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [orderNotes, setOrderNotes] = useState('');
 
   // Close on Escape key
   useEffect(() => {
@@ -46,14 +47,18 @@ export const CartDrawer: React.FC = () => {
   const session = activeTable ? tableSessions[activeTable] : null;
 
   // Clean persona isolation:
-  // Route determines persona: /companion or /guest-order is Companion; /menu and default is Host.
+  // Derive isHost from seated member profile state first, then route fallback
   const isCompanionRoute =
     location.pathname.startsWith('/companion') ||
     location.pathname.startsWith('/guest-order') ||
     (typeof window !== 'undefined' &&
       (window.location.pathname.startsWith('/companion') || window.location.pathname.startsWith('/guest-order')));
 
-  const isHost = !isCompanionRoute;
+  const isHost = currentMember
+    ? Boolean(currentMember.isHost)
+    : companionMember
+    ? false
+    : !isCompanionRoute;
   const hostMember = session?.members?.find((m) => m.isHost) || (currentMember?.isHost ? currentMember : null);
   const effectiveMember = isHost
     ? (hostMember || currentMember)
@@ -101,7 +106,7 @@ export const CartDrawer: React.FC = () => {
     if (isSubmitting || cart.length === 0) return;
     setIsSubmitting(true);
     try {
-      const ticket = createOrder(method, splitStrategy);
+      const ticket = createOrder(method, splitStrategy, orderNotes);
       const query = activeTable ? `?table=${activeTable}` : '';
       navigate(`/settlement/${ticket.id}${query}`);
     } catch {
@@ -143,7 +148,7 @@ export const CartDrawer: React.FC = () => {
             {cart.length > 0 && isHost && (
               <button
                 onClick={clearCart}
-                className="text-[12px] text-[#727272] hover:text-[#dc2626] px-2.5 py-1.5 rounded-full hover:bg-red-50 transition-colors cursor-pointer"
+                className="text-[12px] text-[#727272] hover:text-[#dc2626] min-h-[44px] min-w-[44px] px-3.5 py-2 rounded-full hover:bg-red-50 transition-colors cursor-pointer flex items-center justify-center"
               >
                 Clear Cart
               </button>
@@ -176,7 +181,7 @@ export const CartDrawer: React.FC = () => {
                     leaveTableSession(activeTable, currentMember.id);
                     closeCartDrawer();
                   }}
-                  className="text-[11px] text-red-600 hover:underline cursor-pointer"
+                  className="min-h-[44px] px-2 inline-flex items-center text-[11px] text-red-600 hover:underline cursor-pointer"
                 >
                   Leave Table
                 </button>
@@ -218,7 +223,7 @@ export const CartDrawer: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => removeMemberFromTable(activeTable, memberId)}
-                        className="text-[10px] text-red-600 hover:underline cursor-pointer"
+                        className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center text-[11px] text-red-600 hover:underline cursor-pointer"
                         title="Remove member from table"
                       >
                         [Remove]
@@ -333,13 +338,28 @@ export const CartDrawer: React.FC = () => {
         {/* Drawer Footer Checkout Area */}
         {cart.length > 0 && (
           <div className="p-5 border-t border-[#e5e7eb] bg-[#f9f9f9] space-y-4">
+            {/* Kitchen Notes / Allergies (Optional) */}
+            <div>
+              <label htmlFor="cart-order-notes" className="block text-[12px] font-medium text-[#262626] mb-1">
+                Kitchen Notes / Allergies (Optional)
+              </label>
+              <input
+                id="cart-order-notes"
+                type="text"
+                value={orderNotes}
+                onChange={(e) => setOrderNotes(e.target.value)}
+                placeholder="e.g. Extra napkins, serve dishes together, peanut allergy"
+                className="w-full px-3 py-2 min-h-[44px] rounded-lg border border-[#e5e7eb] bg-white text-[13px] text-[#262626] placeholder-[#949494] focus:outline-none focus:border-[#FF0055]"
+              />
+            </div>
+
             <div className="space-y-1.5 text-[13px]">
               <div className="flex justify-between text-[#727272]">
                 <span>Net Subtotal</span>
                 <span className="font-mono-num text-[#262626]" data-ui-number>{subtotal.toFixed(2)} EGP</span>
               </div>
               <div className="flex justify-between text-[#727272]">
-                <span>Taxes &amp; Fees (14%)</span>
+                <span>14% Egyptian ETA VAT (ضريبة القيمة المضافة)</span>
                 <span className="font-mono-num text-[#262626]" data-ui-number>{vatAmount.toFixed(2)} EGP</span>
               </div>
               <div className="flex justify-between text-[16px] font-medium text-[#262626] pt-1 border-t border-[#e5e7eb]">
@@ -351,7 +371,7 @@ export const CartDrawer: React.FC = () => {
             {/* If user is Companion: NOT Host */}
             {!isHost ? (
               <div className="space-y-3 pt-1">
-                <div className="p-3.5 rounded-xl bg-amber-50/70 border border-amber-200 text-center space-y-1">
+                <div className="p-3.5 rounded-2xl bg-amber-50/70 border border-amber-200 text-center space-y-1">
                   <div className="text-[12px] font-bold text-amber-900">
                     Waiting for Table Host to Finalize
                   </div>
@@ -364,7 +384,7 @@ export const CartDrawer: React.FC = () => {
                   type="button"
                   onClick={handleToggleMyReady}
                   data-ui-radius="999"
-                  className={`w-full py-3.5 rounded-full text-[13px] font-bold transition-all cursor-pointer flex items-center justify-center gap-2 shadow-xs ${
+                  className={`w-full py-3.5 min-h-[44px] rounded-full text-[13px] font-bold transition-all cursor-pointer flex items-center justify-center gap-2 shadow-xs ${
                     effectiveMember?.isReadyToPay
                       ? 'bg-[#15803d] text-white hover:bg-[#166534]'
                       : 'bg-[#FF0055] text-white hover:opacity-95 btn-crimson-glow'
@@ -378,7 +398,7 @@ export const CartDrawer: React.FC = () => {
                 </button>
               </div>
             ) : showPaymentChoice ? (
-              <div className="p-4 rounded-xl bg-white border border-[#e5e7eb] space-y-3 animate-in fade-in duration-150">
+              <div className="p-4 rounded-2xl bg-white border border-[#e5e7eb] space-y-3 animate-in fade-in duration-150">
                 {/* Split Strategy Choice */}
                 <div>
                   <div className="text-[12px] font-semibold text-[#727272] mb-1.5">
@@ -388,7 +408,7 @@ export const CartDrawer: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setSplitStrategy('host_pays_all')}
-                      className={`p-2 rounded-lg border text-[11px] transition-all cursor-pointer ${
+                      className={`min-h-[44px] p-2 rounded-lg border text-[11px] transition-all cursor-pointer flex items-center justify-center ${
                         splitStrategy === 'host_pays_all'
                           ? 'border-[#FF0055] bg-[#fff0f3] font-bold text-[#FF0055]'
                           : 'border-[#e5e7eb] bg-white text-[#616161]'
@@ -399,7 +419,7 @@ export const CartDrawer: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setSplitStrategy('split_by_diner')}
-                      className={`p-2 rounded-lg border text-[11px] transition-all cursor-pointer ${
+                      className={`min-h-[44px] p-2 rounded-lg border text-[11px] transition-all cursor-pointer flex items-center justify-center ${
                         splitStrategy === 'split_by_diner'
                           ? 'border-[#FF0055] bg-[#fff0f3] font-bold text-[#FF0055]'
                           : 'border-[#e5e7eb] bg-white text-[#616161]'
@@ -410,7 +430,7 @@ export const CartDrawer: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setSplitStrategy('equal_split')}
-                      className={`p-2 rounded-lg border text-[11px] transition-all cursor-pointer ${
+                      className={`min-h-[44px] p-2 rounded-lg border text-[11px] transition-all cursor-pointer flex items-center justify-center ${
                         splitStrategy === 'equal_split'
                           ? 'border-[#FF0055] bg-[#fff0f3] font-bold text-[#FF0055]'
                           : 'border-[#e5e7eb] bg-white text-[#616161]'
@@ -428,7 +448,7 @@ export const CartDrawer: React.FC = () => {
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     onClick={() => setSelectedMethod('apple_pay')}
-                    className={`p-2.5 rounded-lg border text-left transition-all cursor-pointer ${
+                    className={`min-h-[48px] p-2.5 rounded-lg border text-left transition-all cursor-pointer flex flex-col justify-center ${
                       selectedMethod === 'apple_pay'
                         ? 'border-[#FF0055] bg-[#fff0f3]'
                         : 'border-[#e5e7eb] bg-white hover:bg-[#f9f9f9]'
@@ -440,7 +460,7 @@ export const CartDrawer: React.FC = () => {
 
                   <button
                     onClick={() => setSelectedMethod('cashier')}
-                    className={`p-2.5 rounded-lg border text-left transition-all cursor-pointer ${
+                    className={`min-h-[48px] p-2.5 rounded-lg border text-left transition-all cursor-pointer flex flex-col justify-center ${
                       selectedMethod === 'cashier'
                         ? 'border-[#FF0055] bg-[#fff0f3]'
                         : 'border-[#e5e7eb] bg-white hover:bg-[#f9f9f9]'
@@ -454,14 +474,14 @@ export const CartDrawer: React.FC = () => {
                 <div className="flex items-center gap-2 pt-1">
                   <button
                     onClick={() => setShowPaymentChoice(false)}
-                    className="flex-1 py-2 rounded-full border border-[#e5e7eb] text-[#727272] text-[12px] hover:bg-[#f9f9f9] cursor-pointer"
+                    className="min-h-[44px] flex-1 py-2 px-3 rounded-full border border-[#e5e7eb] text-[#727272] text-[12px] hover:bg-[#f9f9f9] cursor-pointer flex items-center justify-center"
                   >
                     Back
                   </button>
                   <button
                     onClick={() => handleFinalizeCheckout(selectedMethod)}
                     disabled={isSubmitting}
-                    className={`flex-2 py-2.5 rounded-full bg-[#FF0055] text-white text-[12px] font-bold shadow-xs btn-crimson-glow ${
+                    className={`min-h-[44px] flex-2 py-2.5 px-3 rounded-full bg-[#FF0055] text-white text-[12px] font-bold shadow-xs btn-crimson-glow flex items-center justify-center ${
                       isSubmitting ? 'opacity-70 cursor-not-allowed' : 'hover:opacity-95 cursor-pointer'
                     }`}
                   >
@@ -475,7 +495,7 @@ export const CartDrawer: React.FC = () => {
                 <button
                   onClick={handleProceedToPayment}
                   data-ui-radius="999"
-                  className="w-full py-3.5 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[14px] font-bold transition-all btn-crimson-glow active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2 shadow-xs"
+                  className="w-full py-3.5 min-h-[44px] rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[14px] font-bold transition-all btn-crimson-glow active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2 shadow-xs"
                 >
                   <span>Submit Table Order ({total.toFixed(2)} EGP) -&gt;</span>
                 </button>

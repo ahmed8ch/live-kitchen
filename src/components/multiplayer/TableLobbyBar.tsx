@@ -26,7 +26,7 @@ export const TableLobbyBar: React.FC = () => {
           </span>
           <button
             onClick={() => openPinModal('T-04')}
-            className="px-3.5 py-1.5 rounded-full bg-white hover:bg-[#f0f0f0] border border-[#e5e7eb] text-[#262626] font-medium text-[12px] transition-colors cursor-pointer shadow-xs"
+            className="px-4 py-2 min-h-[44px] rounded-full bg-white hover:bg-[#f0f0f0] border border-[#e5e7eb] text-[#262626] font-medium text-[12px] transition-colors cursor-pointer shadow-xs inline-flex items-center"
           >
             Join Table Pool -&gt;
           </button>
@@ -43,7 +43,11 @@ export const TableLobbyBar: React.FC = () => {
       (window.location.pathname.startsWith('/companion') || window.location.pathname.startsWith('/guest-order')));
   const session = activeTable ? tableSessions[activeTable] : null;
   const members = session?.members || [];
-  const isHost = !isCompanionView;
+  const isHost = currentMember
+    ? Boolean(currentMember.isHost)
+    : companionMember
+    ? false
+    : !isCompanionView;
   const pin = activeTablePin || session?.pin || '----';
 
   const hostMember = session?.members?.find((m) => m.isHost) || (currentMember?.isHost ? currentMember : null);
@@ -97,7 +101,7 @@ export const TableLobbyBar: React.FC = () => {
               <button
                 onClick={handleCopyPin}
                 title="Click to copy 4-digit PIN for companions sitting at your table"
-                className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-white border border-[#ffd1dc] text-[#FF0055] text-[13px] font-mono-num font-bold shadow-xs hover:border-[#FF0055] transition-colors cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3 min-h-[44px] rounded-full bg-white border border-[#ffd1dc] text-[#FF0055] text-[13px] font-mono-num font-bold shadow-xs hover:border-[#FF0055] transition-colors cursor-pointer"
               >
                 <span>{pin}</span>
                 <svg className="w-3.5 h-3.5 text-[#727272]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -144,13 +148,14 @@ export const TableLobbyBar: React.FC = () => {
                 />
                 <span>{member.name || 'Diner'}{member.isHost ? ' (Host)' : ''}</span>
 
-                {/* Host can kick unwanted/duplicate companions */}
+                {/* Host can kick unwanted/duplicate companions (Touch target >= 44x44px) */}
                 {isHost && !member.isHost && activeTable && (
                   <button
                     type="button"
                     onClick={() => removeMemberFromTable(activeTable, member.id)}
-                    className="w-4 h-4 rounded-full bg-[#f9f9f9] hover:bg-red-100 text-[#949494] hover:text-red-600 flex items-center justify-center text-[11px] ml-1 cursor-pointer transition-colors"
+                    className="min-w-[44px] min-h-[44px] rounded-full bg-[#f9f9f9] hover:bg-red-50 text-[#727272] hover:text-red-600 inline-flex items-center justify-center text-sm ml-1 cursor-pointer transition-colors border border-[#e5e7eb]"
                     title={`Remove ${member.name || 'Diner'}`}
+                    aria-label={`Remove ${member.name || 'Diner'}`}
                   >
                     ×
                   </button>
@@ -163,7 +168,7 @@ export const TableLobbyBar: React.FC = () => {
           {isHost && members.length > 1 && (
             <button
               onClick={() => resetTableSession(activeTable)}
-              className="text-[10px] text-[#727272] hover:text-[#FF0055] px-2 py-0.5 rounded-full bg-white border border-[#e5e7eb] shrink-0 cursor-pointer"
+              className="min-h-[44px] text-[12px] font-medium text-[#727272] hover:text-[#FF0055] px-3.5 py-1.5 rounded-full bg-white border border-[#e5e7eb] shrink-0 cursor-pointer inline-flex items-center"
               title="Reset table session to single host"
             >
               Reset Diners
@@ -183,7 +188,7 @@ export const TableLobbyBar: React.FC = () => {
                     ? 'You are marked ready. Click to switch back to browsing.'
                     : 'Notify the table host that you have finished picking your dishes.'
                 }
-                className={`px-3 py-1 rounded-full text-[12px] font-medium transition-all cursor-pointer shadow-xs ${
+                className={`min-h-[44px] px-4 py-2 rounded-full text-[12px] font-medium transition-all cursor-pointer shadow-xs inline-flex items-center justify-center ${
                   effectiveUser.isReadyToPay
                     ? 'bg-[#262626] text-white hover:bg-black'
                     : 'bg-white text-[#262626] border border-[#e5e7eb] hover:border-[#FF0055]'
@@ -195,7 +200,7 @@ export const TableLobbyBar: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => leaveTableSession(activeTable, effectiveUser.id)}
-                  className="text-[11px] text-red-600 hover:underline px-1 cursor-pointer"
+                  className="min-h-[44px] min-w-[44px] text-[12px] text-red-600 hover:underline px-2 cursor-pointer inline-flex items-center justify-center font-medium"
                   title="Leave table pool"
                 >
                   Leave

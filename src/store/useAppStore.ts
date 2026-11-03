@@ -77,7 +77,8 @@ interface AppState {
   // The Payment Gate & Order actions
   createOrder: (
     paymentMethod: PaymentMethod,
-    splitStrategy?: 'host_pays_all' | 'split_by_diner' | 'equal_split'
+    splitStrategy?: 'host_pays_all' | 'split_by_diner' | 'equal_split',
+    orderNotes?: string
   ) => OrderTicket;
   verifyCashierPayment: (orderId: string, paymentMethod?: PaymentMethod) => void;
   advanceOrderStatus: (orderId: string) => void;
@@ -946,9 +947,13 @@ export const useAppStore = create<AppState>()(
           typeof window !== 'undefined' &&
           (window.location.pathname.startsWith('/companion') || window.location.pathname.startsWith('/guest-order'));
 
-        const activeUser = isCompanionRoute
-          ? (get().companionMember || currentMember || { id: 'guest-solo', name: 'You', isHost: false, isReadyToPay: false, joinedAt: Date.now() })
-          : (hostMember || currentMember || { id: 'host-solo', name: 'Red Panda (Host)', isHost: true, isReadyToPay: false, joinedAt: Date.now() });
+        const activeUser = currentMember
+          ? currentMember
+          : get().companionMember
+          ? get().companionMember!
+          : isCompanionRoute
+          ? { id: 'guest-solo', name: 'You', isHost: false, isReadyToPay: false, joinedAt: Date.now() }
+          : (hostMember || { id: 'host-solo', name: 'Red Panda (Host)', isHost: true, isReadyToPay: false, joinedAt: Date.now() });
 
         const modKey = (selectedModifiers || []).map((m) => m.id).sort().join(',');
 
@@ -1030,7 +1035,7 @@ export const useAppStore = create<AppState>()(
       closeCartDrawer: () => set({ isCartDrawerOpen: false }),
 
       // THE PAYMENT GATE: Dynamic order creation from cart (starts as Draft until settled)
-      createOrder: (paymentMethod, splitStrategy = 'host_pays_all') => {
+      createOrder: (paymentMethod, splitStrategy = 'host_pays_all', orderNotes) => {
         const { cart, activeTable, activeTablePin, orders, tableSessions } = get();
         if (cart.length === 0) {
           throw new Error('Cannot create an order with an empty cart');
@@ -1065,6 +1070,7 @@ export const useAppStore = create<AppState>()(
           cashierChitCode: cashierCode,
           createdAt: Date.now(),
           dinerAccountId: get().userAccount?.id,
+          orderNotes: orderNotes?.trim() || undefined,
         };
 
         const updatedOrders = [newTicket, ...orders];

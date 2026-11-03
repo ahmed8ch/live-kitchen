@@ -420,7 +420,7 @@ export const Sidebar: React.FC = () => {
                 >
                   <span>{item.label}</span>
                   {item.badge && (
-                    <span className="px-1.5 py-0.2 rounded bg-white/20 text-[9px] font-mono-num font-bold">
+                    <span className="px-1.5 py-0.2 rounded-full bg-white/20 text-[9px] font-mono-num font-bold">
                       {item.badge}
                     </span>
                   )}

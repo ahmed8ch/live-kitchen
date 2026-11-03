@@ -83,6 +83,7 @@ export interface OrderTicket {
   paidAt?: number;
   dinerAccountId?: string;
   voidReason?: string;
+  orderNotes?: string;
 }
 
 export type TableStatus = 'idle' | 'ordering' | 'waiting_for_payment' | 'paid_cooking' | 'ready' | 'served';

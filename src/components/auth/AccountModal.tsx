@@ -116,7 +116,7 @@ export const AccountModal: React.FC = () => {
 
           <button
             onClick={closeAccountModal}
-            className="w-8 h-8 flex items-center justify-center rounded-full text-[#727272] hover:text-[#262626] hover:bg-black/5 transition-colors"
+            className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full text-[#727272] hover:text-[#262626] hover:bg-black/5 transition-colors cursor-pointer"
             aria-label="Close dialog"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -132,7 +132,7 @@ export const AccountModal: React.FC = () => {
             <>
               <button
                 onClick={() => setAccountModalTab('profile')}
-                className={`py-3 px-3 text-[13px] font-medium border-b-2 transition-colors ${
+                className={`py-3 px-3 min-h-[44px] inline-flex items-center text-[13px] font-medium border-b-2 transition-colors cursor-pointer ${
                   currentTab === 'profile'
                     ? 'border-[#FF0055] text-[#FF0055] font-bold'
                     : 'border-transparent text-[#727272] hover:text-[#262626]'
@@ -142,7 +142,7 @@ export const AccountModal: React.FC = () => {
               </button>
               <button
                 onClick={() => setAccountModalTab('history')}
-                className={`py-3 px-3 text-[13px] font-medium border-b-2 transition-colors ${
+                className={`py-3 px-3 min-h-[44px] inline-flex items-center text-[13px] font-medium border-b-2 transition-colors cursor-pointer ${
                   currentTab === 'history'
                     ? 'border-[#FF0055] text-[#FF0055] font-bold'
                     : 'border-transparent text-[#727272] hover:text-[#262626]'
@@ -155,7 +155,7 @@ export const AccountModal: React.FC = () => {
             <>
               <button
                 onClick={() => setAccountModalTab('signin')}
-                className={`py-3 px-3 text-[13px] font-medium border-b-2 transition-colors ${
+                className={`py-3 px-3 min-h-[44px] inline-flex items-center text-[13px] font-medium border-b-2 transition-colors cursor-pointer ${
                   currentTab === 'signin'
                     ? 'border-[#FF0055] text-[#FF0055] font-bold'
                     : 'border-transparent text-[#727272] hover:text-[#262626]'
@@ -165,7 +165,7 @@ export const AccountModal: React.FC = () => {
               </button>
               <button
                 onClick={() => setAccountModalTab('signup')}
-                className={`py-3 px-3 text-[13px] font-medium border-b-2 transition-colors ${
+                className={`py-3 px-3 min-h-[44px] inline-flex items-center text-[13px] font-medium border-b-2 transition-colors cursor-pointer ${
                   currentTab === 'signup'
                     ? 'border-[#FF0055] text-[#FF0055] font-bold'
                     : 'border-transparent text-[#727272] hover:text-[#262626]'
@@ -175,7 +175,7 @@ export const AccountModal: React.FC = () => {
               </button>
               <button
                 onClick={() => setAccountModalTab('history')}
-                className={`py-3 px-3 text-[13px] font-medium border-b-2 transition-colors ${
+                className={`py-3 px-3 min-h-[44px] inline-flex items-center text-[13px] font-medium border-b-2 transition-colors cursor-pointer ${
                   currentTab === 'history'
                     ? 'border-[#FF0055] text-[#FF0055] font-bold'
                     : 'border-transparent text-[#727272] hover:text-[#262626]'
@@ -192,7 +192,7 @@ export const AccountModal: React.FC = () => {
           {/* TAB: SIGN IN */}
           {currentTab === 'signin' && (
             <form onSubmit={handleSignInSubmit} className="space-y-4">
-              <div className="p-3 bg-[#fff0f3] border border-[#ffd1dc] rounded-xl text-[12px] text-[#262626]">
+              <div className="p-3.5 bg-[#fff0f3] border border-[#ffd1dc] rounded-2xl text-[12px] text-[#262626]">
                 <span className="font-bold text-[#FF0055] block">Quick Seated Diner Access</span>
                 Sign in with your phone and 4-digit PIN to retrieve past favorites and earn 10% loyalty cashback.
               </div>
@@ -207,7 +207,7 @@ export const AccountModal: React.FC = () => {
                   placeholder="e.g. 01012345678"
                   value={signInPhone}
                   onChange={(e) => setSignInPhone(e.target.value)}
-                  className="w-full px-3 py-2 bg-[#f9f9f9] border border-[#e5e7eb] rounded-lg text-[13px] font-mono-num text-[#262626] focus:outline-hidden focus:border-[#FF0055]"
+                  className="w-full px-3 py-2 min-h-[44px] bg-[#f9f9f9] border border-[#e5e7eb] rounded-lg text-[13px] font-mono-num text-[#262626] focus:outline-hidden focus:border-[#FF0055]"
                 />
               </div>
 
@@ -222,14 +222,14 @@ export const AccountModal: React.FC = () => {
                   placeholder="****"
                   value={signInPin}
                   onChange={(e) => setSignInPin(e.target.value)}
-                  className="w-full px-3 py-2 bg-[#f9f9f9] border border-[#e5e7eb] rounded-lg text-[13px] font-mono-num tracking-widest text-[#262626] focus:outline-hidden focus:border-[#FF0055]"
+                  className="w-full px-3 py-2 min-h-[44px] bg-[#f9f9f9] border border-[#e5e7eb] rounded-lg text-[13px] font-mono-num tracking-widest text-[#262626] focus:outline-hidden focus:border-[#FF0055]"
                 />
               </div>
 
               <div className="pt-2 flex flex-col gap-2">
                 <button
                   type="submit"
-                  className="w-full py-2.5 bg-[#FF0055] hover:bg-[#d90048] text-white rounded-full text-[13px] font-bold transition-colors shadow-xs"
+                  className="w-full min-h-[44px] py-2.5 bg-[#FF0055] hover:bg-[#d90048] text-white rounded-full text-[13px] font-bold transition-colors shadow-xs flex items-center justify-center cursor-pointer"
                 >
                   Sign In to Table Profile
                 </button>
@@ -242,7 +242,7 @@ export const AccountModal: React.FC = () => {
                       setSignInPin('1234');
                       signInDiner('01012345678', '1234');
                     }}
-                    className="w-full py-2 bg-[#f9f9f9] hover:bg-[#e5e7eb] border border-[#e5e7eb] text-[#262626] rounded-full text-[12px] font-medium transition-colors"
+                    className="w-full min-h-[44px] py-2 bg-[#f9f9f9] hover:bg-[#e5e7eb] border border-[#e5e7eb] text-[#262626] rounded-full text-[12px] font-medium transition-colors flex items-center justify-center cursor-pointer"
                   >
                     1-Click Demo: Ahmed Hassan (01012345678 / 1234)
                   </button>
@@ -253,7 +253,7 @@ export const AccountModal: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setAccountModalTab('signup')}
-                  className="text-[12px] text-[#727272] hover:text-[#FF0055] transition-colors"
+                  className="min-h-[44px] inline-flex items-center text-[12px] text-[#727272] hover:text-[#FF0055] transition-colors cursor-pointer"
                 >
                   First time dining here? Create an account for 50 EGP welcome bonus -&gt;
                 </button>
@@ -264,7 +264,7 @@ export const AccountModal: React.FC = () => {
           {/* TAB: SIGN UP */}
           {currentTab === 'signup' && (
             <form onSubmit={handleSignUpSubmit} className="space-y-4">
-              <div className="p-3 bg-[#f0fdf4] border border-[#bbf7d0] rounded-xl text-[12px] text-[#166534]">
+              <div className="p-3.5 bg-[#f0fdf4] border border-[#bbf7d0] rounded-2xl text-[12px] text-[#166534]">
                 <span className="font-bold block">50.00 EGP Welcome Bonus</span>
                 Create your Dine-In account in 20 seconds. Earn 10% cashback on all orders and re-order previous dishes with 1 touch.
               </div>
@@ -279,7 +279,7 @@ export const AccountModal: React.FC = () => {
                   placeholder="e.g. Mariam El-Sayed"
                   value={signUpName}
                   onChange={(e) => setSignUpName(e.target.value)}
-                  className="w-full px-3 py-2 bg-[#f9f9f9] border border-[#e5e7eb] rounded-lg text-[13px] text-[#262626] focus:outline-hidden focus:border-[#FF0055]"
+                  className="w-full px-3 py-2 min-h-[44px] bg-[#f9f9f9] border border-[#e5e7eb] rounded-lg text-[13px] text-[#262626] focus:outline-hidden focus:border-[#FF0055]"
                 />
               </div>
 
@@ -294,7 +294,7 @@ export const AccountModal: React.FC = () => {
                     placeholder="01xxxxxxxxx"
                     value={signUpPhone}
                     onChange={(e) => setSignUpPhone(e.target.value)}
-                    className="w-full px-3 py-2 bg-[#f9f9f9] border border-[#e5e7eb] rounded-lg text-[13px] font-mono-num text-[#262626] focus:outline-hidden focus:border-[#FF0055]"
+                    className="w-full px-3 py-2 min-h-[44px] bg-[#f9f9f9] border border-[#e5e7eb] rounded-lg text-[13px] font-mono-num text-[#262626] focus:outline-hidden focus:border-[#FF0055]"
                   />
                 </div>
 
@@ -309,7 +309,7 @@ export const AccountModal: React.FC = () => {
                     placeholder="****"
                     value={signUpPin}
                     onChange={(e) => setSignUpPin(e.target.value)}
-                    className="w-full px-3 py-2 bg-[#f9f9f9] border border-[#e5e7eb] rounded-lg text-[13px] font-mono-num tracking-widest text-[#262626] focus:outline-hidden focus:border-[#FF0055]"
+                    className="w-full px-3 py-2 min-h-[44px] bg-[#f9f9f9] border border-[#e5e7eb] rounded-lg text-[13px] font-mono-num tracking-widest text-[#262626] focus:outline-hidden focus:border-[#FF0055]"
                   />
                 </div>
               </div>
@@ -323,7 +323,7 @@ export const AccountModal: React.FC = () => {
                   placeholder="name@example.com"
                   value={signUpEmail}
                   onChange={(e) => setSignUpEmail(e.target.value)}
-                  className="w-full px-3 py-2 bg-[#f9f9f9] border border-[#e5e7eb] rounded-lg text-[13px] text-[#262626] focus:outline-hidden focus:border-[#FF0055]"
+                  className="w-full px-3 py-2 min-h-[44px] bg-[#f9f9f9] border border-[#e5e7eb] rounded-lg text-[13px] text-[#262626] focus:outline-hidden focus:border-[#FF0055]"
                 />
               </div>
 
@@ -339,7 +339,7 @@ export const AccountModal: React.FC = () => {
                         key={tag}
                         type="button"
                         onClick={() => toggleSignUpDietary(tag)}
-                        className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors border ${
+                        className={`px-3 py-1.5 min-h-[44px] rounded-full text-[12px] font-medium transition-colors border inline-flex items-center justify-center cursor-pointer ${
                           isSelected
                             ? 'bg-[#262626] text-white border-[#262626]'
                             : 'bg-[#f9f9f9] text-[#727272] border-[#e5e7eb] hover:border-[#262626]'
@@ -355,7 +355,7 @@ export const AccountModal: React.FC = () => {
               <div className="pt-2">
                 <button
                   type="submit"
-                  className="w-full py-2.5 bg-[#FF0055] hover:bg-[#d90048] text-white rounded-full text-[13px] font-bold transition-colors shadow-xs"
+                  className="w-full min-h-[44px] py-2.5 bg-[#FF0055] hover:bg-[#d90048] text-white rounded-full text-[13px] font-bold transition-colors shadow-xs flex items-center justify-center cursor-pointer"
                 >
                   Create Account & Claim 50 EGP Bonus
                 </button>
@@ -365,7 +365,7 @@ export const AccountModal: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setAccountModalTab('signin')}
-                  className="text-[12px] text-[#727272] hover:text-[#FF0055] transition-colors"
+                  className="min-h-[44px] inline-flex items-center text-[12px] text-[#727272] hover:text-[#FF0055] transition-colors cursor-pointer"
                 >
                   Already have an account? Sign In -&gt;
                 </button>
@@ -377,25 +377,26 @@ export const AccountModal: React.FC = () => {
           {currentTab === 'profile' && userAccount && (
             <div className="space-y-6">
               {/* Loyalty Reward Card */}
-              <div className="bg-gradient-to-br from-[#262626] to-[#171717] text-white p-5 rounded-2xl relative overflow-hidden shadow-md">
+              {/* Loyalty Reward Card (100% Light Vellum Tokens) */}
+              <div className="bg-[#f9f9f9] border border-[#e5e7eb] text-[#262626] p-5 rounded-2xl relative overflow-hidden shadow-xs">
                 <div className="flex items-start justify-between">
                   <div>
-                    <span className="text-[11px] text-[#999999] font-medium">
+                    <span className="text-[12px] text-[#727272] font-medium">
                       Live Kitchen Loyalty Balance
                     </span>
-                    <div className="text-3xl font-mono-num font-bold text-white mt-1">
+                    <div className="text-3xl font-mono-num font-bold text-[#262626] mt-1" data-ui-number>
                       {userAccount.loyaltyPointsEgp.toFixed(2)}{' '}
                       <span className="text-[14px] text-[#FF0055] font-normal">EGP</span>
                     </div>
                   </div>
-                  <div className="px-2.5 py-1 bg-white/10 rounded-full text-[11px] font-medium text-white">
+                  <div className="px-3 py-1 bg-[#fff0f3] border border-[#ffd1dc] rounded-full text-[11px] font-semibold text-[#FF0055]">
                     10% Cashback Tier
                   </div>
                 </div>
 
-                <div className="mt-4 pt-4 border-t border-white/10 flex items-center justify-between text-[11px] text-[#cccccc]">
-                  <span>Member ID: {userAccount.id}</span>
-                  <span>{userAccount.phone}</span>
+                <div className="mt-4 pt-3.5 border-t border-[#e5e7eb] flex items-center justify-between text-[12px] text-[#727272]">
+                  <span>Member ID: <span className="font-mono-num text-[#262626]">{userAccount.id}</span></span>
+                  <span className="font-mono-num text-[#262626]">{userAccount.phone}</span>
                 </div>
               </div>
 
@@ -403,7 +404,7 @@ export const AccountModal: React.FC = () => {
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-[12px] font-bold text-[#262626]">
-                    Dietary & Allergy Notes
+                    Dietary &amp; Allergy Notes
                   </span>
                   <span className="text-[11px] text-[#727272]">Click to toggle</span>
                 </div>
@@ -414,7 +415,7 @@ export const AccountModal: React.FC = () => {
                       <button
                         key={tag}
                         onClick={() => toggleProfileDietary(tag)}
-                        className={`px-3 py-1 rounded-full text-[11px] font-medium transition-colors border flex items-center gap-1.5 ${
+                        className={`px-3 py-1.5 min-h-[44px] rounded-full text-[12px] font-medium transition-colors border flex items-center gap-1.5 cursor-pointer ${
                           isSelected
                             ? 'bg-[#FF0055] text-white border-[#FF0055]'
                             : 'bg-[#f9f9f9] text-[#727272] border-[#e5e7eb] hover:border-[#262626]'
@@ -457,14 +458,14 @@ export const AccountModal: React.FC = () => {
               <div className="flex items-center justify-between pt-4 border-t border-[#e5e7eb]">
                 <button
                   onClick={() => setAccountModalTab('history')}
-                  className="px-4 py-2 bg-[#262626] hover:bg-black text-white rounded-full text-[12px] font-medium transition-colors"
+                  className="px-4 py-2 min-h-[44px] inline-flex items-center bg-[#262626] hover:bg-black text-white rounded-full text-[12px] font-medium transition-colors cursor-pointer"
                 >
                   View Past Orders ({pastOrders.length}) -&gt;
                 </button>
 
                 <button
                   onClick={signOutDiner}
-                  className="px-4 py-2 border border-[#e5e7eb] hover:bg-[#f9f9f9] text-[#727272] hover:text-[#dc2626] rounded-full text-[12px] font-medium transition-colors"
+                  className="px-4 py-2 min-h-[44px] inline-flex items-center border border-[#e5e7eb] hover:bg-[#f9f9f9] text-[#727272] hover:text-[#dc2626] rounded-full text-[12px] font-medium transition-colors cursor-pointer"
                 >
                   Sign Out
                 </button>
@@ -540,7 +541,7 @@ export const AccountModal: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => reorderSingleItem(item)}
-                            className="text-[11px] text-[#FF0055] hover:underline font-medium"
+                            className="min-h-[44px] px-2 text-[11px] text-[#FF0055] hover:underline font-medium inline-flex items-center cursor-pointer"
                           >
                             + Add to Cart
                           </button>
@@ -561,7 +562,7 @@ export const AccountModal: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => reorderPastOrder(order.id)}
-                        className="px-3 py-1 bg-[#FF0055] hover:bg-[#d90048] text-white rounded-full text-[11px] font-bold transition-colors shadow-xs"
+                        className="px-4 py-2 min-h-[44px] bg-[#FF0055] hover:bg-[#d90048] text-white rounded-full text-[11px] font-bold transition-colors shadow-xs inline-flex items-center cursor-pointer"
                       >
                         Re-order Entire Meal ({order.items.length} items)
                       </button>

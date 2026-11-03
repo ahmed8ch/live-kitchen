@@ -10,6 +10,7 @@ interface DishModalProps {
 
 export const DishModal: React.FC<DishModalProps> = ({ dish, onClose, onAdd }) => {
   const addToCart = useAppStore((state) => state.addToCart);
+  const userAccount = useAppStore((state) => state.userAccount);
 
   const [quantity, setQuantity] = useState(1);
   const [selectedModifiers, setSelectedModifiers] = useState<ModifierOption[]>([]);
@@ -119,6 +120,28 @@ export const DishModal: React.FC<DishModalProps> = ({ dish, onClose, onAdd }) =>
             <p className="mt-2.5 text-sm text-[#616161] leading-relaxed" data-ui-pretty>
               {dish.description}
             </p>
+            {dish.tags && dish.tags.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mt-3">
+                {dish.tags.map((tag) => {
+                  const isUserTag = Boolean(userAccount?.dietaryTags?.includes(tag));
+                  return (
+                    <span
+                      key={tag}
+                      className={`px-2.5 py-1 rounded-full text-xs font-medium border flex items-center gap-1 ${
+                        isUserTag
+                          ? 'bg-[#fff0f3] text-[#FF0055] border-[#ffd1dc] font-bold'
+                          : 'bg-[#f9f9f9] text-[#727272] border-[#e5e7eb]'
+                      }`}
+                    >
+                      <span>{tag}</span>
+                      {isUserTag && (
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#FF0055]" title="Matches your profile" />
+                      )}
+                    </span>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {/* Modifiers & Customizations */}
@@ -139,7 +162,7 @@ export const DishModal: React.FC<DishModalProps> = ({ dish, onClose, onAdd }) =>
                   return (
                     <label
                       key={mod.id}
-                      className={`flex items-center justify-between p-3 min-h-[48px] rounded-xl border transition-all cursor-pointer select-none ${
+                      className={`flex items-center justify-between p-3 min-h-[48px] rounded-2xl border transition-all cursor-pointer select-none active:scale-[0.99] ${
                         isSelected
                           ? 'border-[#FF0055] bg-[#fff0f3] shadow-xs'
                           : 'border-[#e5e7eb] bg-white hover:bg-[#f9f9f9]'
@@ -153,7 +176,7 @@ export const DishModal: React.FC<DishModalProps> = ({ dish, onClose, onAdd }) =>
                       />
                       <div className="flex items-center gap-3">
                         <div
-                          className={`w-5 h-5 rounded-md border flex items-center justify-center transition-colors ${
+                          className={`w-5 h-5 rounded-lg border flex items-center justify-center transition-colors ${
                             isSelected
                               ? 'bg-[#FF0055] border-[#FF0055] text-white'
                               : 'border-[#d1d5db] bg-white'
@@ -202,7 +225,8 @@ export const DishModal: React.FC<DishModalProps> = ({ dish, onClose, onAdd }) =>
           <div className="flex items-center border border-[#e5e7eb] bg-white rounded-full p-0.5 shadow-xs">
             <button
               onClick={() => setQuantity(Math.max(1, quantity - 1))}
-              className="min-w-[44px] min-h-[44px] rounded-full flex items-center justify-center text-[#262626] hover:bg-[#f0f0f0] active:bg-[#e5e7eb] transition-colors cursor-pointer text-lg font-bold"
+              disabled={quantity <= 1}
+              className="min-w-[44px] min-h-[44px] rounded-full flex items-center justify-center text-[#262626] hover:bg-[#f0f0f0] active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer text-lg font-bold"
               aria-label="Decrease quantity"
             >
               -
@@ -211,8 +235,8 @@ export const DishModal: React.FC<DishModalProps> = ({ dish, onClose, onAdd }) =>
               {quantity}
             </span>
             <button
-              onClick={() => setQuantity(quantity + 1)}
-              className="min-w-[44px] min-h-[44px] rounded-full flex items-center justify-center text-[#262626] hover:bg-[#f0f0f0] active:bg-[#e5e7eb] transition-colors cursor-pointer text-lg font-bold"
+              onClick={() => setQuantity(Math.min(50, quantity + 1))}
+              className="min-w-[44px] min-h-[44px] rounded-full flex items-center justify-center text-[#262626] hover:bg-[#f0f0f0] active:scale-95 transition-all cursor-pointer text-lg font-bold"
               aria-label="Increase quantity"
             >
               +
@@ -223,7 +247,7 @@ export const DishModal: React.FC<DishModalProps> = ({ dish, onClose, onAdd }) =>
           <button
             onClick={handleAddToCart}
             data-ui-radius="999"
-            className="flex-1 py-3 px-6 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-sm font-medium transition-all btn-crimson-glow active:scale-[0.99] flex items-center justify-between cursor-pointer shadow-xs"
+            className="flex-1 min-h-[44px] py-3 px-6 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-sm font-medium transition-all btn-crimson-glow active:scale-[0.99] flex items-center justify-between cursor-pointer shadow-xs"
           >
             <span>{addedFeedback ? 'Added!' : 'Add to Table Order'}</span>
             <span className="font-mono-num" data-ui-number>{itemTotal.toFixed(2)} EGP</span>

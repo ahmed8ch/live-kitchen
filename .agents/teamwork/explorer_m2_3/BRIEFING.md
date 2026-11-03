@@ -1,4 +1,4 @@
-# BRIEFING — 2026-11-02T21:58:30Z
+# BRIEFING — 2026-11-02T22:15:00Z
 
 ## Mission
 Investigate Companion Flow, Live Order Tracker, and Table Bill & Settlement pages (`CompanionPage.tsx`, `OrderTrackerPage.tsx`, `SettlementPage.tsx`) for ergonomics, distributed settlement, ticket realism, touch targets, token standardization, and emoji elimination, producing an actionable handoff report for Worker M2.
@@ -21,15 +21,30 @@ Investigate Companion Flow, Live Order Tracker, and Table Bill & Settlement page
 
 ## Current Parent
 - Conversation ID: 1043f178-1585-4505-b547-1e25e1e2d4ef
-- Updated: 2026-11-02T21:58:30Z
+- Updated: 2026-11-02T22:15:00Z
 
 ## Investigation State
-- **Explored paths**: None yet
-- **Key findings**: Starting investigation into CompanionPage, OrderTrackerPage, SettlementPage, and e2e test suite
-- **Unexplored areas**: All targeted files and tests
+- **Explored paths**:
+  - `src/pages/CompanionPage.tsx`
+  - `src/pages/OrderTrackerPage.tsx`
+  - `src/pages/SettlementPage.tsx`
+  - `src/components/multiplayer/TableLobbyBar.tsx`
+  - `src/components/multiplayer/TableLobbyModal.tsx`
+  - `src/store/useAppStore.ts`
+  - `src/index.css`
+  - `tests/e2e_suite.mjs` (Features 6, 7, 8)
+  - `tests/helpers/store_simulation.mjs`
+- **Key findings**:
+  1. `CompanionPage.tsx:367` has residual `rounded-xl` (needs `rounded-2xl`). Payment buttons & category pills need explicit `min-h-[44px]`.
+  2. `OrderTrackerPage.tsx` lacks active stopwatch timer and server bump alert banners; thermal cutout `top: 64px` does not align with `.thermal-tear-line`; voided orders lack dedicated cancellation view.
+  3. `SettlementPage.tsx:519` has residual `rounded-xl` (needs `rounded-2xl`).
+  4. `SettlementPage.tsx:9` has `TIP_PERCENTAGES = [0, 10, 12, 15]` (needs `[0, 10, 15, 20]` per requirements/tests).
+  5. Equal split selector buttons and tip percentage pills use `py-1.5` (~28px high) and need `min-h-[44px]`. Equal split calculation should adopt exact penny distribution (`calculateEqualSplit`).
+  6. Emojis: 0 Unicode emojis verified across all 3 pages.
+- **Unexplored areas**: None within the scope of Companion, Tracker, and Settlement pages.
 
 ## Key Decisions Made
-- Follow read-only exploratory discipline and create comprehensive handoff report
+- Maintain strict read-only boundary; compile comprehensive concrete implementation steps with exact code diffs for Worker M2 in `handoff.md`.
 
 ## Artifact Index
 - `handoff.md` — Final 5-component handoff report for Worker M2

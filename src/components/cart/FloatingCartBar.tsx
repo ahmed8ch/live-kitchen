@@ -43,7 +43,7 @@ export const FloatingCartBar: React.FC = () => {
         style={{
           boxShadow: '0 0 0 5px rgba(255, 0, 85, 0.08), 0 20px 30px -10px rgba(0, 0, 0, 0.12)',
         }}
-        className={`w-full flex items-center justify-between px-5 py-3.5 rounded-full bg-white text-[#262626] hover:bg-[#fafafa] border border-[#e5e7eb] hover:border-[#FF0055] transition-all cursor-pointer group ${
+        className={`w-full min-h-[48px] flex items-center justify-between px-5 py-3.5 rounded-full bg-white text-[#262626] hover:bg-[#fafafa] border border-[#e5e7eb] hover:border-[#FF0055] transition-all cursor-pointer group ${
           counterPop ? 'animate-spring-pop ring-2 ring-[#FF0055]' : ''
         } active:scale-95`}
       >
@@ -62,11 +62,16 @@ export const FloatingCartBar: React.FC = () => {
           </span>
         </div>
 
-        {/* Right: Subtotal & Arrow */}
-        <div className="flex items-center gap-2.5">
-          <span className="font-mono-num font-bold text-[15px] text-[#FF0055]" data-ui-number>
-            {subtotal.toFixed(2)} EGP
-          </span>
+        {/* Right: Subtotal & Tax Note & Arrow */}
+        <div className="flex items-center gap-3">
+          <div className="flex flex-col items-end text-right">
+            <span className="font-mono-num font-bold text-[15px] text-[#FF0055] leading-tight" data-ui-number>
+              {subtotal.toFixed(2)} EGP
+            </span>
+            <span className="text-[10px] text-[#727272] font-medium leading-tight">
+              + 14% VAT at checkout
+            </span>
+          </div>
           <svg
             className="w-4 h-4 text-[#727272] group-hover:text-[#FF0055] transition-colors group-hover:translate-x-0.5"
             viewBox="0 0 24 24"

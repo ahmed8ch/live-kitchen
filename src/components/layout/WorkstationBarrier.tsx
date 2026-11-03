@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useAppStore } from '../../store/useAppStore';
 import { FlameLinkLogo } from '../ui/FlameLinkLogo';
 
@@ -19,8 +19,12 @@ export const WorkstationBarrier: React.FC<WorkstationBarrierProps> = ({
   children,
 }) => {
   const [overrideAllowed, setOverrideAllowed] = useState(false);
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const tableFromQuery = searchParams.get('table')?.trim().toUpperCase();
   const activeTable = useAppStore((state) => state.activeTable);
-  const menuTarget = activeTable ? `/menu?table=${activeTable}` : '/menu';
+  const currentTable = activeTable || tableFromQuery;
+  const menuTarget = currentTable ? `/menu?table=${currentTable}` : '/menu';
 
   // If developer or operator overrides for inspection on responsive DevTools
   if (overrideAllowed) {

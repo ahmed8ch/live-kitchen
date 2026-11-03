@@ -6,7 +6,20 @@ import { FlameLinkLogo } from '../components/ui/FlameLinkLogo';
 import { ThermalText } from '../components/ui/ThermalText';
 
 const SPLIT_OPTIONS = [1, 2, 3, 4, 5, 6, 8];
-const TIP_PERCENTAGES = [0, 10, 12, 15];
+const TIP_PERCENTAGES = [0, 10, 15, 20];
+
+export const calculateEqualSplitShares = (totalAmount: number, dinerCount: number): number[] => {
+  if (dinerCount <= 0) return [];
+  const totalCents = Math.round(totalAmount * 100);
+  const baseCents = Math.floor(totalCents / dinerCount);
+  const remainderCents = totalCents % dinerCount;
+  const shares: number[] = [];
+  for (let i = 0; i < dinerCount; i++) {
+    const shareCents = baseCents + (i < remainderCents ? 1 : 0);
+    shares.push(Math.round(shareCents) / 100);
+  }
+  return shares;
+};
 
 export const SettlementPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -167,8 +180,13 @@ export const SettlementPage: React.FC = () => {
   const itemizedVat = Math.round(itemizedSubtotal * 0.14 * 100) / 100;
   const itemizedTotal = Math.round((itemizedSubtotal + itemizedVat) * 100) / 100;
 
-  // Equal split calculation
-  const perPersonAmount = Math.round((ticket.total / splitWays) * 100) / 100;
+  // Equal split calculation with exact odd penny distribution
+  const equalSplitShares = useMemo(() => {
+    if (!ticket || splitWays <= 0) return [];
+    return calculateEqualSplitShares(ticket.total, splitWays);
+  }, [ticket?.total, splitWays]);
+
+  const perPersonAmount = equalSplitShares[0] || (ticket ? Math.round((ticket.total / splitWays) * 100) / 100 : 0);
 
   // Post-meal tip calculation
   const tipAmount = Math.round((ticket.subtotal * (tipPercent / 100)) * 100) / 100;
@@ -313,7 +331,7 @@ export const SettlementPage: React.FC = () => {
         <div className="no-print flex items-center justify-between mb-6">
           <Link
             to={`/order/${ticket.id}`}
-            className="inline-flex items-center gap-1.5 text-[13px] text-[#727272] hover:text-[#262626] transition-colors"
+            className="min-h-[44px] inline-flex items-center gap-1.5 text-[13px] text-[#727272] hover:text-[#262626] transition-colors"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M19 12H5M12 19l-7-7 7-7" />
@@ -324,7 +342,7 @@ export const SettlementPage: React.FC = () => {
           {/* Loopback: Order Again button */}
           <button
             onClick={handleOrderAgain}
-            className="px-3.5 py-1.5 rounded-full bg-[#262626] hover:bg-black text-white text-[12px] font-bold transition-all cursor-pointer shadow-xs"
+            className="min-h-[44px] px-4 py-2 rounded-full bg-[#262626] hover:bg-black text-white text-[12px] font-bold transition-all cursor-pointer shadow-xs inline-flex items-center justify-center"
           >
             + Order Again
           </button>
@@ -516,7 +534,7 @@ export const SettlementPage: React.FC = () => {
               {splitMode === 'by_diner' && (
                 <div className="space-y-4">
                   {/* Table Balance Progress Banner */}
-                  <div className="p-3.5 rounded-xl bg-[#f9f9f9] border border-[#e5e7eb] space-y-2">
+                  <div className="p-3.5 rounded-2xl bg-[#f9f9f9] border border-[#e5e7eb] space-y-2">
                     <div className="flex items-center justify-between text-[12px]">
                       <span className="text-[#727272]">Remaining Table Balance:</span>
                       <span className="font-mono-num font-bold text-[#FF0055] text-[15px]">
@@ -641,7 +659,7 @@ export const SettlementPage: React.FC = () => {
                               type="button"
                               onClick={() => handlePayDinerShare(group.memberId, group.total)}
                               disabled={isProcessing}
-                              className="w-full py-2.5 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[12px] font-bold transition-all btn-crimson-glow cursor-pointer shadow-xs flex items-center justify-center gap-1.5"
+                              className="min-h-[44px] w-full py-2.5 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[12px] font-bold transition-all btn-crimson-glow cursor-pointer shadow-xs flex items-center justify-center gap-1.5"
                             >
                               <span>Pay My Share ({group.total.toFixed(2)} EGP) -&gt;</span>
                             </button>
@@ -655,7 +673,7 @@ export const SettlementPage: React.FC = () => {
                                 type="button"
                                 onClick={() => handlePayDinerShare(group.memberId, group.total)}
                                 disabled={isProcessing}
-                                className="w-full py-2 rounded-full bg-white hover:bg-[#f9f9f9] border border-[#e5e7eb] text-[#262626] text-[11px] font-bold transition-all cursor-pointer shadow-xs flex items-center justify-center gap-1"
+                                className="min-h-[44px] w-full py-2 rounded-full bg-white hover:bg-[#f9f9f9] border border-[#e5e7eb] text-[#262626] text-[11px] font-bold transition-all cursor-pointer shadow-xs flex items-center justify-center gap-1"
                               >
                                 <span>Cover for {group.name} ({group.total.toFixed(2)} EGP) -&gt;</span>
                               </button>
@@ -673,7 +691,9 @@ export const SettlementPage: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <span className="text-[12px] text-[#727272]">Diners sharing bill:</span>
                     <span className="text-[13px] font-mono-num font-bold text-[#FF0055]">
-                      {perPersonAmount.toFixed(2)} EGP / person
+                      {equalSplitShares.length > 1 && equalSplitShares[0] !== equalSplitShares[equalSplitShares.length - 1]
+                        ? `${equalSplitShares[0].toFixed(2)} - ${equalSplitShares[equalSplitShares.length - 1].toFixed(2)} EGP / person`
+                        : `${perPersonAmount.toFixed(2)} EGP / person`}
                     </span>
                   </div>
 
@@ -683,7 +703,7 @@ export const SettlementPage: React.FC = () => {
                         key={num}
                         onClick={() => setSplitWays(num)}
                         data-ui-radius="8"
-                        className={`px-3 py-1.5 rounded-lg text-[12px] font-medium transition-all cursor-pointer shrink-0 ${
+                        className={`min-h-[44px] min-w-[56px] px-3.5 py-2.5 rounded-lg text-[13px] font-medium transition-all cursor-pointer shrink-0 flex items-center justify-center ${
                           splitWays === num
                             ? 'bg-[#FF0055] text-white font-bold shadow-xs'
                             : 'bg-[#f9f9f9] hover:bg-[#f0f0f0] text-[#727272] border border-[#e5e7eb]'
@@ -693,6 +713,19 @@ export const SettlementPage: React.FC = () => {
                       </button>
                     ))}
                   </div>
+
+                  {splitWays > 1 && (
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                      {equalSplitShares.map((share, idx) => (
+                        <span
+                          key={`share-${idx}`}
+                          className="px-2.5 py-1 rounded-full bg-[#f9f9f9] border border-[#e5e7eb] text-[11px] font-mono-num text-[#262626]"
+                        >
+                          Diner #{idx + 1}: <span className="font-bold text-[#FF0055]">{share.toFixed(2)} EGP</span>
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -702,7 +735,7 @@ export const SettlementPage: React.FC = () => {
                     <span className="font-medium text-[#262626]">Select Dishes You Consumed:</span>
                     <button
                       onClick={selectAllItems}
-                      className="text-[11px] text-[#FF0055] hover:underline cursor-pointer"
+                      className="min-h-[44px] px-2 flex items-center text-[11px] text-[#FF0055] hover:underline cursor-pointer"
                     >
                       Select All
                     </button>
@@ -769,7 +802,7 @@ export const SettlementPage: React.FC = () => {
                   <button
                     onClick={() => setSelectedMethod('apple_pay')}
                     data-ui-radius="8"
-                    className={`p-3 rounded-lg border text-center transition-all cursor-pointer ${
+                    className={`min-h-[56px] p-3 rounded-lg border text-center transition-all cursor-pointer flex flex-col items-center justify-center ${
                       selectedMethod === 'apple_pay'
                         ? 'border-[#FF0055] bg-[#fff0f3] shadow-xs'
                         : 'border-[#e5e7eb] bg-white hover:bg-[#f9f9f9]'
@@ -782,7 +815,7 @@ export const SettlementPage: React.FC = () => {
                   <button
                     onClick={() => setSelectedMethod('card')}
                     data-ui-radius="8"
-                    className={`p-3 rounded-lg border text-center transition-all cursor-pointer ${
+                    className={`min-h-[56px] p-3 rounded-lg border text-center transition-all cursor-pointer flex flex-col items-center justify-center ${
                       selectedMethod === 'card'
                         ? 'border-[#FF0055] bg-[#fff0f3] shadow-xs'
                         : 'border-[#e5e7eb] bg-white hover:bg-[#f9f9f9]'
@@ -795,7 +828,7 @@ export const SettlementPage: React.FC = () => {
                   <button
                     onClick={() => setSelectedMethod('cashier')}
                     data-ui-radius="8"
-                    className={`p-3 rounded-lg border text-center transition-all cursor-pointer ${
+                    className={`min-h-[56px] p-3 rounded-lg border text-center transition-all cursor-pointer flex flex-col items-center justify-center ${
                       selectedMethod === 'cashier'
                         ? 'border-[#FF0055] bg-[#fff0f3] shadow-xs'
                         : 'border-[#e5e7eb] bg-white hover:bg-[#f9f9f9]'
@@ -810,7 +843,7 @@ export const SettlementPage: React.FC = () => {
                   onClick={handleSettleAction}
                   disabled={isProcessing}
                   data-ui-radius="999"
-                  className="w-full py-3.5 px-4 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[13px] sm:text-[14px] font-bold transition-all btn-crimson-glow active:scale-[0.99] cursor-pointer flex items-center justify-center text-center shadow-xs"
+                  className="min-h-[44px] w-full py-3.5 px-4 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[13px] sm:text-[14px] font-bold transition-all btn-crimson-glow active:scale-[0.99] cursor-pointer flex items-center justify-center text-center shadow-xs"
                 >
                   {isProcessing ? (
                     <span>Authorizing Transaction...</span>
@@ -836,7 +869,7 @@ export const SettlementPage: React.FC = () => {
               <div className="text-center py-2">
                 <button
                   onClick={() => setShowRatingForm(true)}
-                  className="px-5 py-2.5 rounded-full bg-[#f9f9f9] hover:bg-[#f0f0f0] border border-[#e5e7eb] text-[#262626] text-[13px] font-bold transition-colors cursor-pointer"
+                  className="min-h-[44px] px-5 py-2.5 rounded-full bg-[#f9f9f9] hover:bg-[#f0f0f0] border border-[#e5e7eb] text-[#262626] text-[13px] font-bold transition-colors cursor-pointer inline-flex items-center justify-center"
                 >
                   Rate Dining Experience & Tip Kitchen
                 </button>
@@ -859,7 +892,7 @@ export const SettlementPage: React.FC = () => {
                       key={star}
                       type="button"
                       onClick={() => setRating(star)}
-                      className="p-1 cursor-pointer transition-transform hover:scale-110"
+                      className="min-w-[44px] min-h-[44px] p-2 flex items-center justify-center cursor-pointer transition-transform hover:scale-110 rounded-full"
                       aria-label={`Rate ${star} stars`}
                     >
                       <svg
@@ -888,7 +921,7 @@ export const SettlementPage: React.FC = () => {
                         key={pct}
                         type="button"
                         onClick={() => setTipPercent(pct)}
-                        className={`py-1.5 rounded-lg text-[12px] font-medium transition-colors cursor-pointer ${
+                        className={`min-h-[44px] py-2.5 rounded-lg text-[13px] font-medium transition-colors cursor-pointer flex items-center justify-center ${
                           tipPercent === pct
                             ? 'bg-[#262626] text-white font-bold'
                             : 'bg-[#f9f9f9] border border-[#e5e7eb] text-[#727272] hover:bg-[#f0f0f0]'
@@ -914,13 +947,13 @@ export const SettlementPage: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setShowRatingForm(false)}
-                    className="px-4 py-2 rounded-full border border-[#e5e7eb] text-[#727272] text-[12px] hover:bg-[#f9f9f9]"
+                    className="min-h-[44px] px-4 py-2 rounded-full border border-[#e5e7eb] text-[#727272] text-[12px] hover:bg-[#f9f9f9] inline-flex items-center justify-center"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 py-2.5 rounded-full bg-[#262626] hover:bg-black text-white text-[13px] font-bold transition-colors cursor-pointer shadow-xs"
+                    className="min-h-[44px] flex-1 py-2.5 rounded-full bg-[#262626] hover:bg-black text-white text-[13px] font-bold transition-colors cursor-pointer shadow-xs inline-flex items-center justify-center"
                   >
                     Submit Review & Gratuity -&gt;
                   </button>
@@ -946,7 +979,7 @@ export const SettlementPage: React.FC = () => {
             <div className="pt-1">
               <button
                 onClick={handleOrderAgain}
-                className="w-full sm:w-auto px-8 py-3.5 rounded-full bg-[#FF0055] hover:opacity-95 text-white font-bold text-[14px] btn-crimson-glow shadow-md cursor-pointer transition-all active:scale-[0.99] inline-flex items-center justify-center gap-2"
+                className="min-h-[44px] w-full sm:w-auto px-8 py-3.5 rounded-full bg-[#FF0055] hover:opacity-95 text-white font-bold text-[14px] btn-crimson-glow shadow-md cursor-pointer transition-all active:scale-[0.99] inline-flex items-center justify-center gap-2"
               >
                 <span>+ Order Another Round</span>
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -961,7 +994,7 @@ export const SettlementPage: React.FC = () => {
         <div className="no-print mt-8 grid grid-cols-1 sm:grid-cols-3 gap-2.5 max-w-lg mx-auto">
           <button
             onClick={() => window.print()}
-            className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-full border border-[#e5e7eb] bg-white text-[13px] text-[#262626] hover:bg-[#f9f9f9] transition-colors shadow-xs cursor-pointer"
+            className="min-h-[44px] w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-full border border-[#e5e7eb] bg-white text-[13px] text-[#262626] hover:bg-[#f9f9f9] transition-colors shadow-xs cursor-pointer"
           >
             <svg className="w-4 h-4 text-[#727272]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <polyline points="6 9 6 2 18 2 18 9" />
@@ -973,7 +1006,7 @@ export const SettlementPage: React.FC = () => {
 
           <button
             onClick={() => window.print()}
-            className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-full border border-[#e5e7eb] bg-white text-[13px] text-[#262626] hover:bg-[#f9f9f9] transition-colors shadow-xs cursor-pointer"
+            className="min-h-[44px] w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-full border border-[#e5e7eb] bg-white text-[13px] text-[#262626] hover:bg-[#f9f9f9] transition-colors shadow-xs cursor-pointer"
           >
             <svg className="w-4 h-4 text-[#727272]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -985,7 +1018,7 @@ export const SettlementPage: React.FC = () => {
 
           <button
             onClick={handleSaveAsImage}
-            className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-full border border-[#e5e7eb] bg-white text-[13px] text-[#262626] hover:bg-[#f9f9f9] transition-colors shadow-xs cursor-pointer"
+            className="min-h-[44px] w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-full border border-[#e5e7eb] bg-white text-[13px] text-[#262626] hover:bg-[#f9f9f9] transition-colors shadow-xs cursor-pointer"
           >
             <svg className="w-4 h-4 text-[#727272]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />

@@ -4,6 +4,7 @@ import { useAppStore } from '../store/useAppStore';
 import { MENU_ITEMS } from '../domain/menuData';
 import { MenuCategory, MenuItem, PaymentMethod } from '../types/domain';
 import { DishModal } from '../components/menu/DishModal';
+import { DishCard } from '../components/menu/DishCard';
 import { FloatingCartBar } from '../components/cart/FloatingCartBar';
 import { CartDrawer } from '../components/cart/CartDrawer';
 import { TableLobbyBar } from '../components/multiplayer/TableLobbyBar';
@@ -144,13 +145,13 @@ export const CompanionPage: React.FC = () => {
                 });
                 initCompanionSession(cleanTable);
               }}
-              className="w-full py-2.5 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[13px] font-bold transition-all btn-crimson-glow shadow-xs cursor-pointer"
+              className="w-full min-h-[44px] py-2.5 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[13px] font-bold transition-all btn-crimson-glow shadow-xs cursor-pointer flex items-center justify-center"
             >
               Join Table {cleanTable} as Guest Diner
             </button>
             <Link
               to={`/menu?table=${cleanTable}`}
-              className="w-full py-2.5 rounded-full bg-white hover:bg-[#f9f9f9] border border-[#e5e7eb] text-[#262626] text-[13px] font-medium transition-colors shadow-xs inline-block"
+              className="w-full min-h-[44px] py-2.5 rounded-full bg-white hover:bg-[#f9f9f9] border border-[#e5e7eb] text-[#262626] text-[13px] font-medium transition-colors shadow-xs inline-flex items-center justify-center"
             >
               Browse Dine-In Menu
             </Link>
@@ -263,7 +264,7 @@ export const CompanionPage: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setSelectedMethod('apple_pay')}
-                      className={`p-2.5 rounded-lg border text-center transition-all cursor-pointer ${
+                      className={`p-2.5 min-h-[48px] rounded-lg border text-center transition-all cursor-pointer flex flex-col justify-center ${
                         selectedMethod === 'apple_pay'
                           ? 'border-[#FF0055] bg-[#fff0f3] shadow-xs'
                           : 'border-[#e5e7eb] bg-white hover:bg-[#f9f9f9]'
@@ -276,7 +277,7 @@ export const CompanionPage: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setSelectedMethod('card')}
-                      className={`p-2.5 rounded-lg border text-center transition-all cursor-pointer ${
+                      className={`p-2.5 min-h-[48px] rounded-lg border text-center transition-all cursor-pointer flex flex-col justify-center ${
                         selectedMethod === 'card'
                           ? 'border-[#FF0055] bg-[#fff0f3] shadow-xs'
                           : 'border-[#e5e7eb] bg-white hover:bg-[#f9f9f9]'
@@ -289,7 +290,7 @@ export const CompanionPage: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setSelectedMethod('cashier')}
-                      className={`p-2.5 rounded-lg border text-center transition-all cursor-pointer ${
+                      className={`p-2.5 min-h-[48px] rounded-lg border text-center transition-all cursor-pointer flex flex-col justify-center ${
                         selectedMethod === 'cashier'
                           ? 'border-[#FF0055] bg-[#fff0f3] shadow-xs'
                           : 'border-[#e5e7eb] bg-white hover:bg-[#f9f9f9]'
@@ -305,7 +306,7 @@ export const CompanionPage: React.FC = () => {
                     onClick={handlePayMyShare}
                     disabled={isProcessing}
                     data-ui-radius="999"
-                    className="w-full py-3 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-sm font-bold transition-all btn-crimson-glow shadow-xs cursor-pointer flex items-center justify-center gap-2 active:scale-[0.99]"
+                    className="w-full min-h-[44px] py-3 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-sm font-bold transition-all btn-crimson-glow shadow-xs cursor-pointer flex items-center justify-center gap-2 active:scale-[0.99]"
                   >
                     {isProcessing ? (
                       <span>Authorizing Payment...</span>
@@ -364,7 +365,7 @@ export const CompanionPage: React.FC = () => {
               </p>
             </div>
 
-            <div className="sm:text-right bg-[#f9f9f9] px-4 py-2 rounded-xl border border-[#e5e7eb] shrink-0">
+            <div className="sm:text-right bg-[#f9f9f9] px-4 py-2 rounded-2xl border border-[#e5e7eb] shrink-0">
               <div className="text-xs font-medium text-[#727272]">
                 Table Seating
               </div>
@@ -381,7 +382,7 @@ export const CompanionPage: React.FC = () => {
                 key={cat.id}
                 onClick={() => setActiveCategory(cat.id)}
                 data-ui-radius="999"
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-all shrink-0 cursor-pointer ${
+                className={`px-4 py-2 min-h-[44px] rounded-full text-sm font-medium transition-all shrink-0 cursor-pointer flex items-center justify-center ${
                   activeCategory === cat.id
                     ? 'bg-[#fff0f3] text-[#FF0055] shadow-xs border-2 border-[#FF0055] font-bold'
                     : 'bg-white hover:bg-[#f0f0f0] text-[#727272] border border-[#e5e7eb]'
@@ -407,67 +408,11 @@ export const CompanionPage: React.FC = () => {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-7">
           {filteredDishes.map((dish) => (
-            <div
+            <DishCard
               key={dish.id}
+              dish={dish}
               onClick={() => setSelectedDish(dish)}
-              data-ui-radius="16"
-              className="group bg-white rounded-2xl border border-[#e5e7eb] overflow-hidden shadow-xs hover:border-[#FF0055] transition-all cursor-pointer flex flex-col active:scale-[0.99] select-none"
-            >
-              <div className="relative h-48 sm:h-52 w-full bg-[#f9f9f9] overflow-hidden">
-                <img
-                  src={dish.imageUrl}
-                  alt={dish.name}
-                  loading="lazy"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  onError={(e) => {
-                    (e.currentTarget as HTMLImageElement).src =
-                      'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80';
-                  }}
-                />
-                {dish.badge && (
-                  <div className="absolute top-3 left-3 px-2.5 py-0.5 rounded-full bg-[#FF0055] text-white text-xs font-semibold shadow-xs">
-                    {dish.badge}
-                  </div>
-                )}
-                {dish.rating && (
-                  <div className="absolute top-3 right-3 px-2 py-0.5 rounded-full bg-white/95 text-[#262626] text-xs font-medium shadow-xs flex items-center gap-1">
-                    <svg className="w-3.5 h-3.5 fill-[#FBBF24] text-[#FBBF24]" viewBox="0 0 20 20">
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                    <span className="font-bold font-mono-num">{dish.rating}</span>
-                  </div>
-                )}
-              </div>
-
-              <div className="p-5 flex-1 flex flex-col justify-between">
-                <div>
-                  <h3 className="text-base font-bold text-[#262626] group-hover:text-[#FF0055] transition-colors leading-snug">
-                    {dish.name}
-                  </h3>
-                  <div className="mt-1 flex items-center gap-2 text-xs text-[#949494]">
-                    <span><span className="font-mono-num">{dish.calories}</span> KCAL</span>
-                    <span>/</span>
-                    <span>{dish.prepTime || '10 min'}</span>
-                  </div>
-                  <p className="mt-2 text-sm text-[#727272] line-clamp-2 leading-relaxed">
-                    {dish.description}
-                  </p>
-                </div>
-
-                <div className="mt-5 pt-4 border-t border-[#f0f0f0] flex items-center justify-between">
-                  <div className="text-base font-mono-num font-bold text-[#FF0055]" data-ui-number>
-                    {dish.basePrice.toFixed(2)} EGP
-                  </div>
-
-                  <span
-                    data-ui-radius="999"
-                    className="px-3.5 py-1.5 rounded-full bg-[#f9f9f9] group-hover:bg-[#FF0055] text-[#262626] group-hover:text-white border border-[#e5e7eb] group-hover:border-[#FF0055] text-xs font-medium transition-all shadow-xs"
-                  >
-                    Customize +
-                  </span>
-                </div>
-              </div>
-            </div>
+            />
           ))}
         </div>
       </section>

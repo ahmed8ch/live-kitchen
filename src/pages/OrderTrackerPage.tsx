@@ -20,11 +20,31 @@ export const OrderTrackerPage: React.FC = () => {
   const activeTable = useAppStore((state) => state.activeTable);
   const orderAgain = useAppStore((state) => state.orderAgain);
 
+  const [currentTime, setCurrentTime] = React.useState(Date.now());
+
+  React.useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
   // Target ticket prioritized by active table, then route id, then latest order
   const ticket =
     id && id !== 'active' && id !== 'demo'
       ? orders.find((o) => o.id === id) || (activeTable ? orders.find((o) => o.tableNumber === activeTable) : orders[0]) || orders[0]
       : (activeTable ? orders.find((o) => o.tableNumber === activeTable) : orders[0]) || orders[0];
+
+  const getElapsedSeconds = (t: typeof ticket) => {
+    if (!t) return 0;
+    const baseline = t.paidAt || t.createdAt;
+    return Math.max(0, Math.floor((currentTime - baseline) / 1000));
+  };
+
+  const formatElapsed = (t: typeof ticket) => {
+    const elapsedSeconds = getElapsedSeconds(t);
+    const mins = Math.floor(elapsedSeconds / 60);
+    const secs = elapsedSeconds % 60;
+    return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+  };
 
   const handleOrderAgain = () => {
     orderAgain();
@@ -69,7 +89,7 @@ export const OrderTrackerPage: React.FC = () => {
           <div className="flex items-center gap-3">
             <Link
               to={ticket.tableNumber ? `/menu?table=${ticket.tableNumber}` : '/menu'}
-              className="inline-flex items-center gap-1.5 text-sm text-[#727272] hover:text-[#262626] transition-colors"
+              className="min-h-[44px] inline-flex items-center gap-1.5 text-sm text-[#727272] hover:text-[#262626] transition-colors"
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M19 12H5M12 19l-7-7 7-7" />
@@ -79,23 +99,64 @@ export const OrderTrackerPage: React.FC = () => {
 
             <button
               onClick={handleOrderAgain}
-              className="px-3 py-1 rounded-full bg-[#262626] hover:bg-black text-white text-xs font-bold transition-all cursor-pointer shadow-xs"
+              className="min-h-[44px] px-4 py-2 rounded-full bg-[#262626] hover:bg-black text-white text-xs font-bold transition-all cursor-pointer shadow-xs inline-flex items-center"
             >
               + Order Again
             </button>
           </div>
 
           {/* Live Kitchen Status Indicator (Diner View) */}
-          {!isCompleted && isVerifiedPaid && (
+          {!isCompleted && isVerifiedPaid && ticket.status !== 'voided' && (
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#fff0f3] border border-[#ffd1dc] text-xs font-semibold text-[#FF0055]">
               <span className="w-2 h-2 rounded-full bg-[#FF0055] animate-pulse" />
               <span>Station Active: {STAGES[currentStageIndex]?.label || 'Cooking'}</span>
+              <span className="font-mono-num font-bold">({formatElapsed(ticket)})</span>
             </div>
           )}
         </div>
 
+        {/* Voided Order Cancellation Notice */}
+        {ticket.status === 'voided' && (
+          <div className="mb-6 p-4 rounded-2xl bg-red-50 border border-red-200 text-red-800 space-y-2">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-red-600" />
+              <span className="text-sm font-bold text-red-700">Order Voided by Front Cashier</span>
+            </div>
+            <p className="text-xs text-red-700">
+              Reason: <span className="font-medium">{ticket.voidReason || 'Order cancelled at register.'}</span>
+            </p>
+            <div className="pt-1">
+              <button
+                type="button"
+                onClick={handleOrderAgain}
+                className="px-4 py-2 min-h-[44px] rounded-full bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition-colors cursor-pointer"
+              >
+                Start New Order -&gt;
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Server Bump Alert Banner when ticket.status === 'ready' */}
+        {ticket.status === 'ready' && (
+          <div className="mb-6 p-4 rounded-2xl bg-[#fff0f3] border-2 border-[#FF0055] flex items-center justify-between gap-3 shadow-xs animate-in fade-in duration-200">
+            <div className="flex items-center gap-3">
+              <span className="w-3 h-3 rounded-full bg-[#FF0055] animate-ping shrink-0" />
+              <div>
+                <div className="text-sm font-bold text-[#FF0055]">Order Plated &amp; Ready for Delivery</div>
+                <div className="text-xs text-[#727272]">
+                  Service staff expediting tray to Table {ticket.tableNumber || 'your table'}.
+                </div>
+              </div>
+            </div>
+            <span className="px-3 py-1 rounded-full bg-[#FF0055] text-white text-xs font-bold shrink-0">
+              Pass Bumped
+            </span>
+          </div>
+        )}
+
         {/* Warning Banner if pending cashier verification */}
-        {!isVerifiedPaid && (
+        {!isVerifiedPaid && ticket.status !== 'voided' && (
           <div className="mb-6 p-4 rounded-2xl bg-[#fff0f3] border-2 border-[#ffd1dc] space-y-2">
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-[#FF0055]" />
@@ -110,7 +171,7 @@ export const OrderTrackerPage: React.FC = () => {
             <div className="pt-1">
               <Link
                 to={`/settlement/${ticket.id}`}
-                className="text-xs font-semibold text-[#FF0055] hover:underline"
+                className="min-h-[44px] inline-flex items-center text-xs font-semibold text-[#FF0055] hover:underline"
               >
                 Go to Bill & Settlement / Pay Online Now -&gt;
               </Link>
@@ -136,6 +197,10 @@ export const OrderTrackerPage: React.FC = () => {
               <span className="text-base font-mono-num font-bold text-[#262626]" data-ui-number>
                 #<ThermalText text={ticket.cashierChitCode || ticket.id} durationMs={350} />
               </span>
+              <div className="text-xs text-[#727272] mt-1 flex items-center justify-end gap-1">
+                <span>Elapsed:</span>
+                <span className="font-mono-num font-bold text-[#FF0055]" data-ui-number>{formatElapsed(ticket)}</span>
+              </div>
             </div>
           </div>
 
@@ -144,8 +209,12 @@ export const OrderTrackerPage: React.FC = () => {
             <span className="text-xs font-medium text-[#727272]">
               Current Kitchen Status:
             </span>
-            <span className="px-3 py-1 rounded-full bg-[#fff0f3] border border-[#ffd1dc] text-[#FF0055] text-xs font-semibold">
-              <ThermalText text={STAGES[currentStageIndex]?.label.toUpperCase() || 'COOKING'} />
+            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+              ticket.status === 'voided'
+                ? 'bg-red-50 border border-red-200 text-red-700'
+                : 'bg-[#fff0f3] border border-[#ffd1dc] text-[#FF0055]'
+            }`}>
+              <ThermalText text={ticket.status === 'voided' ? 'VOIDED / CANCELLED' : (STAGES[currentStageIndex]?.label.toUpperCase() || 'COOKING')} />
             </span>
           </div>
 

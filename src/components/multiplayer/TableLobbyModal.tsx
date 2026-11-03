@@ -88,7 +88,7 @@ export const TableLobbyModal: React.FC = () => {
       >
         <button
           onClick={closePinModal}
-          className="absolute top-4 right-4 w-8 h-8 rounded-full bg-[#f9f9f9] hover:bg-[#e5e7eb] flex items-center justify-center text-[#727272] transition-colors cursor-pointer"
+          className="absolute top-4 right-4 min-w-[44px] min-h-[44px] rounded-full bg-[#f9f9f9] hover:bg-[#e5e7eb] flex items-center justify-center text-[#727272] transition-colors cursor-pointer"
           aria-label="Close modal"
         >
           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -125,7 +125,7 @@ export const TableLobbyModal: React.FC = () => {
                     type="button"
                     disabled={isTaken}
                     onClick={() => !isTaken && setSelectedAnimal(animal.name)}
-                    className={`p-2.5 rounded-lg border text-center transition-all text-[12px] font-medium flex items-center justify-center gap-1.5 ${
+                    className={`p-2.5 min-h-[44px] rounded-lg border text-center transition-all text-[12px] font-medium flex items-center justify-center gap-1.5 ${
                       isTaken
                         ? 'border-[#e5e7eb] bg-[#f0f0f0] text-[#949494] opacity-50 cursor-not-allowed line-through'
                         : selectedAnimal === animal.name
@@ -159,7 +159,7 @@ export const TableLobbyModal: React.FC = () => {
               value={customName}
               onChange={(e) => setCustomName(e.target.value)}
               placeholder={`e.g. ${selectedAnimal} or Alex`}
-              className="w-full px-3.5 py-2.5 rounded-lg border border-[#e5e7eb] bg-white text-[#262626] text-[14px] focus:outline-none focus:border-[#FF0055]"
+              className="w-full px-3.5 py-2.5 min-h-[44px] rounded-lg border border-[#e5e7eb] bg-white text-[#262626] text-[14px] focus:outline-none focus:border-[#FF0055]"
             />
           </div>
 
@@ -181,7 +181,7 @@ export const TableLobbyModal: React.FC = () => {
                 value={pin}
                 onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
                 placeholder="• • • •"
-                className="w-full px-3.5 py-2.5 text-center tracking-widest font-mono-num text-[22px] font-bold rounded-lg border border-[#e5e7eb] bg-white text-[#262626] focus:outline-none focus:border-[#FF0055]"
+                className="w-full px-3.5 py-2.5 min-h-[48px] text-center tracking-widest font-mono-num text-[22px] font-bold rounded-lg border border-[#e5e7eb] bg-white text-[#262626] focus:outline-none focus:border-[#FF0055]"
               />
             </div>
           )}
@@ -194,7 +194,7 @@ export const TableLobbyModal: React.FC = () => {
 
           <button
             type="submit"
-            className="w-full py-3.5 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[14px] font-bold transition-all btn-crimson-glow active:scale-[0.99] cursor-pointer shadow-xs"
+            className="w-full min-h-[44px] py-3.5 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[14px] font-bold transition-all btn-crimson-glow active:scale-[0.99] cursor-pointer shadow-xs flex items-center justify-center"
           >
             {isNewSession ? `Start Table ${targetTable} Session ->` : `Join Table ${targetTable} Pool ->`}
           </button>
