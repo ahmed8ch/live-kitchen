@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Routes, Route, Navigate, useLocation, Link } from 'react-router-dom';
+import { Routes, Route, useLocation, Link } from 'react-router-dom';
 import { Sidebar } from './components/layout/Sidebar';
 import { ToastContainer } from './components/ui/ToastContainer';
 import { TableLobbyModal } from './components/multiplayer/TableLobbyModal';
@@ -12,6 +12,7 @@ import { KdsPage } from './pages/KdsPage';
 import { CashierPage } from './pages/CashierPage';
 import { TableStandPage } from './pages/TableStandPage';
 import { CompanionPage } from './pages/CompanionPage';
+import { NotFoundPage } from './pages/NotFoundPage';
 import { useAppStore } from './store/useAppStore';
 import { FlameLinkLogo } from './components/ui/FlameLinkLogo';
 
@@ -33,12 +34,20 @@ export const App: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-white text-[#262626]">
+      {/* Accessible Skip to Content Link */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-[#262626] focus:text-white focus:rounded-full focus:text-xs focus:font-bold focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#FF0055]"
+      >
+        Skip to main content
+      </a>
+
       {/* Primary Navigation System (Desktop macOS Dock + Mobile Header) */}
       {!isKds && !isCashier && <Sidebar />}
 
       {/* Main Content Viewport */}
       <div className="flex-1 flex flex-col min-w-0 min-h-screen">
-        <main className="flex-1 flex flex-col">
+        <main id="main-content" className="flex-1 flex flex-col" tabIndex={-1}>
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/menu" element={<MenuPage />} />
@@ -51,7 +60,7 @@ export const App: React.FC = () => {
             <Route path="/cashier" element={<CashierPage />} />
             <Route path="/kds" element={<KdsPage />} />
             <Route path="/stand" element={<TableStandPage />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </main>
 

@@ -31,10 +31,10 @@
     --color-stone: #c7c7c7;
     --color-mist: #b5b5b5;
 
-    /* KDS Dark Canvas Tokens */
-    --color-kds-canvas: #0d0f12;
-    --color-kds-gridline: #1f242d;
-    --color-chit-paper: #fcfbf7;
+    /* KDS Light Workspace Tokens */
+    --color-kds-canvas: #ffffff;
+    --color-kds-gridline: #e5e7eb;
+    --color-chit-paper: #ffffff;
     --color-kds-new: #FF0055;
     --color-kds-cooking: #d97706;
     --color-kds-ready: #15803d;
@@ -166,13 +166,13 @@
   right: -9px;
 }
 
-/* KDS Perforated Thermal Chit Paper */
+/* KDS Perforated Thermal Chit Paper (100% Light Vellum Tokens) */
 .thermal-chit-kds {
   position: relative;
   background: #ffffff;
-  color: #111827;
-  border-radius: 8px;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(0, 0, 0, 0.15);
+  color: #262626;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 4px 12px rgba(0, 0, 0, 0.03);
   overflow: visible;
 }
 
@@ -183,8 +183,8 @@
   top: 56px;
   width: 16px;
   height: 16px;
-  background: #0d0f12;
-  border: 1px solid #1f242d;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
   border-radius: 999px;
   z-index: 10;
 }
