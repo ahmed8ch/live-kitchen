@@ -1611,7 +1611,7 @@ export const useAppStore = create<AppState>()(
           phone,
           email: data.email?.trim() || undefined,
           pin: data.pin.trim(),
-          loyaltyPointsEgp: 50.0, // 50 EGP welcome bonus
+          loyaltyPointsEgp: 0,
           dietaryTags: data.dietaryTags || [],
           createdAt: Date.now(),
           lastLoginAt: Date.now(),
@@ -1662,7 +1662,7 @@ export const useAppStore = create<AppState>()(
           broadcastChannel.postMessage({ type: 'SESSIONS_SYNC', tableSessions: updatedSessions });
         }
 
-        get().showToast(`Welcome, ${newAccount.fullName}! 50.00 EGP welcome reward added.`);
+        get().showToast(`Welcome, ${newAccount.fullName}! Your guest profile is active.`);
         return true;
       },
 

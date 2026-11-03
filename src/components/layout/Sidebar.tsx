@@ -308,20 +308,8 @@ export const Sidebar: React.FC = () => {
         <div
           onMouseEnter={handleTriggerEnter}
           onMouseLeave={handleTriggerLeave}
-          className="fixed left-0 top-0 bottom-0 w-6 z-40 hidden md:block"
+          className="fixed left-0 top-0 bottom-0 w-4 z-40 hidden md:block"
           aria-hidden="true"
-        />
-      )}
-
-      {/* Subtle Visual Peek Handle along Left Edge */}
-      {!isPinned && !isRevealed && (
-        <button
-          type="button"
-          onClick={() => setIsRevealed(true)}
-          onMouseEnter={handleTriggerEnter}
-          className="fixed left-0 top-1/2 -translate-y-1/2 h-16 w-1.5 hover:w-2.5 rounded-r-full bg-[#262626]/20 hover:bg-[#FF0055] transition-[width,background-color] duration-200 cursor-pointer z-40 hidden md:block"
-          title="Hover left edge or click to open Control Sidebar (or press '[')"
-          aria-label="Reveal Navigation Dock"
         />
       )}
 

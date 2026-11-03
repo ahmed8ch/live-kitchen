@@ -55,30 +55,97 @@ export const UnifiedNavbar: React.FC = () => {
   const currentSession = activeTable ? tableSessions[activeTable] : null;
   const sessionPin = activeTablePin || currentSession?.pin;
 
-  // Clean, real-world customer navigation (no back-office clutter in consumer header)
-  const customerNav = [
-    { label: 'Overview', to: '/', pathMatch: (p: string) => p === '/' },
-    { label: 'Menu', to: `/menu${tableParam}`, pathMatch: (p: string) => p.startsWith('/menu') },
-    { label: 'Companion Pool', to: `/companion${tableParam}`, pathMatch: (p: string) => p.startsWith('/companion') || p.startsWith('/guest-order') },
-    {
-      label: 'Order Status',
-      to: trackerTarget,
-      badge: currentTicket ? (currentTicket.paymentStatus === 'verified_paid' ? currentTicket.status : 'Hold') : undefined,
-      pathMatch: (p: string) => p.startsWith('/tracker') || p.startsWith('/order'),
-    },
-    {
-      label: 'Bill & Split',
-      to: settlementTarget,
-      badge: currentTicket && !currentTicket.isPaid ? `${currentTicket.total.toFixed(0)} EGP` : undefined,
-      pathMatch: (p: string) => p.startsWith('/settlement'),
-    },
-  ];
-
-  // Staff / Operations Workstation Switcher (Only prominent when inside an operations route or mobile menu)
+  // Operations Portal Navigation (Strictly ONE top bar on /kds, /cashier, /stand — zero duplicate headers)
   const operationsNav = [
     { label: 'Kitchen Pass (KDS)', to: '/kds', pathMatch: (p: string) => p.startsWith('/kds') },
     { label: 'Cashier POS', to: '/cashier', pathMatch: (p: string) => p.startsWith('/cashier') },
     { label: 'Table Stand QR', to: '/stand', pathMatch: (p: string) => p.startsWith('/stand') },
+  ];
+
+  if (isOperationsView) {
+    return (
+      <header className="no-print sticky top-0 z-40 bg-white border-b border-[#e5e7eb] select-none">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <Link to="/" className="flex items-center gap-2 min-h-[44px]">
+              <FlameLinkLogo size="md" />
+            </Link>
+            <span className="hidden sm:inline-block h-4 w-[1px] bg-[#e5e7eb]" />
+            <div className="flex items-center gap-1 bg-[#f9f9f9] p-1 rounded-full border border-[#e5e7eb]">
+              {operationsNav.map((op) => {
+                const active = op.pathMatch(location.pathname);
+                return (
+                  <Link
+                    key={op.label}
+                    to={op.to}
+                    className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-colors shrink-0 ${
+                      active
+                        ? 'bg-[#262626] text-white font-bold'
+                        : 'text-[#727272] hover:text-[#262626]'
+                    }`}
+                  >
+                    {op.label}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+
+          <Link
+            to={`/menu${tableParam}`}
+            className="min-h-[40px] inline-flex items-center px-4 py-1.5 rounded-full bg-[#f9f9f9] hover:bg-[#f0f0f0] border border-[#e5e7eb] text-[#262626] text-xs font-semibold transition-colors shrink-0"
+          >
+            Dine-In Menu -&gt;
+          </Link>
+        </div>
+      </header>
+    );
+  }
+
+  // Consumer Navigation: Only shows Order Status & Bill when an order actually exists or user is viewing those routes
+  const showOrderLinks =
+    Boolean(currentTicket) ||
+    location.pathname.startsWith('/tracker') ||
+    location.pathname.startsWith('/order') ||
+    location.pathname.startsWith('/settlement');
+
+  const showCompanionLink =
+    Boolean(activeTable && currentSession && currentSession.members.length > 1) ||
+    location.pathname.startsWith('/companion') ||
+    location.pathname.startsWith('/guest-order');
+
+  const customerNav = [
+    { label: 'Overview', to: '/', pathMatch: (p: string) => p === '/' },
+    { label: 'Menu', to: `/menu${tableParam}`, pathMatch: (p: string) => p.startsWith('/menu') },
+    ...(showCompanionLink
+      ? [
+          {
+            label: 'Shared Table',
+            to: `/companion${tableParam}`,
+            pathMatch: (p: string) => p.startsWith('/companion') || p.startsWith('/guest-order'),
+          },
+        ]
+      : []),
+    ...(showOrderLinks
+      ? [
+          {
+            label: 'Order Status',
+            to: trackerTarget,
+            badge: currentTicket
+              ? currentTicket.paymentStatus === 'verified_paid'
+                ? currentTicket.status
+                : 'Unpaid'
+              : undefined,
+            pathMatch: (p: string) => p.startsWith('/tracker') || p.startsWith('/order'),
+          },
+          {
+            label: 'Bill & Split',
+            to: settlementTarget,
+            badge: currentTicket && !currentTicket.isPaid ? `${currentTicket.total.toFixed(0)} EGP` : undefined,
+            pathMatch: (p: string) => p.startsWith('/settlement'),
+          },
+        ]
+      : []),
   ];
 
   const handleSelectTable = (tbl: string) => {
@@ -92,58 +159,16 @@ export const UnifiedNavbar: React.FC = () => {
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-white border-b border-[#e5e7eb] select-none">
-      {/* Staff Workstation Context Bar (Only shown on /kds, /cashier, /stand) */}
-      {isOperationsView && (
-        <div className="bg-[#262626] text-white px-4 sm:px-6 py-2 text-xs flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3 overflow-x-auto scrollbar-none">
-            <span className="font-bold text-[#FF0055] uppercase tracking-wider shrink-0">
-              Operations Portal
-            </span>
-            <span className="text-[#616161]">|</span>
-            <div className="flex items-center gap-1.5">
-              {operationsNav.map((op) => {
-                const active = op.pathMatch(location.pathname);
-                return (
-                  <Link
-                    key={op.label}
-                    to={op.to}
-                    className={`px-3 py-1 rounded-full text-xs font-medium transition-colors shrink-0 ${
-                      active
-                        ? 'bg-[#FF0055] text-white font-bold'
-                        : 'text-[#d1d5db] hover:text-white hover:bg-white/10'
-                    }`}
-                  >
-                    {op.label}
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
-
-          <Link
-            to={`/menu${tableParam}`}
-            className="px-3.5 py-1 rounded-full bg-white text-[#262626] hover:bg-[#f9f9f9] text-xs font-bold transition-colors shrink-0"
-          >
-            Exit to Dine-In View -&gt;
-          </Link>
-        </div>
-      )}
-
+    <header className="no-print sticky top-0 z-40 bg-white border-b border-[#e5e7eb] select-none">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 gap-4">
-          {/* Left: Brand Identity */}
-          <div className="flex items-center gap-3 shrink-0">
-            <Link to="/" className="flex items-center gap-2.5 min-h-[44px]">
-              <FlameLinkLogo size="md" />
-            </Link>
-            <span className="hidden xl:inline-block text-xs text-[#727272] pl-3 border-l border-[#e5e7eb]">
-              Live Kitchen (لايف كيتشن)
-            </span>
-          </div>
+          {/* Left: Single Brand Identity */}
+          <Link to="/" className="flex items-center gap-2.5 min-h-[44px] shrink-0">
+            <FlameLinkLogo size="md" />
+          </Link>
 
-          {/* Center: Clean Editorial Navigation Links */}
-          <nav className="hidden lg:flex items-center gap-1" aria-label="Main Navigation">
+          {/* Center: Clean Contextual Links */}
+          <nav className="hidden md:flex items-center gap-1" aria-label="Main Navigation">
             {customerNav.map((item) => {
               const isActive = item.pathMatch(location.pathname);
               return (
@@ -173,9 +198,9 @@ export const UnifiedNavbar: React.FC = () => {
             })}
           </nav>
 
-          {/* Right: Real State Controls (Table Session, Account, Cart) */}
-          <div className="flex items-center gap-2 sm:gap-2.5">
-            {/* Table Session Selector */}
+          {/* Right: Table Check-In, Guest Profile, and Live Cart */}
+          <div className="flex items-center gap-2">
+            {/* Table Selector */}
             <div className="relative" ref={dropdownRef}>
               <button
                 type="button"
@@ -185,7 +210,6 @@ export const UnifiedNavbar: React.FC = () => {
                     ? 'bg-[#fff0f3] text-[#FF0055] border-[#ffd1dc] font-bold'
                     : 'bg-[#f9f9f9] text-[#262626] border-[#e5e7eb] hover:bg-[#f0f0f0]'
                 }`}
-                title="Select or manage your dining table"
               >
                 <span
                   className={`w-2 h-2 rounded-full ${
@@ -193,7 +217,7 @@ export const UnifiedNavbar: React.FC = () => {
                   }`}
                 />
                 <span>
-                  {activeTable ? `Table ${activeTable}` : 'Select Table'}
+                  {activeTable ? `Table ${activeTable}` : 'Table Check-In'}
                 </span>
                 {activeTable && sessionPin && (
                   <span className="hidden sm:inline tabular-nums text-[11px] px-1.5 py-0.5 rounded-full bg-white border border-[#ffd1dc] text-[#262626]">
@@ -205,19 +229,18 @@ export const UnifiedNavbar: React.FC = () => {
                 </svg>
               </button>
 
-              {/* Table Session Popover */}
               {tableDropdownOpen && (
                 <div className="absolute right-0 mt-2 w-72 rounded-2xl bg-[#f9f9f9] p-1.5 border border-[#e5e7eb] shadow-xl z-50 text-xs select-none">
                   <div className="bg-white rounded-xl border border-[#e5e7eb] p-3.5 space-y-3">
                     <div className="flex items-center justify-between pb-2 border-b border-[#e5e7eb]">
                       <div>
                         <div className="font-bold text-[#262626]">
-                          {activeTable ? `Seated at Table ${activeTable}` : 'Choose Your Dining Table'}
+                          {activeTable ? `Seated at Table ${activeTable}` : 'Select Your Dining Table'}
                         </div>
                         <div className="text-[11px] text-[#727272]">
                           {activeTable && sessionPin
-                            ? `Share PIN ${sessionPin} with table companions`
-                            : 'Select a table number to start ordering'}
+                            ? `Table PIN: ${sessionPin}`
+                            : 'Choose your table number to order'}
                         </div>
                       </div>
                       {activeTable && (
@@ -248,7 +271,7 @@ export const UnifiedNavbar: React.FC = () => {
                       ))}
                     </div>
 
-                    <div className="pt-2 border-t border-[#e5e7eb] flex items-center justify-between gap-2">
+                    <div className="pt-2 border-t border-[#e5e7eb]">
                       <button
                         type="button"
                         onClick={() => {
@@ -257,7 +280,7 @@ export const UnifiedNavbar: React.FC = () => {
                         }}
                         className="w-full min-h-[38px] py-2 px-3 rounded-full bg-[#f9f9f9] hover:bg-[#f0f0f0] border border-[#e5e7eb] text-[#262626] font-semibold text-xs cursor-pointer transition-colors text-center"
                       >
-                        Join Table Pool with 4-Digit PIN
+                        Join Table with 4-Digit PIN
                       </button>
                     </div>
                   </div>
@@ -265,23 +288,19 @@ export const UnifiedNavbar: React.FC = () => {
               )}
             </div>
 
-            {/* Account / Loyalty Trigger */}
+            {/* Guest Profile / Sign In (Clean text button, no fake avatar icon) */}
             <button
               type="button"
               onClick={() => openAccountModal()}
-              className="hidden sm:inline-flex min-h-[40px] px-3.5 py-1.5 rounded-full border border-[#e5e7eb] bg-[#f9f9f9] hover:bg-[#f0f0f0] text-xs font-semibold text-[#262626] items-center gap-2 cursor-pointer transition-colors"
-              title="Diner Profile & 10% Cashback Rewards"
+              className="hidden sm:inline-flex min-h-[40px] px-3.5 py-1.5 rounded-full border border-[#e5e7eb] bg-white hover:bg-[#f9f9f9] text-xs font-medium text-[#262626] items-center gap-1.5 cursor-pointer transition-colors"
             >
-              <span className="w-5 h-5 rounded-full bg-[#262626] text-white text-[10px] font-bold flex items-center justify-center">
-                {userAccount ? userAccount.fullName.charAt(0).toUpperCase() : 'G'}
-              </span>
-              <span className="max-w-[96px] truncate">
+              <span className="max-w-[110px] truncate">
                 {userAccount ? userAccount.fullName.split(' ')[0] : 'Sign In'}
               </span>
             </button>
 
-            {/* Primary Action: Cart Button (when cart has items) or Dine-In Menu CTA */}
-            {totalCartItems > 0 ? (
+            {/* Live Cart Button (Only visible when cart has dishes) */}
+            {totalCartItems > 0 && (
               <button
                 type="button"
                 onClick={() => openCartDrawer()}
@@ -290,23 +309,15 @@ export const UnifiedNavbar: React.FC = () => {
                 <span className="px-1.5 py-0.5 rounded-full bg-white text-[#FF0055] tabular-nums text-[11px] font-bold">
                   {totalCartItems}
                 </span>
-                <span className="hidden sm:inline">Cart</span>
                 <span className="tabular-nums">{cartSubtotal.toFixed(0)} EGP</span>
               </button>
-            ) : !location.pathname.startsWith('/menu') ? (
-              <Link
-                to={`/menu${tableParam}`}
-                className="hidden sm:inline-flex min-h-[40px] items-center px-4 py-2 rounded-full bg-[#FF0055] text-white text-xs font-bold hover:bg-[#e0004d] active:scale-95 transition-transform"
-              >
-                Dine-In Menu
-              </Link>
-            ) : null}
+            )}
 
-            {/* Mobile Menu Button (< 1024px) */}
+            {/* Mobile Menu Button (< 768px) */}
             <button
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden min-h-[40px] min-w-[40px] p-2 rounded-full border border-[#e5e7eb] bg-[#f9f9f9] text-[#262626] flex items-center justify-center cursor-pointer"
+              className="md:hidden min-h-[40px] min-w-[40px] p-2 rounded-full border border-[#e5e7eb] bg-[#f9f9f9] text-[#262626] flex items-center justify-center cursor-pointer"
               aria-label="Toggle navigation menu"
             >
               {mobileMenuOpen ? (
@@ -325,9 +336,9 @@ export const UnifiedNavbar: React.FC = () => {
           </div>
         </div>
 
-        {/* Mobile Slide-Down Drawer (< 1024px) */}
+        {/* Mobile Slide-Down Drawer (< 768px) */}
         {mobileMenuOpen && (
-          <div className="lg:hidden pb-4 pt-3 border-t border-[#e5e7eb] space-y-4">
+          <div className="md:hidden pb-4 pt-3 border-t border-[#e5e7eb] space-y-3">
             <div className="grid grid-cols-2 gap-2">
               {customerNav.map((item) => {
                 const isActive = item.pathMatch(location.pathname);
@@ -362,7 +373,7 @@ export const UnifiedNavbar: React.FC = () => {
                 }}
                 className="flex-1 min-h-[44px] px-4 py-2 rounded-full bg-[#f9f9f9] border border-[#e5e7eb] text-xs font-bold text-[#262626] text-center cursor-pointer"
               >
-                {userAccount ? `Profile: ${userAccount.fullName}` : 'Guest Sign In (10% Cashback)'}
+                {userAccount ? `Profile: ${userAccount.fullName}` : 'Guest Sign In'}
               </button>
               <Link
                 to="/kds"

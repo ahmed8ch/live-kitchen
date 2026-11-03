@@ -43,14 +43,14 @@ export const App: React.FC = () => {
         Skip to main content
       </a>
 
-      {/* Global Unified Navigation Bar across ALL screens */}
+      {/* Single Contextual Top Bar */}
       <UnifiedNavbar />
 
-      {/* Desktop Edge Dock System */}
-      {!isKds && !isCashier && <Sidebar />}
+      {/* Auto-Hiding Edge Dock (Consumer views only) */}
+      {!isKds && !isCashier && !isStand && <Sidebar />}
 
       {/* Main Content Viewport */}
-      <div className="flex-1 flex flex-col min-w-0 min-h-screen">
+      <div className="flex-1 flex flex-col min-w-0">
         <main id="main-content" className="flex-1 flex flex-col" tabIndex={-1}>
           <Routes>
             <Route path="/" element={<HomePage />} />
@@ -68,88 +68,37 @@ export const App: React.FC = () => {
           </Routes>
         </main>
 
-        {/* Global Master Footer (Consumer dining focused, 0 back-office leaks) */}
+        {/* Compact, Authentic Restaurant Footer (0 duplicate giant logos, 0 B2B pitch fluff) */}
         {!isKds && !isStand && !isCashier && (
-          <footer className="border-t border-[#e5e7eb] bg-[#f9f9f9] py-14 mt-auto select-none">
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 pb-8 border-b border-[#e5e7eb]">
-                {/* Generous, Prominent Logo Presence */}
-                <div className="space-y-2 max-w-xl">
-                  <FlameLinkLogo size="xl" />
-                  <p className="text-sm text-[#727272] leading-relaxed mt-2">
-                    Bring-Your-Own-Device (BYOD) self-ordering via table QR codes. Seated guests order, customize, and settle checks directly from their personal mobile phones—saving restaurants capital equipment leases and maintenance fees on tabletop tablet kiosks.
-                  </p>
-                </div>
+          <footer className="border-t border-[#e5e7eb] bg-[#f9f9f9] py-8 mt-auto select-none">
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 text-xs text-[#727272]">
+              <div className="flex flex-wrap items-center gap-3">
+                <FlameLinkLogo size="sm" showWordmark={false} />
+                <span className="font-bold text-[#262626]">Live Kitchen (لايف كيتشن)</span>
+                <span>·</span>
+                <span>Republic Street, next to El-Montazah Park</span>
+                <span>·</span>
+                <span>Daily 12:00 PM – 12:00 AM (Fri from 1:00 PM)</span>
               </div>
 
-              {/* Sitemap Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 text-sm">
-                <div className="space-y-3">
-                  <span className="font-bold text-[#262626] block">
-                    Dine In Experience
-                  </span>
-                  <ul className="space-y-2 text-[#727272]">
-                    <li><Link to="/menu" className="hover:text-[#FF0055] transition-colors">Digital Table Menu</Link></li>
-                    <li><Link to="/companion" className="hover:text-[#FF0055] transition-colors">Companion Table Order</Link></li>
-                    <li><Link to="/tracker" className="hover:text-[#FF0055] transition-colors">Live Order Status</Link></li>
-                    <li><Link to="/settlement" className="hover:text-[#FF0055] transition-colors">Table Self-Checkout</Link></li>
-                  </ul>
-                </div>
-
-                <div className="space-y-3">
-                  <span className="font-bold text-[#262626] block">
-                    Settlement &amp; Payments
-                  </span>
-                  <ul className="space-y-2 text-[#727272]">
-                    <li><Link to="/settlement" className="hover:text-[#FF0055] transition-colors">Itemized Check Split</Link></li>
-                    <li><span className="text-[#949494]">Apple Pay &amp; Meeza</span></li>
-                    <li><span className="text-[#949494]">Direct Cashier Verification</span></li>
-                    <li><span className="text-[#949494]">14% ETA VAT Compliance</span></li>
-                  </ul>
-                </div>
-
-                <div className="space-y-3">
-                  <span className="font-bold text-[#262626] block">
-                    Live Kitchen (لايف كيتشن)
-                  </span>
-                  <ul className="space-y-2 text-[#727272]">
-                    <li><span>Republic Street, adjacent to El-Montazah Park</span></li>
-                    <li><span>Sat - Thu: 12:00 PM - 12:00 AM</span></li>
-                    <li><span>Friday: 1:00 PM - 12:00 AM</span></li>
-                    <li><span>Tel: 0100 000 0000</span></li>
-                  </ul>
-                </div>
-              </div>
-
-              {/* Staff Access & Legal Bar */}
-              <div className="pt-8 border-t border-[#e5e7eb] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#949494]">
-                <div className="flex items-center gap-4">
-                  <span>FlameLink Dine-In OS &copy; 2026</span>
-                  <span>·</span>
-                  <span>Live Kitchen Dining</span>
-                  <span>·</span>
-                  <span>Direct BYOD Table Self-Ordering</span>
-                </div>
-                <div className="flex items-center gap-4">
-                  <span>Privacy Policy</span>
-                  <span>·</span>
-                  <span>Terms of Service</span>
-                  <span>·</span>
-                  <span>Food Allergy Notice</span>
-                </div>
+              <div className="flex flex-wrap items-center gap-4">
+                <Link to="/menu" className="hover:text-[#262626] transition-colors font-medium">Dine-In Menu</Link>
+                <Link to="/companion" className="hover:text-[#262626] transition-colors font-medium">Join Table Pool</Link>
+                <Link to="/tracker" className="hover:text-[#262626] transition-colors font-medium">Order Status</Link>
+                <Link to="/settlement" className="hover:text-[#262626] transition-colors font-medium">Table Bill</Link>
               </div>
             </div>
           </footer>
         )}
       </div>
 
-      {/* Floating Toast Notification strictly at Top-Right */}
+      {/* Floating Toast Notification */}
       <ToastContainer />
 
       {/* PIN-Protected Multiplayer Table Lobby Modal */}
       <TableLobbyModal />
 
-      {/* Dine-In Profile & Loyalty History Modal */}
+      {/* Guest Profile & Past Orders Modal */}
       <AccountModal />
     </div>
   );

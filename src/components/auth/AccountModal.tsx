@@ -75,7 +75,6 @@ export const AccountModal: React.FC = () => {
     updateDinerProfile({ dietaryTags: updatedTags });
   };
 
-  // Find past orders belonging to this account or all completed orders
   const pastOrders = userAccount
     ? orders.filter(
         (o) =>
@@ -92,26 +91,18 @@ export const AccountModal: React.FC = () => {
       aria-modal="true"
       aria-labelledby="account-modal-title"
     >
-      <div className="bg-white border border-[#e5e7eb] rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+      <div className="bg-white border border-[#e5e7eb] rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden">
         {/* Modal Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-[#e5e7eb] bg-[#f9f9f9]">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-[#FF0055]/10 flex items-center justify-center text-[#FF0055]">
-              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                <circle cx="12" cy="7" r="4" />
-              </svg>
-            </div>
-            <div>
-              <h2 id="account-modal-title" className="text-[15px] font-bold text-[#262626]">
-                {userAccount ? userAccount.fullName : 'Dine-In Guest Profile'}
-              </h2>
-              <p className="text-[11px] text-[#727272]">
-                {userAccount
-                  ? `${userAccount.phone} // 10% Loyalty Active`
-                  : 'Fast 1-touch sign-in & past order history'}
-              </p>
-            </div>
+          <div>
+            <h2 id="account-modal-title" className="text-[15px] font-bold text-[#262626]">
+              {userAccount ? userAccount.fullName : 'Guest Profile & Order History'}
+            </h2>
+            <p className="text-[12px] text-[#727272]">
+              {userAccount
+                ? `Phone: ${userAccount.phone}`
+                : 'Optional profile to save dietary preferences and past receipts'}
+            </p>
           </div>
 
           <button
@@ -138,7 +129,7 @@ export const AccountModal: React.FC = () => {
                     : 'border-transparent text-[#727272] hover:text-[#262626]'
                 }`}
               >
-                Profile & Loyalty
+                Dietary Preferences
               </button>
               <button
                 onClick={() => setAccountModalTab('history')}
@@ -171,7 +162,7 @@ export const AccountModal: React.FC = () => {
                     : 'border-transparent text-[#727272] hover:text-[#262626]'
                 }`}
               >
-                Create Account (+50 EGP)
+                Create Account
               </button>
               <button
                 onClick={() => setAccountModalTab('history')}
@@ -181,7 +172,7 @@ export const AccountModal: React.FC = () => {
                     : 'border-transparent text-[#727272] hover:text-[#262626]'
                 }`}
               >
-                Table History ({pastOrders.length})
+                Past Orders ({pastOrders.length})
               </button>
             </>
           )}
@@ -192,10 +183,9 @@ export const AccountModal: React.FC = () => {
           {/* TAB: SIGN IN */}
           {currentTab === 'signin' && (
             <form onSubmit={handleSignInSubmit} className="space-y-4">
-              <div className="p-3.5 bg-[#fff0f3] border border-[#ffd1dc] rounded-2xl text-[12px] text-[#262626]">
-                <span className="font-bold text-[#FF0055] block">Quick Seated Diner Access</span>
-                Sign in with your phone and 4-digit PIN to retrieve past favorites and earn 10% loyalty cashback.
-              </div>
+              <p className="text-[13px] text-[#727272] leading-relaxed">
+                Enter your mobile number and 4-digit PIN to load your saved dietary filters and past table orders.
+              </p>
 
               <div>
                 <label className="block text-[12px] font-medium text-[#262626] mb-1">
@@ -213,7 +203,7 @@ export const AccountModal: React.FC = () => {
 
               <div>
                 <label className="block text-[12px] font-medium text-[#262626] mb-1">
-                  4-Digit Security PIN
+                  4-Digit PIN
                 </label>
                 <input
                   type="password"
@@ -231,7 +221,7 @@ export const AccountModal: React.FC = () => {
                   type="submit"
                   className="w-full min-h-[44px] py-2.5 bg-[#FF0055] hover:bg-[#d90048] text-white rounded-full text-[13px] font-bold transition-colors shadow-xs flex items-center justify-center cursor-pointer"
                 >
-                  Sign In to Table Profile
+                  Sign In
                 </button>
 
                 {savedAccounts['01012345678'] && (
@@ -244,18 +234,18 @@ export const AccountModal: React.FC = () => {
                     }}
                     className="w-full min-h-[44px] py-2 bg-[#f9f9f9] hover:bg-[#e5e7eb] border border-[#e5e7eb] text-[#262626] rounded-full text-[12px] font-medium transition-colors flex items-center justify-center cursor-pointer"
                   >
-                    1-Click Demo: Ahmed Hassan (01012345678 / 1234)
+                    Demo Guest: Ahmed Hassan (01012345678)
                   </button>
                 )}
               </div>
 
-              <div className="text-center pt-2">
+              <div className="text-center pt-1">
                 <button
                   type="button"
                   onClick={() => setAccountModalTab('signup')}
                   className="min-h-[44px] inline-flex items-center text-[12px] text-[#727272] hover:text-[#FF0055] transition-colors cursor-pointer"
                 >
-                  First time dining here? Create an account for 50 EGP welcome bonus -&gt;
+                  New guest? Create a free profile -&gt;
                 </button>
               </div>
             </form>
@@ -264,10 +254,9 @@ export const AccountModal: React.FC = () => {
           {/* TAB: SIGN UP */}
           {currentTab === 'signup' && (
             <form onSubmit={handleSignUpSubmit} className="space-y-4">
-              <div className="p-3.5 bg-[#f0fdf4] border border-[#bbf7d0] rounded-2xl text-[12px] text-[#166534]">
-                <span className="font-bold block">50.00 EGP Welcome Bonus</span>
-                Create your Dine-In account in 20 seconds. Earn 10% cashback on all orders and re-order previous dishes with 1 touch.
-              </div>
+              <p className="text-[13px] text-[#727272] leading-relaxed">
+                Save your dietary preferences and keep your digital receipts in one place. Creating a guest profile is free and optional.
+              </p>
 
               <div>
                 <label className="block text-[12px] font-medium text-[#262626] mb-1">
@@ -300,7 +289,7 @@ export const AccountModal: React.FC = () => {
 
                 <div>
                   <label className="block text-[12px] font-medium text-[#262626] mb-1">
-                    4-Digit Fast PIN
+                    4-Digit PIN
                   </label>
                   <input
                     type="password"
@@ -329,7 +318,7 @@ export const AccountModal: React.FC = () => {
 
               <div>
                 <label className="block text-[12px] font-medium text-[#262626] mb-1.5">
-                  Dietary Preferences & Allergies
+                  Dietary Preferences &amp; Allergies
                 </label>
                 <div className="flex flex-wrap gap-1.5">
                   {DIETARY_OPTIONS.map((tag) => {
@@ -357,46 +346,33 @@ export const AccountModal: React.FC = () => {
                   type="submit"
                   className="w-full min-h-[44px] py-2.5 bg-[#FF0055] hover:bg-[#d90048] text-white rounded-full text-[13px] font-bold transition-colors shadow-xs flex items-center justify-center cursor-pointer"
                 >
-                  Create Account & Claim 50 EGP Bonus
-                </button>
-              </div>
-
-              <div className="text-center">
-                <button
-                  type="button"
-                  onClick={() => setAccountModalTab('signin')}
-                  className="min-h-[44px] inline-flex items-center text-[12px] text-[#727272] hover:text-[#FF0055] transition-colors cursor-pointer"
-                >
-                  Already have an account? Sign In -&gt;
+                  Save Guest Profile
                 </button>
               </div>
             </form>
           )}
 
-          {/* TAB: PROFILE & LOYALTY */}
+          {/* TAB: PROFILE & DIETARY PREFERENCES */}
           {currentTab === 'profile' && userAccount && (
             <div className="space-y-6">
-              {/* Loyalty Reward Card */}
-              {/* Loyalty Reward Card (100% Light Vellum Tokens) */}
-              <div className="bg-[#f9f9f9] border border-[#e5e7eb] text-[#262626] p-5 rounded-2xl relative overflow-hidden shadow-xs">
+              <div className="bg-[#f9f9f9] border border-[#e5e7eb] text-[#262626] p-5 rounded-2xl shadow-xs">
                 <div className="flex items-start justify-between">
                   <div>
                     <span className="text-[12px] text-[#727272] font-medium">
-                      Live Kitchen Loyalty Balance
+                      Registered Diner
                     </span>
-                    <div className="text-3xl font-mono-num font-bold text-[#262626] mt-1" data-ui-number>
-                      {userAccount.loyaltyPointsEgp.toFixed(2)}{' '}
-                      <span className="text-[14px] text-[#FF0055] font-normal">EGP</span>
+                    <div className="text-xl font-bold text-[#262626] mt-0.5">
+                      {userAccount.fullName}
                     </div>
                   </div>
-                  <div className="px-3 py-1 bg-[#fff0f3] border border-[#ffd1dc] rounded-full text-[11px] font-semibold text-[#FF0055]">
-                    10% Cashback Tier
-                  </div>
+                  <span className="px-3 py-1 bg-white border border-[#e5e7eb] rounded-full text-[11px] font-mono-num text-[#262626]">
+                    {userAccount.phone}
+                  </span>
                 </div>
 
                 <div className="mt-4 pt-3.5 border-t border-[#e5e7eb] flex items-center justify-between text-[12px] text-[#727272]">
-                  <span>Member ID: <span className="font-mono-num text-[#262626]">{userAccount.id}</span></span>
-                  <span className="font-mono-num text-[#262626]">{userAccount.phone}</span>
+                  <span>Past Table Visits: <strong className="font-mono-num text-[#262626]">{pastOrders.length}</strong></span>
+                  <span>Member Since {new Date(userAccount.createdAt).toLocaleDateString()}</span>
                 </div>
               </div>
 
@@ -404,9 +380,9 @@ export const AccountModal: React.FC = () => {
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-[12px] font-bold text-[#262626]">
-                    Dietary &amp; Allergy Notes
+                    Saved Dietary &amp; Allergy Filters
                   </span>
-                  <span className="text-[11px] text-[#727272]">Click to toggle</span>
+                  <span className="text-[11px] text-[#727272]">Tap to update</span>
                 </div>
                 <div className="flex flex-wrap gap-1.5">
                   {DIETARY_OPTIONS.map((tag) => {
@@ -430,27 +406,6 @@ export const AccountModal: React.FC = () => {
                       </button>
                     );
                   })}
-                </div>
-              </div>
-
-              {/* Account Quick Stats */}
-              <div className="grid grid-cols-2 gap-3 pt-2">
-                <div className="p-3 bg-[#f9f9f9] border border-[#e5e7eb] rounded-2xl">
-                  <span className="text-[10px] text-[#727272] block font-medium">
-                    Completed Visits
-                  </span>
-                  <span className="text-[16px] font-mono-num font-bold text-[#262626]">
-                    {pastOrders.length}
-                  </span>
-                </div>
-
-                <div className="p-3 bg-[#f9f9f9] border border-[#e5e7eb] rounded-2xl">
-                  <span className="text-[10px] text-[#727272] block font-medium">
-                    Member Since
-                  </span>
-                  <span className="text-[12px] text-[#262626] font-medium">
-                    {new Date(userAccount.createdAt).toLocaleDateString()}
-                  </span>
                 </div>
               </div>
 
@@ -478,17 +433,9 @@ export const AccountModal: React.FC = () => {
             <div className="space-y-4">
               {pastOrders.length === 0 ? (
                 <div className="text-center py-10 px-4 bg-[#f9f9f9] border border-[#e5e7eb] rounded-2xl">
-                  <div className="w-10 h-10 mx-auto rounded-full bg-[#e5e7eb] flex items-center justify-center text-[#727272] mb-3">
-                    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                      <polyline points="14 2 14 8 20 8" />
-                      <line x1="16" y1="13" x2="8" y2="13" />
-                      <line x1="16" y1="17" x2="8" y2="17" />
-                    </svg>
-                  </div>
-                  <h3 className="text-[14px] font-bold text-[#262626]">No Past Orders Found</h3>
+                  <h3 className="text-[14px] font-bold text-[#262626]">No Past Orders Yet</h3>
                   <p className="text-[12px] text-[#727272] max-w-xs mx-auto mt-1">
-                    Orders settled at your table will appear here for fast 1-touch re-ordering and receipts.
+                    Orders settled at your table will appear here for 1-touch re-ordering and receipt lookup.
                   </p>
                 </div>
               ) : (
@@ -499,16 +446,11 @@ export const AccountModal: React.FC = () => {
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <span className="px-2 py-0.5 bg-[#f9f9f9] border border-[#e5e7eb] rounded-lg font-mono-num text-[11px] font-bold text-[#262626]">
+                        <span className="px-2 py-0.5 bg-[#f9f9f9] border border-[#e5e7eb] rounded-lg font-mono-num text-[12px] font-bold text-[#262626]">
                           {order.id}
                         </span>
-                        {order.cashierChitCode && (
-                          <span className="text-[11px] text-[#727272]">
-                            Chit #<span className="font-mono-num">{order.cashierChitCode}</span>
-                          </span>
-                        )}
                         {order.tableNumber && (
-                          <span className="text-[11px] text-[#727272]">
+                          <span className="text-[12px] text-[#727272]">
                             Table {order.tableNumber}
                           </span>
                         )}
@@ -519,7 +461,6 @@ export const AccountModal: React.FC = () => {
                       </span>
                     </div>
 
-                    {/* Dish list */}
                     <div className="space-y-1.5 pt-1">
                       {order.items.map((item, idx) => (
                         <div
@@ -531,11 +472,6 @@ export const AccountModal: React.FC = () => {
                               {item.quantity}x
                             </span>
                             <span>{item.menuItem.name}</span>
-                            {item.selectedModifiers.length > 0 && (
-                              <span className="text-[11px] text-[#727272]">
-                                ({item.selectedModifiers.map((m) => m.name).join(', ')})
-                              </span>
-                            )}
                           </div>
 
                           <button
@@ -549,14 +485,9 @@ export const AccountModal: React.FC = () => {
                       ))}
                     </div>
 
-                    {/* Bottom Re-Order Bar */}
                     <div className="pt-2 border-t border-[#e5e7eb] flex items-center justify-between">
                       <span className="text-[11px] text-[#727272]">
-                        {new Date(order.createdAt).toLocaleDateString()} at{' '}
-                        {new Date(order.createdAt).toLocaleTimeString([], {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
+                        {new Date(order.createdAt).toLocaleDateString()}
                       </span>
 
                       <button
@@ -564,7 +495,7 @@ export const AccountModal: React.FC = () => {
                         onClick={() => reorderPastOrder(order.id)}
                         className="px-4 py-2 min-h-[44px] bg-[#FF0055] hover:bg-[#d90048] text-white rounded-full text-[11px] font-bold transition-colors shadow-xs inline-flex items-center cursor-pointer"
                       >
-                        Re-order Entire Meal ({order.items.length} items)
+                        Re-order Meal ({order.items.length} items)
                       </button>
                     </div>
                   </div>

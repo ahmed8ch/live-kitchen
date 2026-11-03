@@ -100,9 +100,6 @@ export const MenuPage: React.FC = () => {
                   </div>
                   <div className="text-xs font-bold text-[#262626] flex items-center gap-1">
                     <span>{userAccount.fullName}</span>
-                    <span className="text-[#FF0055] text-xs font-medium">
-                      (<span className="font-mono-num">{userAccount.loyaltyPointsEgp.toFixed(0)}</span> EGP)
-                    </span>
                   </div>
                 </div>
               </button>

@@ -219,20 +219,9 @@ export const HomePage: React.FC = () => {
                         ))}
                       </div>
 
-                      <div className="pt-3 border-t border-[#e5e7eb] flex flex-col sm:flex-row gap-2">
-                        <button
-                          type="button"
-                          onClick={() => openPinModal('T-04')}
-                          className="flex-1 min-h-[44px] py-2.5 px-4 rounded-full bg-[#f9f9f9] hover:bg-[#f0f0f0] border border-[#e5e7eb] text-xs font-bold text-[#262626] cursor-pointer transition-colors"
-                        >
-                          Join Table with 4-Digit PIN
-                        </button>
-                        <Link
-                          to="/menu"
-                          className="flex-1 min-h-[44px] py-2.5 px-4 rounded-full bg-[#262626] hover:bg-black text-white text-xs font-bold inline-flex items-center justify-center transition-colors"
-                        >
-                          View Menu First -&gt;
-                        </Link>
+                      <div className="pt-3 border-t border-[#e5e7eb] flex items-center justify-between text-xs text-[#727272]">
+                        <span>8 Dining Tables Available</span>
+                        <span className="font-medium text-[#262626]">Tap any table to check in</span>
                       </div>
                     </>
                   )}

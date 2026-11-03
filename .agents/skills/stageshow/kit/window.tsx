@@ -264,7 +264,7 @@ export function Prompt({ path = '~', children, className, ...rest }: PromptProps
   return (
     <div {...rest} className={`ss-term__line ss-term__prompt${className ? ` ${className}` : ''}`}>
       <span className="ss-term__path">{path}</span>
-      <span className="ss-term__sigil">&gt;</span>
+      <span className="ss-term__sigil">❯</span>
       <span className="ss-term__cmd">{children}</span>
     </div>
   )

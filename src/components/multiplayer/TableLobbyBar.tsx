@@ -2,8 +2,6 @@ import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAppStore } from '../../store/useAppStore';
 
-const QUICK_TABLES = ['T-01', 'T-02', 'T-04', 'T-06', 'T-08', 'T-12'];
-
 export const TableLobbyBar: React.FC = () => {
   const activeTable = useAppStore((state) => state.activeTable);
   const activeTablePin = useAppStore((state) => state.activeTablePin);
@@ -11,7 +9,6 @@ export const TableLobbyBar: React.FC = () => {
   const companionMember = useAppStore((state) => state.companionMember);
   const tableSessions = useAppStore((state) => state.tableSessions);
   const setActiveTable = useAppStore((state) => state.setActiveTable);
-  const openPinModal = useAppStore((state) => state.openPinModal);
   const setMemberReadyToPay = useAppStore((state) => state.setMemberReadyToPay);
   const removeMemberFromTable = useAppStore((state) => state.removeMemberFromTable);
   const resetTableSession = useAppStore((state) => state.resetTableSession);
@@ -22,36 +19,7 @@ export const TableLobbyBar: React.FC = () => {
   const location = useLocation();
 
   if (!activeTable) {
-    return (
-      <div className="w-full bg-[#f9f9f9] border-b border-[#e5e7eb] px-4 py-2.5">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-[13px]">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-[#262626] font-semibold text-xs">
-              Select Your Seated Table:
-            </span>
-            <div className="flex items-center gap-1.5 flex-wrap">
-              {QUICK_TABLES.map((tbl) => (
-                <button
-                  key={tbl}
-                  type="button"
-                  onClick={() => setActiveTable(tbl)}
-                  className="min-h-[36px] px-3 py-1 rounded-full bg-white hover:border-[#FF0055] border border-[#e5e7eb] text-[#262626] font-mono-num font-bold text-xs transition-colors cursor-pointer"
-                >
-                  {tbl}
-                </button>
-              ))}
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={() => openPinModal('T-04')}
-            className="px-4 py-2 min-h-[44px] rounded-full bg-white hover:bg-[#f0f0f0] border border-[#e5e7eb] text-[#262626] font-medium text-[12px] transition-colors cursor-pointer shadow-xs inline-flex items-center shrink-0"
-          >
-            Join Friend&apos;s Table with PIN
-          </button>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   const isCompanionView =

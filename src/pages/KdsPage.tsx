@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import { useAppStore } from '../store/useAppStore';
 import { OrderStatus, OrderTicket } from '../types/domain';
 import { WorkstationBarrier } from '../components/layout/WorkstationBarrier';
@@ -152,49 +151,13 @@ export const KdsPage: React.FC = () => {
         className="min-h-screen bg-white blueprint-dots text-[#262626] flex flex-col font-sans select-none overflow-x-hidden pb-16"
         data-ui-container="kds-screen"
       >
-      {/* High-Contrast Kitchen Top Header */}
-      <header className="h-16 px-6 sm:px-8 bg-white border-b border-[#e5e7eb] flex items-center justify-between shrink-0 z-20">
-        <div className="flex items-center gap-6">
-          <Link to="/" className="inline-flex items-center gap-2.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#FF0055]" />
-            <span className="text-[18px] font-bold tracking-tight text-[#262626]">
-              Flame<span className="text-[#FF0055]">Link</span> <span className="text-[#727272] text-[13px] uppercase font-semibold tracking-wider ml-1">KDS PASS</span>
-            </span>
-          </Link>
-
-          <span className="hidden sm:inline text-[13px] text-[#727272]">
-            Kitchen Expeditor Pass // Station 01
-          </span>
-        </div>
-
-        {/* Action Controls & Test Order Trigger */}
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => addSampleOrder()}
-            data-ui-radius="999"
-            className="px-4 py-1.5 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[12px] font-medium transition-all shadow-xs cursor-pointer btn-crimson-glow-sm active:scale-95"
-            title="Inject a realistic incoming order ticket"
-          >
-            + Fire Verified Test Chit
-          </button>
-
-          <Link
-            to="/cashier"
-            data-ui-radius="999"
-            className="px-4 py-1.5 rounded-full bg-[#f9f9f9] hover:bg-[#e5e7eb] text-[#262626] border border-[#e5e7eb] text-[12px] font-medium transition-all cursor-pointer"
-          >
-            Cashier Station -&gt;
-          </Link>
-        </div>
-      </header>
-
-      {/* Real-Time Kitchen Metric Counters Bar */}
+      {/* Real-Time Kitchen Metric Counters & Station Filters Bar (No duplicate header) */}
       <section className="px-6 sm:px-8 py-3.5 bg-[#f9f9f9] border-b border-[#e5e7eb] flex flex-wrap items-center justify-between gap-4 text-[13px]">
         {/* Stage Filter Pills */}
         <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
           <button
             onClick={() => setStatusFilter('active')}
-            className={`px-3.5 py-1 rounded-full text-[12px] transition-all cursor-pointer ${
+            className={`px-3.5 py-1 rounded-full text-[12px] transition-colors cursor-pointer ${
               statusFilter === 'active'
                 ? 'bg-[#262626] text-white font-semibold'
                 : 'bg-white text-[#727272] border border-[#e5e7eb] hover:text-[#262626]'
@@ -205,7 +168,7 @@ export const KdsPage: React.FC = () => {
 
           <button
             onClick={() => setStatusFilter('received')}
-            className={`px-3.5 py-1 rounded-full text-[12px] transition-all cursor-pointer ${
+            className={`px-3.5 py-1 rounded-full text-[12px] transition-colors cursor-pointer ${
               statusFilter === 'received'
                 ? 'bg-[#0284c7] text-white font-semibold shadow-xs'
                 : 'bg-white text-[#727272] border border-[#e5e7eb] hover:text-[#262626]'
@@ -216,7 +179,7 @@ export const KdsPage: React.FC = () => {
 
           <button
             onClick={() => setStatusFilter('cooking')}
-            className={`px-3.5 py-1 rounded-full text-[12px] transition-all cursor-pointer ${
+            className={`px-3.5 py-1 rounded-full text-[12px] transition-colors cursor-pointer ${
               statusFilter === 'cooking'
                 ? 'bg-[#d97706] text-white font-semibold'
                 : 'bg-white text-[#727272] border border-[#e5e7eb] hover:text-[#262626]'
@@ -227,7 +190,7 @@ export const KdsPage: React.FC = () => {
 
           <button
             onClick={() => setStatusFilter('ready')}
-            className={`px-3.5 py-1 rounded-full text-[12px] transition-all cursor-pointer ${
+            className={`px-3.5 py-1 rounded-full text-[12px] transition-colors cursor-pointer ${
               statusFilter === 'ready'
                 ? 'bg-[#15803d] text-white font-semibold'
                 : 'bg-white text-[#727272] border border-[#e5e7eb] hover:text-[#262626]'
@@ -238,7 +201,7 @@ export const KdsPage: React.FC = () => {
 
           <button
             onClick={() => setStatusFilter('served')}
-            className={`px-3.5 py-1 rounded-full text-[12px] transition-all cursor-pointer ${
+            className={`px-3.5 py-1 rounded-full text-[12px] transition-colors cursor-pointer ${
               statusFilter === 'served'
                 ? 'bg-[#64748b] text-white font-semibold'
                 : 'bg-white text-[#727272] border border-[#e5e7eb] hover:text-[#262626]'
@@ -254,7 +217,7 @@ export const KdsPage: React.FC = () => {
             <button
               key={st}
               onClick={() => setStationFilter(st)}
-              className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-all cursor-pointer shrink-0 ${
+              className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors cursor-pointer shrink-0 ${
                 stationFilter === st
                   ? 'bg-[#FF0055] text-white font-bold shadow-xs'
                   : 'bg-white text-[#727272] border border-[#e5e7eb] hover:text-[#262626]'
@@ -265,16 +228,18 @@ export const KdsPage: React.FC = () => {
           ))}
         </div>
 
-        {/* Live Clock & Queue Stack Indicator */}
-        <div className="flex items-center gap-4 text-[#727272]">
-          {filteredOrders.length > 4 && (
-            <span className="px-2.5 py-0.5 rounded-full bg-[#fff0f3] text-[#FF0055] border border-[#ffd1dc] font-semibold text-[11px]">
-              +{filteredOrders.length - 4} in queue
-            </span>
-          )}
+        {/* Live Clock & Test Order Trigger */}
+        <div className="flex items-center gap-3 text-[#727272]">
+          <button
+            onClick={() => addSampleOrder()}
+            data-ui-radius="999"
+            className="px-3.5 py-1 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[12px] font-medium transition-colors shadow-xs cursor-pointer"
+          >
+            + Test Chit
+          </button>
 
-          <div className="flex items-center gap-2">
-            <span>STATION CLOCK:</span>
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs">Clock:</span>
             <span className="text-[#262626] font-mono-num font-medium" data-ui-number>
               {new Date(currentTime).toLocaleTimeString()}
             </span>

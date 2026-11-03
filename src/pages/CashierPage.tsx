@@ -1,8 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { Link } from 'react-router-dom';
 import { useAppStore } from '../store/useAppStore';
 import { PaymentMethod } from '../types/domain';
-import { FlameLinkLogo } from '../components/ui/FlameLinkLogo';
 import { WorkstationBarrier } from '../components/layout/WorkstationBarrier';
 
 const RESTAURANT_TABLES = ['T-01', 'T-02', 'T-03', 'T-04', 'T-05', 'T-06', 'T-08', 'T-12'];
@@ -191,41 +189,27 @@ export const CashierPage: React.FC = () => {
       description="The FlameLink Cashier POS is a front-counter financial register terminal engineered strictly for desktop workstations and commercial touch cash registers (minimum 1024px horizontal resolution). Mobile phone access is locked to prevent unauthorized drawer and settlement operations."
     >
       <div className="flex-1 w-full bg-[#f9f9f9] min-h-screen pb-24" data-ui-container="cashier-station">
-      {/* Station Top Bar */}
-      <header className="bg-white border-b border-[#e5e7eb] px-4 sm:px-8 py-4 sticky top-0 z-30 shadow-xs">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <FlameLinkLogo size="md" />
-            <div className="h-5 w-[1px] bg-[#e5e7eb] hidden sm:block" />
-            <div>
-              <div className="text-[14px] font-bold text-[#262626]">
-                Cashier Station // Live POS Terminal
-              </div>
-              <div className="text-[12px] text-[#727272]">
-                Front Register Verification Gate • Live Kitchen (لايف كيتشن)
-              </div>
-            </div>
+      <main className="max-w-7xl mx-auto px-4 sm:px-8 py-8 space-y-6">
+        {/* Station Title & Daily Total Strip (No duplicate header or logo) */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-xl font-bold text-[#262626] tracking-tight">
+              Cashier Station &amp; Register
+            </h1>
+            <p className="text-xs text-[#727272] mt-0.5">
+              Front register payment verification and table floor plan · Live Kitchen (لايف كيتشن)
+            </p>
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="text-right px-3.5 py-1.5 bg-[#f9f9f9] border border-[#e5e7eb] rounded-2xl">
-              <span className="text-[10px] uppercase text-[#727272] block font-medium">Verified Today</span>
-              <span className="text-[15px] font-mono-num font-bold text-[#262626]">
+            <div className="px-4 py-2 bg-white border border-[#e5e7eb] rounded-2xl flex items-center gap-3 shadow-xs">
+              <span className="text-xs text-[#727272] font-medium">Verified Today:</span>
+              <span className="text-sm font-mono-num font-bold text-[#262626]">
                 {totalCollectedToday.toFixed(2)} EGP
               </span>
             </div>
-
-            <Link
-              to="/kds"
-              className="px-4 py-2 rounded-full bg-[#262626] hover:bg-black text-white text-[12px] font-medium transition-colors shadow-xs"
-            >
-              Open Kitchen Pass -&gt;
-            </Link>
           </div>
         </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto px-4 sm:px-8 py-8 space-y-8">
         {/* KPI Telemetry Cards */}
         <section className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="bg-white p-5 rounded-2xl border border-[#e5e7eb] shadow-xs">
