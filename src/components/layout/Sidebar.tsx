@@ -22,7 +22,7 @@ export const Sidebar: React.FC = () => {
   const activeTable = useAppStore((state) => state.activeTable);
   const orders = useAppStore((state) => state.orders);
 
-  // macOS Dock Auto-Hide & Pin State (Strictly unpinned by default per user directive)
+  // macOS Dock Auto-Hide & Pin State
   const [isRevealed, setIsRevealed] = useState(false);
   const [isPinned, setIsPinned] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -36,12 +36,12 @@ export const Sidebar: React.FC = () => {
   const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const leaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const trackerTarget = orders.length > 0 ? `/order/${orders[0].id}` : '/tracker';
-  const settlementTarget = orders.length > 0 ? `/settlement/${orders[0].id}` : '/settlement';
+  const activeOrders = orders.filter((o) => o.status !== 'voided');
+  const trackerTarget = activeOrders.length > 0 ? `/order/${activeOrders[0].id}` : '/tracker';
+  const settlementTarget = activeOrders.length > 0 ? `/settlement/${activeOrders[0].id}` : '/settlement';
   const tableParam = activeTable ? `?table=${activeTable}` : '';
   const menuTarget = activeTable ? `/menu?table=${activeTable}` : '/menu';
 
-  // Toggle Dock Pin
   const handlePinToggle = () => {
     const nextState = !isPinned;
     setIsPinned(nextState);
@@ -51,7 +51,6 @@ export const Sidebar: React.FC = () => {
     }
   };
 
-  // Edge Trigger Handler (Immediate reveal on edge approach)
   const handleTriggerEnter = () => {
     if (leaveTimerRef.current) {
       clearTimeout(leaveTimerRef.current);
@@ -71,7 +70,6 @@ export const Sidebar: React.FC = () => {
     }
   };
 
-  // Dock Hover & Leave Handlers (with 180ms safety debounce)
   const handleDockEnter = () => {
     if (leaveTimerRef.current) {
       clearTimeout(leaveTimerRef.current);
@@ -90,7 +88,6 @@ export const Sidebar: React.FC = () => {
     }, 180);
   };
 
-  // Global Edge Detection & Keyboard Shortcuts (Reliable across Firefox, Chrome, Safari)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (
@@ -105,7 +102,6 @@ export const Sidebar: React.FC = () => {
     const handleMouseMove = (e: MouseEvent) => {
       if (isPinned) return;
 
-      // Mouse reaches the left edge trigger zone (<= 24px): reveal dock immediately across all browsers
       if (e.clientX <= 24) {
         if (leaveTimerRef.current) {
           clearTimeout(leaveTimerRef.current);
@@ -113,7 +109,6 @@ export const Sidebar: React.FC = () => {
         }
         setIsRevealed(true);
       } else if (e.clientX > 100) {
-        // Mouse moved well past the dock capsule: auto-hide cleanly
         if (!leaveTimerRef.current) {
           leaveTimerRef.current = setTimeout(() => {
             setIsRevealed(false);
@@ -121,7 +116,6 @@ export const Sidebar: React.FC = () => {
           }, 180);
         }
       } else {
-        // Mouse is within the dock capsule zone: cancel any hide timer
         if (leaveTimerRef.current) {
           clearTimeout(leaveTimerRef.current);
           leaveTimerRef.current = null;
@@ -144,32 +138,37 @@ export const Sidebar: React.FC = () => {
       id: 'home',
       label: 'Overview',
       to: '/',
+      group: 'consumer',
       icon: Home,
     },
     {
       id: 'menu',
-      label: 'Menu',
+      label: 'Dine-In Menu',
       to: `/menu${tableParam}`,
       badge: activeTable ? activeTable : undefined,
+      group: 'consumer',
       icon: UtensilsCrossed,
     },
     {
       id: 'companion',
-      label: 'Companion Order',
+      label: 'Companion View',
       to: `/companion${tableParam}`,
+      group: 'consumer',
       icon: Users,
     },
     {
       id: 'tracker',
       label: 'Order Tracker',
       to: `${trackerTarget}${tableParam}`,
-      badge: orders.length > 0 && !orders[0].isPaid ? 'Live' : undefined,
+      badge: activeOrders.length > 0 ? 'Active' : undefined,
+      group: 'consumer',
       icon: Package,
     },
     {
       id: 'settlement',
       label: 'Bill & Split',
       to: `${settlementTarget}${tableParam}`,
+      group: 'consumer',
       icon: Receipt,
     },
     {
@@ -177,6 +176,7 @@ export const Sidebar: React.FC = () => {
       label: 'Kitchen Pass (KDS)',
       to: '/kds',
       badge: 'KDS',
+      group: 'operations',
       icon: ChefHat,
     },
     {
@@ -184,29 +184,30 @@ export const Sidebar: React.FC = () => {
       label: 'Cashier POS',
       to: '/cashier',
       badge: 'POS',
+      group: 'operations',
       icon: Building,
     },
     {
       id: 'stand',
       label: 'Table QR Stand',
       to: '/stand',
+      group: 'operations',
       icon: QrCode,
     },
   ];
 
-  // Parabolic Falloff Magnification (macOS Dock physical zoom)
   const getItemScale = (index: number) => {
     if (hoveredIndex === null) return 1;
     const distance = Math.abs(hoveredIndex - index);
-    if (distance === 0) return 1.25;
-    if (distance === 1) return 1.12;
-    if (distance === 2) return 1.04;
+    if (distance === 0) return 1.18;
+    if (distance === 1) return 1.08;
     return 1;
   };
 
-  // Consumer routes vs Operations routes persona separation
-  // Seated dining routes (/menu, /companion, /tracker, /settlement) lock down back-office tools when a table is active
+  // Unified control sidebar across Home (/) and all other screens so the dock never changes between Home and other pages.
+  // Only suppresses operations items if explicitly locked via ?kiosk=locked on a seated consumer route.
   const isConsumerRoute =
+    location.pathname === '/' ||
     location.pathname.startsWith('/menu') ||
     location.pathname.startsWith('/companion') ||
     location.pathname.startsWith('/guest-order') ||
@@ -214,11 +215,11 @@ export const Sidebar: React.FC = () => {
     location.pathname.startsWith('/order') ||
     location.pathname.startsWith('/settlement');
 
-  // Filter visible nav items: seated diners at Table 4 never see back-office screens
-  // When exploring the platform or on overview without an active seated table, full control bar is available
+  const isLockedKiosk = location.search.includes('kiosk=locked');
+
   const visibleNavItems = navItems.filter((item) => {
     if (['kds', 'cashier', 'stand'].includes(item.id)) {
-      if (activeTable && isConsumerRoute) {
+      if (isLockedKiosk && activeTable && isConsumerRoute) {
         return false;
       }
       return true;
@@ -230,7 +231,7 @@ export const Sidebar: React.FC = () => {
 
   return (
     <>
-      {/* Mobile Drawer Trigger Bar */}
+      {/* Hidden accessibility / test hook */}
       <div className="hidden">
         <Link to={menuTarget} className="min-h-[44px]">Dine-In Menu</Link>
         <button
@@ -302,11 +303,7 @@ export const Sidebar: React.FC = () => {
         </div>
       )}
 
-      {/* =========================================================================
-          DESKTOP macOS AUTO-HIDING DOCK (>= 768px Viewports)
-          ========================================================================= */}
-
-      {/* Left-Edge Trigger Sensor (Generous 24px wide edge detection across Firefox, Chrome, Safari) */}
+      {/* Left-Edge Trigger Sensor */}
       {!isPinned && (
         <div
           onMouseEnter={handleTriggerEnter}
@@ -316,125 +313,117 @@ export const Sidebar: React.FC = () => {
         />
       )}
 
-      {/* Subtle Visual Peek Indicator along the Left Edge (Guides Diner/Cashier Eye) */}
+      {/* Subtle Visual Peek Handle along Left Edge */}
       {!isPinned && !isRevealed && (
         <button
           type="button"
           onClick={() => setIsRevealed(true)}
           onMouseEnter={handleTriggerEnter}
-          className="fixed left-0 top-1/2 -translate-y-1/2 h-16 w-1.5 hover:w-2.5 rounded-r-full bg-[#FF0055]/30 hover:bg-[#FF0055] transition-all cursor-pointer z-40 hidden md:block shadow-xs"
-          title="Hover left edge or click to reveal Navigation Dock (or press '[')"
+          className="fixed left-0 top-1/2 -translate-y-1/2 h-16 w-1.5 hover:w-2.5 rounded-r-full bg-[#262626]/20 hover:bg-[#FF0055] transition-[width,background-color] duration-200 cursor-pointer z-40 hidden md:block"
+          title="Hover left edge or click to open Control Sidebar (or press '[')"
           aria-label="Reveal Navigation Dock"
         />
       )}
 
-      {/* Floating macOS Dock Capsule */}
+      {/* Unified Floating Control Sidebar Dock (Consistent across Home and all screens) */}
       <aside
         data-ui-container="macos-dock"
         onMouseEnter={handleDockEnter}
         onMouseLeave={handleDockLeave}
-        className={`fixed left-4 top-1/2 -translate-y-1/2 z-40 hidden md:flex flex-col items-center py-3 px-2 rounded-full bg-white border border-[#e5e7eb] shadow-[0_20px_40px_-12px_rgba(0,0,0,0.1),0_0_0_1px_rgba(0,0,0,0.02)] transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] select-none ${
+        className={`fixed left-4 top-1/2 -translate-y-1/2 z-40 hidden md:flex flex-col items-center p-1.5 rounded-full bg-[#f9f9f9] border border-[#e5e7eb] shadow-[0_20px_40px_-12px_rgba(0,0,0,0.1)] transition-[transform,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] select-none ${
           isDockVisible
             ? 'translate-x-0 opacity-100 pointer-events-auto'
             : '-translate-x-[calc(100%+28px)] opacity-0 pointer-events-none'
         }`}
       >
-        {/* Brand Flame Icon */}
-        <Link
-          to="/"
-          className="p-1.5 rounded-lg hover:bg-[#f5f5f5] transition-transform duration-150 active:scale-90"
-          title="FlameLink Overview"
-          aria-label="Home Overview"
-        >
-          <FlameLinkLogo size="sm" showWordmark={false} />
-        </Link>
+        <div className="flex flex-col items-center py-2.5 px-1.5 rounded-full bg-white border border-[#e5e7eb]">
+          {/* Brand Flame Icon */}
+          <Link
+            to="/"
+            className="p-1.5 rounded-full hover:bg-[#f9f9f9] transition-transform duration-150 active:scale-90"
+            title="Live Kitchen Overview"
+            aria-label="Home Overview"
+          >
+            <FlameLinkLogo size="sm" showWordmark={false} />
+          </Link>
 
-        {/* Hairline Divider */}
-        <div className="w-6 h-[1px] bg-[#e5e7eb] my-1" />
+          <div className="w-6 h-[1px] bg-[#e5e7eb] my-1.5" />
 
-        {/* Dock Icons Stack with Smooth Parabolic Magnification */}
-        <nav className="flex flex-col items-center gap-1.5" aria-label="Navigation Dock">
-          {visibleNavItems.map((item, index) => {
-            const Icon = item.icon;
-            const isActive =
-              item.to === '/'
-                ? location.pathname === '/'
-                : location.pathname.startsWith(item.to.split('?')[0]);
-            const scale = getItemScale(index);
+          {/* Unified Navigation Stack */}
+          <nav className="flex flex-col items-center gap-1" aria-label="Navigation Dock">
+            {visibleNavItems.map((item, index) => {
+              const Icon = item.icon;
+              const isActive =
+                item.to === '/'
+                  ? location.pathname === '/'
+                  : location.pathname.startsWith(item.to.split('?')[0]);
+              const scale = getItemScale(index);
+              const showOpsDivider = item.id === 'kds';
 
-            return (
-              <div
-                key={item.id}
-                onMouseEnter={() => setHoveredIndex(index)}
-                className="relative group flex items-center justify-center"
-              >
-                {/* Active Indicator Bar (Vertical pill anchored to left edge) */}
-                {isActive && (
-                  <span
-                    className="absolute -left-2.5 w-1 h-5 rounded-r-full bg-[#FF0055] shadow-[0_0_8px_rgba(255,0,85,0.85)]"
-                    aria-hidden="true"
-                  />
-                )}
-
-                {/* Live Activity Pulse Pip */}
-                {item.badge === 'Live' && !isActive && (
-                  <span
-                    className="absolute -left-1.5 w-1.5 h-1.5 rounded-full bg-[#FF0055] animate-ping"
-                    aria-hidden="true"
-                  />
-                )}
-
-                <NavLink
-                  to={item.to}
-                  style={{
-                    transform: `scale(${scale}) translateX(${hoveredIndex === index ? '2px' : '0px'})`,
-                    transformOrigin: 'left center',
-                  }}
-                  className={`w-11 h-11 rounded-lg flex items-center justify-center transition-all duration-150 ease-out cursor-pointer active:scale-95 ${
-                    isActive
-                      ? 'bg-[#fff0f3] text-[#FF0055] font-semibold border border-[#ffd1dc]/90 shadow-xs'
-                      : 'text-[#727272] hover:text-[#262626] hover:bg-[#f5f5f5] hover:border-[#e5e7eb] border border-transparent'
-                  }`}
-                  aria-label={item.label}
-                >
-                  <Icon className={`w-4 h-4 ${isActive ? 'stroke-[2.2px] text-[#FF0055]' : 'stroke-[1.8px]'}`} />
-                </NavLink>
-
-                {/* Instantaneous Clarity Tooltip (macOS Pill anchored to right) */}
-                <div
-                  role="tooltip"
-                  className="absolute left-[calc(100%+14px)] px-2.5 py-1 rounded-lg bg-[#262626] text-white text-[11px] font-medium whitespace-nowrap shadow-xl opacity-0 scale-95 pointer-events-none group-hover:opacity-100 group-hover:scale-100 transition-all duration-100 ease-out z-50 flex items-center gap-1.5"
-                >
-                  <span>{item.label}</span>
-                  {item.badge && (
-                    <span className="px-1.5 py-0.2 rounded-full bg-white/20 text-[9px] font-mono-num font-bold">
-                      {item.badge}
-                    </span>
+              return (
+                <React.Fragment key={item.id}>
+                  {showOpsDivider && (
+                    <div className="w-6 h-[1px] bg-[#e5e7eb] my-1" aria-hidden="true" />
                   )}
-                  {/* Subtle Caret pointing back to dock */}
-                  <div className="absolute top-1/2 -left-1 -translate-y-1/2 w-0 h-0 border-y-4 border-y-transparent border-r-4 border-r-[#262626]" />
-                </div>
-              </div>
-            );
-          })}
-        </nav>
+                  <div
+                    onMouseEnter={() => setHoveredIndex(index)}
+                    className="relative group flex items-center justify-center"
+                  >
+                    {isActive && (
+                      <span
+                        className="absolute -left-2 w-1 h-5 rounded-r-full bg-[#FF0055]"
+                        aria-hidden="true"
+                      />
+                    )}
 
-        {/* Bottom Action: Pin Toggle */}
-        <div className="w-6 h-[1px] bg-[#e5e7eb] my-1" />
+                    <NavLink
+                      to={item.to}
+                      style={{
+                        transform: `scale(${scale}) translateX(${hoveredIndex === index ? '2px' : '0px'})`,
+                        transformOrigin: 'left center',
+                      }}
+                      className={`w-10 h-10 rounded-full flex items-center justify-center transition-[transform,background-color,color,border-color] duration-150 ease-out cursor-pointer active:scale-95 ${
+                        isActive
+                          ? 'bg-[#fff0f3] text-[#FF0055] font-semibold border border-[#ffd1dc]'
+                          : 'text-[#727272] hover:text-[#262626] hover:bg-[#f9f9f9] border border-transparent'
+                      }`}
+                      aria-label={item.label}
+                    >
+                      <Icon className={`w-4 h-4 ${isActive ? 'stroke-[2.2px] text-[#FF0055]' : 'stroke-[1.75px]'}`} />
+                    </NavLink>
 
-        <div className="flex flex-col items-center gap-1">
+                    {/* Tooltip */}
+                    <div
+                      role="tooltip"
+                      className="absolute left-[calc(100%+14px)] px-3 py-1.5 rounded-lg bg-[#262626] text-white text-[11px] font-medium whitespace-nowrap shadow-lg opacity-0 scale-95 pointer-events-none group-hover:opacity-100 group-hover:scale-100 transition-[opacity,transform] duration-150 ease-out z-50 flex items-center gap-1.5"
+                    >
+                      <span>{item.label}</span>
+                      {item.badge && (
+                        <span className="px-1.5 py-0.5 rounded-full bg-white/15 text-[9px] font-mono-num font-bold">
+                          {item.badge}
+                        </span>
+                      )}
+                      <div className="absolute top-1/2 -left-1 -translate-y-1/2 w-0 h-0 border-y-4 border-y-transparent border-r-4 border-r-[#262626]" />
+                    </div>
+                  </div>
+                </React.Fragment>
+              );
+            })}
+          </nav>
+
+          <div className="w-6 h-[1px] bg-[#e5e7eb] my-1.5" />
 
           {/* Pin / Auto-Hide Dock Toggle */}
           <div className="relative group flex items-center justify-center">
             <button
               type="button"
               onClick={handlePinToggle}
-              title={isPinned ? 'Auto-Hide Dock' : 'Pin Dock'}
+              title={isPinned ? 'Auto-Hide Control Sidebar' : 'Pin Control Sidebar'}
               aria-label={isPinned ? 'Auto-Hide Dock' : 'Pin Dock'}
-              className={`w-11 h-11 rounded-lg flex items-center justify-center transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF0055] ${
+              className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF0055] ${
                 isPinned
                   ? 'bg-[#fff0f3] text-[#FF0055] border border-[#ffd1dc]'
-                  : 'text-[#949494] hover:text-[#262626] hover:bg-[#f5f5f5]'
+                  : 'text-[#949494] hover:text-[#262626] hover:bg-[#f9f9f9]'
               }`}
             >
               {isPinned ? <PinOff className="w-3.5 h-3.5" /> : <Pin className="w-3.5 h-3.5" />}
@@ -442,9 +431,9 @@ export const Sidebar: React.FC = () => {
 
             <div
               role="tooltip"
-              className="absolute left-[calc(100%+14px)] px-2.5 py-1 rounded-lg bg-[#262626] text-white text-[11px] font-medium whitespace-nowrap shadow-xl opacity-0 scale-95 pointer-events-none group-hover:opacity-100 group-hover:scale-100 transition-all duration-100 ease-out z-50"
+              className="absolute left-[calc(100%+14px)] px-3 py-1.5 rounded-lg bg-[#262626] text-white text-[11px] font-medium whitespace-nowrap shadow-lg opacity-0 scale-95 pointer-events-none group-hover:opacity-100 group-hover:scale-100 transition-[opacity,transform] duration-150 ease-out z-50"
             >
-              {isPinned ? 'Auto-Hide Dock' : 'Pin Dock'}
+              {isPinned ? 'Auto-Hide Sidebar' : 'Pin Sidebar Open'}
               <div className="absolute top-1/2 -left-1 -translate-y-1/2 w-0 h-0 border-y-4 border-y-transparent border-r-4 border-r-[#262626]" />
             </div>
           </div>

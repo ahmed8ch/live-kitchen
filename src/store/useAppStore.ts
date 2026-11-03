@@ -265,8 +265,12 @@ export const useAppStore = create<AppState>()(
 
       // Table & Multiplayer Lobby Management
       ensureHostSession: (tableNumber) => {
-        const { activeTable, tableSessions } = get();
-        const targetTable = (tableNumber || activeTable || 'T-04').trim().toUpperCase();
+        const { activeTable, tableSessions, userAccount } = get();
+        const rawTarget = tableNumber || activeTable;
+        if (!rawTarget) {
+          return;
+        }
+        const targetTable = rawTarget.trim().toUpperCase();
         const session = tableSessions[targetTable];
         if (session && session.members && session.members.length > 0) {
           const hostMember = session.members.find((m) => m?.isHost) || session.members[0];
@@ -274,21 +278,20 @@ export const useAppStore = create<AppState>()(
             activeTable: targetTable,
             activeTablePin: session.pin,
             currentMember: hostMember,
-            companionMember: null,
           });
         } else {
-          get().initTableSession(targetTable, 'Red Panda (Host)', 'Red Panda');
+          get().initTableSession(targetTable, userAccount?.fullName || 'Table Host', 'Red Panda');
         }
       },
 
       setActiveTable: (table) => {
         if (!table) {
-          set({ activeTable: null, activeTablePin: null });
+          set({ activeTable: null, activeTablePin: null, currentMember: null, companionMember: null });
           return;
         }
 
         const cleanTable = table.trim().toUpperCase();
-        const { tableSessions, currentMember } = get();
+        const { tableSessions, currentMember, userAccount } = get();
         const session = tableSessions[cleanTable];
         const isCompanionRoute =
           typeof window !== 'undefined' &&
@@ -297,13 +300,12 @@ export const useAppStore = create<AppState>()(
         // Check if session has active members
         if (session && session.members && session.members.length > 0) {
           if (!isCompanionRoute) {
-            // When on /menu or non-companion route, user is always the Host
+            // When on /menu or non-companion route, user is the Host
             const hostMember = session.members.find((m) => m?.isHost) || session.members[0];
             set({
               activeTable: cleanTable,
               activeTablePin: session.pin,
               currentMember: hostMember,
-              companionMember: null,
             });
             return;
           }
@@ -329,19 +331,20 @@ export const useAppStore = create<AppState>()(
           });
         } else {
           // Table is idle or new: First scanner automatically becomes Table Host!
-          get().initTableSession(cleanTable, 'Red Panda (Host)', 'Red Panda');
+          get().initTableSession(cleanTable, userAccount?.fullName || 'Table Host', 'Red Panda');
         }
       },
 
-      initTableSession: (tableNumber, memberName = 'Red Panda (Host)', _avatar = 'Red Panda') => {
+      initTableSession: (tableNumber, memberName = 'Table Host', _avatar = 'Red Panda') => {
         const cleanTable = tableNumber.trim().toUpperCase();
         const { tableSessions } = get();
+        const cleanHostName = memberName.replace(/\s*\(Host\)$/i, '').trim() || 'Table Host';
 
         // Always generate a fresh, dynamic 4-digit PIN for new table sessions
         const hostPin = Math.floor(1000 + Math.random() * 9000).toString();
         const hostMember: MemberProfile = {
           id: `host-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-          name: memberName,
+          name: cleanHostName,
           isHost: true,
           isReadyToPay: false,
           joinedAt: Date.now(),
@@ -453,19 +456,19 @@ export const useAppStore = create<AppState>()(
         const { tableSessions, companionMember } = get();
         let session = tableSessions[cleanTable];
 
-        // If table doesn't exist yet, initialize it
-        if (!session) {
+        // If table doesn't exist yet or has no members, initialize it with a clean Host
+        if (!session || !session.members || session.members.length === 0) {
           session = {
             tableNumber: cleanTable,
-            pin: '1004',
-            hostId: 'host-demo',
+            pin: session?.pin || '1004',
+            hostId: 'host-primary',
             members: [
               {
-                id: 'host-demo',
-                name: 'Red Panda (Host)',
+                id: 'host-primary',
+                name: 'Table Host',
                 isHost: true,
                 isReadyToPay: false,
-                joinedAt: Date.now() - 300000,
+                joinedAt: Date.now() - 60000,
               },
             ],
             status: 'ordering',
@@ -473,22 +476,30 @@ export const useAppStore = create<AppState>()(
           };
         }
 
-        // If companionMember is already set and seated in this session, return it
+        // 1. If companionMember is already set and seated in this session, reuse it
         if (companionMember && (session.members || []).some((m) => m?.id === companionMember.id)) {
           set({ currentMember: companionMember, activeTable: cleanTable, activeTablePin: null });
           return companionMember;
         }
 
-        // Find taken identities
-        const takenNames = new Set(
-          (session.members || []).map((m) => (m?.name || '').replace(/\s*\(Host\)$/, '').trim().toLowerCase())
-        );
-        const ROSTER = ['Orange Fox', 'Golden Eagle', 'Blue Falcon', 'Emerald Owl', 'Silver Wolf', 'Red Panda'];
-        const nextAvailable = ROSTER.find((name) => !takenNames.has(name.toLowerCase())) || 'Orange Fox';
+        // 2. If a companion already exists in this table session, reuse that companion instead of spawning duplicates
+        const existingCompanion = (session.members || []).find((m) => m && !m.isHost);
+        if (existingCompanion) {
+          set({
+            tableSessions: { ...tableSessions, [cleanTable]: session },
+            companionMember: existingCompanion,
+            currentMember: existingCompanion,
+            activeTable: cleanTable,
+            activeTablePin: null,
+            hasLeftTables: { ...get().hasLeftTables, [cleanTable]: false },
+          });
+          return existingCompanion;
+        }
 
+        // 3. Otherwise create the first companion identity cleanly
         const newCompanion: MemberProfile = {
           id: `companion-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-          name: nextAvailable,
+          name: 'Companion Guest',
           isHost: false,
           isReadyToPay: false,
           joinedAt: Date.now(),
@@ -883,13 +894,13 @@ export const useAppStore = create<AppState>()(
 
       resetTableSession: (tableNumber) => {
         const cleanTable = tableNumber.trim().toUpperCase();
-        const { tableSessions } = get();
+        const { tableSessions, userAccount } = get();
         const session = tableSessions[cleanTable];
 
         const hostPin = session?.pin || '1004';
         const freshHost: MemberProfile = {
           id: `host-${Date.now()}`,
-          name: 'Red Panda (Host)',
+          name: userAccount?.fullName || 'Table Host',
           isHost: true,
           isReadyToPay: false,
           joinedAt: Date.now(),
@@ -952,8 +963,8 @@ export const useAppStore = create<AppState>()(
           : get().companionMember
           ? get().companionMember!
           : isCompanionRoute
-          ? { id: 'guest-solo', name: 'You', isHost: false, isReadyToPay: false, joinedAt: Date.now() }
-          : (hostMember || { id: 'host-solo', name: 'Red Panda (Host)', isHost: true, isReadyToPay: false, joinedAt: Date.now() });
+          ? { id: 'guest-solo', name: 'Companion Guest', isHost: false, isReadyToPay: false, joinedAt: Date.now() }
+          : (hostMember || { id: 'host-solo', name: get().userAccount?.fullName || 'Table Host', isHost: true, isReadyToPay: false, joinedAt: Date.now() });
 
         const modKey = (selectedModifiers || []).map((m) => m.id).sort().join(',');
 
@@ -1813,7 +1824,7 @@ export const useAppStore = create<AppState>()(
       syncCart: (cart) => set({ cart }),
     }),
     {
-      name: 'flamelink_multiplayer_store_v5',
+      name: 'flamelink_multiplayer_store_v6',
       partialize: (state) => ({
         cart: (state.cart || []).map((item) => ({
           ...item,
@@ -1830,7 +1841,11 @@ export const useAppStore = create<AppState>()(
       }),
       onRehydrateStorage: () => (state) => {
         if (!state) return;
-        state.companionMember = null;
+        // Purge stale orders older than 2 hours so old test tickets never linger with huge elapsed timers
+        const twoHoursAgo = Date.now() - 2 * 3600 * 1000;
+        if (Array.isArray(state.orders)) {
+          state.orders = state.orders.filter((o) => o && o.createdAt > twoHoursAgo);
+        }
         if (
           typeof window !== 'undefined' &&
           !window.location.pathname.startsWith('/companion') &&

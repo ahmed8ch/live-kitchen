@@ -36,20 +36,19 @@ export const MenuPage: React.FC = () => {
 
   useEffect(() => {
     flushPendingHostToasts();
-    useAppStore.getState().ensureHostSession(tableParam || undefined);
+    if (tableParam) {
+      useAppStore.getState().ensureHostSession(tableParam);
+    }
   }, [tableParam]);
 
   const filteredDishes = MENU_ITEMS.filter((item) => {
-    // Category match
     if (activeCategory !== 'all' && item.category !== activeCategory) {
       return false;
     }
-    // Dietary tag match
     if (selectedTag !== 'all') {
       const hasTag = item.tags?.includes(selectedTag);
       if (!hasTag) return false;
     }
-    // Search query match
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase().trim();
       const inName = item.name.toLowerCase().includes(q);
@@ -63,63 +62,56 @@ export const MenuPage: React.FC = () => {
 
   return (
     <div className="flex-1 w-full bg-white pb-52" data-ui-container="menu-view">
-      {/* Sticky Table Lobby Bar (PIN, Table Diners) */}
+      {/* Contextual Table Session Strip */}
       <TableLobbyBar />
 
-      {/* Clean, Functional Menu Header (De-slopped, 0 redundant banners) */}
+      {/* Menu Header & Filter Controls */}
       <section className="bg-white border-b border-[#e5e7eb] pt-6 pb-5 sm:pt-8 sm:pb-6">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-[#262626] tracking-tight">
-                Menu
-              </h1>
+              <div className="flex items-center gap-2.5">
+                <h1 className="text-2xl sm:text-3xl font-bold text-[#262626] tracking-tight">
+                  Dine-In Menu
+                </h1>
+                {activeTable && (
+                  <span className="px-3 py-1 rounded-full bg-[#fff0f3] border border-[#ffd1dc] text-xs font-mono-num font-bold text-[#FF0055]">
+                    Table {activeTable}
+                  </span>
+                )}
+              </div>
               <p className="mt-1 text-sm text-[#727272]">
-                Cooked fresh over wood flame coals upon payment confirmation. Touch any dish to customize.
+                Prepared fresh over wood-fired coals upon order settlement. Touch any dish to customize modifiers.
               </p>
             </div>
 
-            <div className="flex items-center gap-3">
-              {/* Dine-In Account / Loyalty Pill */}
+            {userAccount && (
               <button
                 type="button"
                 onClick={() => openAccountModal()}
                 className="px-3.5 py-2 min-h-[44px] rounded-2xl border border-[#e5e7eb] bg-[#f9f9f9] hover:bg-[#f0f0f0] transition-colors flex items-center gap-2.5 text-left shrink-0 cursor-pointer"
               >
                 <div className="w-7 h-7 rounded-full bg-[#FF0055]/10 flex items-center justify-center text-[#FF0055] shrink-0 font-bold text-xs">
-                  {userAccount ? userAccount.fullName.charAt(0).toUpperCase() : 'G'}
+                  {userAccount.fullName.charAt(0).toUpperCase()}
                 </div>
                 <div>
                   <div className="text-xs font-medium text-[#727272]">
-                    {userAccount ? 'Diner Profile' : 'Guest / Sign In'}
+                    Diner Profile
                   </div>
                   <div className="text-xs font-bold text-[#262626] flex items-center gap-1">
-                    <span>{userAccount ? userAccount.fullName : '10% Cashback'}</span>
-                    {userAccount && (
-                      <span className="text-[#FF0055] text-xs font-medium">
-                        (<span className="font-mono-num">{userAccount.loyaltyPointsEgp.toFixed(0)}</span> EGP)
-                      </span>
-                    )}
+                    <span>{userAccount.fullName}</span>
+                    <span className="text-[#FF0055] text-xs font-medium">
+                      (<span className="font-mono-num">{userAccount.loyaltyPointsEgp.toFixed(0)}</span> EGP)
+                    </span>
                   </div>
                 </div>
               </button>
-
-              {activeTable && (
-                <div className="sm:text-right bg-[#f9f9f9] px-4 py-2 rounded-2xl border border-[#e5e7eb] shrink-0">
-                  <div className="text-xs font-medium text-[#727272]">
-                    Table Seating
-                  </div>
-                  <div className="text-base font-bold text-[#FF0055]">
-                    Table <span className="font-mono-num">{activeTable}</span>
-                  </div>
-                </div>
-              )}
-            </div>
+            )}
           </div>
 
           {/* Search Input Bar */}
           <div className="mb-4 relative">
-            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#949494]">
+            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#727272]">
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="11" cy="11" r="8" />
                 <line x1="21" y1="21" x2="16.65" y2="16.65" />
@@ -130,13 +122,13 @@ export const MenuPage: React.FC = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search dishes by name, ingredient, or cut..."
-              className="w-full pl-10 pr-12 min-h-[44px] h-11 rounded-lg border border-[#e5e7eb] bg-[#f9f9f9] text-[13px] text-[#262626] placeholder-[#949494] focus:outline-none focus:border-[#FF0055] focus:ring-2 focus:ring-[#FF0055]/15 transition-all shadow-xs"
+              className="w-full pl-10 pr-12 min-h-[44px] h-11 rounded-lg border border-[#e5e7eb] bg-[#f9f9f9] text-[13px] text-[#262626] placeholder-[#727272] focus:outline-none focus:border-[#FF0055] transition-colors shadow-xs"
             />
             {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery('')}
-                className="absolute inset-y-0 right-0 w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center text-[#949494] hover:text-[#262626] cursor-pointer"
+                className="absolute inset-y-0 right-0 w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center text-[#727272] hover:text-[#262626] cursor-pointer"
                 aria-label="Clear search"
               >
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -147,14 +139,14 @@ export const MenuPage: React.FC = () => {
             )}
           </div>
 
-          {/* Category Filter Pills (2px solid #FF0055 selected state) */}
+          {/* Category Filter Pills */}
           <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none" data-ui-actions="category-filters">
             {CATEGORIES.map((cat) => (
               <button
                 key={cat.id}
                 onClick={() => setActiveCategory(cat.id)}
                 data-ui-radius="999"
-                className={`px-4 py-2 min-h-[44px] rounded-full text-sm font-medium transition-all shrink-0 cursor-pointer flex items-center justify-center active:scale-95 ${
+                className={`px-4 py-2 min-h-[44px] rounded-full text-sm font-medium transition-colors shrink-0 cursor-pointer flex items-center justify-center active:scale-95 ${
                   activeCategory === cat.id
                     ? 'bg-[#fff0f3] text-[#FF0055] shadow-xs border-2 border-[#FF0055] font-bold'
                     : 'bg-white hover:bg-[#f0f0f0] text-[#727272] border border-[#e5e7eb]'
@@ -167,7 +159,7 @@ export const MenuPage: React.FC = () => {
 
           {/* Dietary Tag Filter Pills */}
           <div className="flex items-center gap-1.5 overflow-x-auto pt-3 pb-0.5 scrollbar-none" data-ui-actions="dietary-filters">
-            <span className="text-xs font-medium text-[#949494] mr-1 shrink-0">
+            <span className="text-xs font-medium text-[#727272] mr-1 shrink-0">
               Filter:
             </span>
             {DIETARY_TAGS.map((tag) => (
@@ -175,7 +167,7 @@ export const MenuPage: React.FC = () => {
                 key={tag}
                 type="button"
                 onClick={() => setSelectedTag(tag)}
-                className={`min-h-[44px] min-w-[44px] justify-center px-3.5 py-2 rounded-full text-xs transition-all shrink-0 cursor-pointer flex items-center gap-1 active:scale-95 ${
+                className={`min-h-[44px] min-w-[44px] justify-center px-3.5 py-2 rounded-full text-xs transition-colors shrink-0 cursor-pointer flex items-center gap-1 active:scale-95 ${
                   selectedTag === tag
                     ? 'bg-[#262626] text-white font-bold'
                     : 'bg-[#f9f9f9] text-[#727272] hover:bg-[#f0f0f0] border border-[#e5e7eb]'
@@ -191,14 +183,14 @@ export const MenuPage: React.FC = () => {
         </div>
       </section>
 
-      {/* Dish Grid Section (3-column, tactile cards) */}
+      {/* Dish Grid Section */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8">
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-lg font-bold text-[#262626]">
             {CATEGORIES.find((c) => c.id === activeCategory)?.label}
           </h2>
-          <span className="text-xs text-[#949494]">
-            <span className="font-mono-num">{filteredDishes.length}</span> dishes
+          <span className="text-xs text-[#727272]">
+            <span className="font-mono-num font-bold text-[#262626]">{filteredDishes.length}</span> dishes
           </span>
         </div>
 

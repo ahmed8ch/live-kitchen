@@ -126,7 +126,10 @@ export const SettlementPage: React.FC = () => {
 
     ticket.items.forEach((item) => {
       const memberId = item.addedBy?.memberId || 'host-diner';
-      const memberName = item.addedBy?.name || 'Table Diner';
+      const rawName = item.addedBy?.name || 'Table Host';
+      const memberName = rawName.replace(/\s*\(Host\)$/i, '') === 'Red Panda'
+        ? 'Table Host'
+        : rawName.replace(/\s*\(Host\)$/i, '');
       const isHost = item.addedBy?.isHost || false;
       const isDeparted = currentSession
         ? !(currentSession.members || []).some((m) => m?.id === memberId)
@@ -424,7 +427,7 @@ export const SettlementPage: React.FC = () => {
                       </div>
                       {item.addedBy && (
                         <div className="text-[11px] text-[#727272] mt-0.5">
-                          Ordered by {item.addedBy.name}
+                          Ordered by {item.addedBy.name.replace(/\s*\(Host\)$/i, '')}
                         </div>
                       )}
                     </div>

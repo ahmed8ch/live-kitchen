@@ -2,12 +2,15 @@ import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAppStore } from '../../store/useAppStore';
 
+const QUICK_TABLES = ['T-01', 'T-02', 'T-04', 'T-06', 'T-08', 'T-12'];
+
 export const TableLobbyBar: React.FC = () => {
   const activeTable = useAppStore((state) => state.activeTable);
   const activeTablePin = useAppStore((state) => state.activeTablePin);
   const currentMember = useAppStore((state) => state.currentMember);
   const companionMember = useAppStore((state) => state.companionMember);
   const tableSessions = useAppStore((state) => state.tableSessions);
+  const setActiveTable = useAppStore((state) => state.setActiveTable);
   const openPinModal = useAppStore((state) => state.openPinModal);
   const setMemberReadyToPay = useAppStore((state) => state.setMemberReadyToPay);
   const removeMemberFromTable = useAppStore((state) => state.removeMemberFromTable);
@@ -16,26 +19,41 @@ export const TableLobbyBar: React.FC = () => {
   const showToast = useAppStore((state) => state.showToast);
 
   const [copied, setCopied] = useState(false);
+  const location = useLocation();
 
   if (!activeTable) {
     return (
       <div className="w-full bg-[#f9f9f9] border-b border-[#e5e7eb] px-4 py-2.5">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-[13px]">
-          <span className="text-[#727272]">
-            Dine-In Self-Ordering Active
-          </span>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-[#262626] font-semibold text-xs">
+              Select Your Seated Table:
+            </span>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {QUICK_TABLES.map((tbl) => (
+                <button
+                  key={tbl}
+                  type="button"
+                  onClick={() => setActiveTable(tbl)}
+                  className="min-h-[36px] px-3 py-1 rounded-full bg-white hover:border-[#FF0055] border border-[#e5e7eb] text-[#262626] font-mono-num font-bold text-xs transition-colors cursor-pointer"
+                >
+                  {tbl}
+                </button>
+              ))}
+            </div>
+          </div>
           <button
+            type="button"
             onClick={() => openPinModal('T-04')}
-            className="px-4 py-2 min-h-[44px] rounded-full bg-white hover:bg-[#f0f0f0] border border-[#e5e7eb] text-[#262626] font-medium text-[12px] transition-colors cursor-pointer shadow-xs inline-flex items-center"
+            className="px-4 py-2 min-h-[44px] rounded-full bg-white hover:bg-[#f0f0f0] border border-[#e5e7eb] text-[#262626] font-medium text-[12px] transition-colors cursor-pointer shadow-xs inline-flex items-center shrink-0"
           >
-            Join Table Pool -&gt;
+            Join Friend&apos;s Table with PIN
           </button>
         </div>
       </div>
     );
   }
 
-  const location = useLocation();
   const isCompanionView =
     location.pathname.startsWith('/companion') ||
     location.pathname.startsWith('/guest-order') ||
@@ -73,7 +91,7 @@ export const TableLobbyBar: React.FC = () => {
   return (
     <div className="w-full bg-[#f9f9f9] border-b border-[#e5e7eb] px-4 py-2 transition-colors">
       <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
-        {/* Left: Table Seating (Strictly 0 flicking dots per user directive) */}
+        {/* Left: Table Seating */}
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
             <span className="font-mono-num font-bold text-[14px] text-[#262626]">
@@ -85,22 +103,23 @@ export const TableLobbyBar: React.FC = () => {
               </span>
             ) : (
               <span className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full bg-white border border-[#ffd1dc] text-[#FF0055]">
-                {effectiveUser?.name || 'Guest'}
+                {(effectiveUser?.name || 'Guest').replace(/\s*\(Host\)$/i, '')}
               </span>
             )}
           </div>
 
-          <div className="h-4 w-[1px] bg-[#ffd1dc]" />
+          <div className="h-4 w-[1px] bg-[#e5e7eb]" />
 
-          {/* 4-digit PIN Badge: Strictly visible ONLY to the first scanner / Host (Agent 01 spec) */}
+          {/* 4-digit PIN Badge for Host */}
           {isHost ? (
             <div className="flex items-center gap-1.5">
               <span className="text-[11px] font-semibold text-[#727272]">
-                Table PIN:
+                PIN:
               </span>
               <button
+                type="button"
                 onClick={handleCopyPin}
-                title="Click to copy 4-digit PIN for companions sitting at your table"
+                title="Copy 4-digit PIN for companions at your table"
                 className="inline-flex items-center gap-1.5 px-3 min-h-[44px] rounded-full bg-white border border-[#ffd1dc] text-[#FF0055] text-[13px] font-mono-num font-bold shadow-xs hover:border-[#FF0055] transition-colors cursor-pointer"
               >
                 <span>{pin}</span>
@@ -110,12 +129,12 @@ export const TableLobbyBar: React.FC = () => {
                 </svg>
               </button>
               {copied && (
-                <span className="text-[11px] text-[#262626] font-medium">Copied!</span>
+                <span className="text-[11px] text-[#262626] font-medium">Copied</span>
               )}
             </div>
           ) : (
             <span className="text-[11px] text-[#727272]">
-              Shared Table Pool
+              Shared Table Session
             </span>
           )}
         </div>
@@ -123,7 +142,7 @@ export const TableLobbyBar: React.FC = () => {
         {/* Center: Party Members seated with Kick / Leave Controls */}
         <div className="flex items-center gap-2 overflow-x-auto max-w-full pb-1 md:pb-0 scrollbar-none">
           <span className="text-[11px] text-[#727272] shrink-0 font-medium">
-            Diners ({members.length}):
+            Seated ({members.length}):
           </span>
 
           {members.map((member, idx) => {
@@ -131,31 +150,33 @@ export const TableLobbyBar: React.FC = () => {
             const isMe = isHost
               ? Boolean(member.isHost || (hostMember && member.id === hostMember.id))
               : Boolean(effectiveUser && member.id === effectiveUser.id);
+            const cleanName = (member.name || 'Diner').replace(/\s*\(Host\)$/i, '');
+
             return (
               <div
                 key={member.id || `mem-${idx}`}
                 className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] font-medium shrink-0 border transition-colors ${
                   isMe
                     ? 'bg-white border-[#FF0055] text-[#262626] shadow-xs'
-                    : 'bg-white/80 border-[#e5e7eb] text-[#616161]'
+                    : 'bg-white border-[#e5e7eb] text-[#616161]'
                 }`}
               >
                 <span
                   className={`w-2 h-2 rounded-full ${
                     member.isReadyToPay ? 'bg-[#15803d]' : 'bg-[#e5e7eb]'
                   }`}
-                  title={member.isReadyToPay ? 'Ready: done choosing dishes' : 'Still choosing dishes'}
+                  title={member.isReadyToPay ? 'Done choosing dishes' : 'Browsing menu'}
                 />
-                <span>{member.name || 'Diner'}{member.isHost ? ' (Host)' : ''}</span>
+                <span>{cleanName}{member.isHost ? ' (Host)' : ''}</span>
 
-                {/* Host can kick unwanted/duplicate companions (Touch target >= 44x44px) */}
+                {/* Host can remove duplicate/departed companions */}
                 {isHost && !member.isHost && activeTable && (
                   <button
                     type="button"
                     onClick={() => removeMemberFromTable(activeTable, member.id)}
                     className="min-w-[44px] min-h-[44px] rounded-full bg-[#f9f9f9] hover:bg-red-50 text-[#727272] hover:text-red-600 inline-flex items-center justify-center text-sm ml-1 cursor-pointer transition-colors border border-[#e5e7eb]"
-                    title={`Remove ${member.name || 'Diner'}`}
-                    aria-label={`Remove ${member.name || 'Diner'}`}
+                    title={`Remove ${cleanName}`}
+                    aria-label={`Remove ${cleanName}`}
                   >
                     ×
                   </button>
@@ -164,14 +185,14 @@ export const TableLobbyBar: React.FC = () => {
             );
           })}
 
-          {/* Quick Clean Reset for Host if duplicates exist */}
           {isHost && members.length > 1 && (
             <button
+              type="button"
               onClick={() => resetTableSession(activeTable)}
-              className="min-h-[44px] text-[12px] font-medium text-[#727272] hover:text-[#FF0055] px-3.5 py-1.5 rounded-full bg-white border border-[#e5e7eb] shrink-0 cursor-pointer inline-flex items-center"
+              className="min-h-[44px] text-[12px] font-medium text-[#727272] hover:text-[#FF0055] px-3.5 py-1.5 rounded-full bg-white border border-[#e5e7eb] shrink-0 cursor-pointer inline-flex items-center transition-colors"
               title="Reset table session to single host"
             >
-              Reset Diners
+              Clear Guests
             </button>
           )}
         </div>
@@ -183,12 +204,7 @@ export const TableLobbyBar: React.FC = () => {
               <button
                 type="button"
                 onClick={handleToggleReady}
-                title={
-                  effectiveUser.isReadyToPay
-                    ? 'You are marked ready. Click to switch back to browsing.'
-                    : 'Notify the table host that you have finished picking your dishes.'
-                }
-                className={`min-h-[44px] px-4 py-2 rounded-full text-[12px] font-medium transition-all cursor-pointer shadow-xs inline-flex items-center justify-center ${
+                className={`min-h-[44px] px-4 py-2 rounded-full text-[12px] font-medium transition-colors cursor-pointer shadow-xs inline-flex items-center justify-center ${
                   effectiveUser.isReadyToPay
                     ? 'bg-[#262626] text-white hover:bg-black'
                     : 'bg-white text-[#262626] border border-[#e5e7eb] hover:border-[#FF0055]'
@@ -210,9 +226,20 @@ export const TableLobbyBar: React.FC = () => {
           )}
 
           {isHost && (
-            <span className="text-[11px] text-[#727272] px-2.5 py-1 rounded-full bg-white border border-[#ffd1dc]/60">
-              Host Controls Active (<span className="font-mono-num">{members.filter((m) => m?.isReadyToPay).length}/{members.length}</span> Diners Ready)
-            </span>
+            <div className="flex items-center gap-2">
+              {members.length > 1 && (
+                <span className="text-[11px] text-[#727272] px-2.5 py-1 rounded-full bg-white border border-[#e5e7eb]">
+                  <span className="font-mono-num font-bold text-[#262626]">{members.filter((m) => m?.isReadyToPay).length}/{members.length}</span> Ready
+                </span>
+              )}
+              <button
+                type="button"
+                onClick={() => setActiveTable(null)}
+                className="min-h-[44px] px-3 py-1.5 rounded-full bg-white hover:bg-[#f0f0f0] border border-[#e5e7eb] text-[11px] font-medium text-[#727272] hover:text-[#262626] transition-colors cursor-pointer"
+              >
+                Change Table
+              </button>
+            </div>
           )}
         </div>
       </div>

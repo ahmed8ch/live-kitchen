@@ -20,7 +20,7 @@ const CATEGORIES: { id: 'all' | MenuCategory; label: string }[] = [
 
 export const CompanionPage: React.FC = () => {
   const [searchParams] = useSearchParams();
-  const tableParam = searchParams.get('table') || 'T-04';
+  const tableParam = searchParams.get('table');
 
   const activeTable = useAppStore((state) => state.activeTable);
   const companionMember = useAppStore((state) => state.companionMember);
@@ -32,42 +32,47 @@ export const CompanionPage: React.FC = () => {
   const showToast = useAppStore((state) => state.showToast);
   const initCompanionSession = useAppStore((state) => state.initCompanionSession);
   const addToCartAsCompanion = useAppStore((state) => state.addToCartAsCompanion);
+  const openPinModal = useAppStore((state) => state.openPinModal);
 
   const [activeCategory, setActiveCategory] = useState<'all' | MenuCategory>('all');
   const [selectedDish, setSelectedDish] = useState<MenuItem | null>(null);
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>('apple_pay');
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const cleanTable = (tableParam || activeTable || 'T-04').trim().toUpperCase();
+  const targetTable = (tableParam || activeTable || '').trim().toUpperCase();
+  const cleanTable = targetTable || 'T-04';
   const hasLeftTable = Boolean(hasLeftTables?.[cleanTable]);
 
-  // Ensure table session & companion profile are initialized if user has not departed
+  // Only auto-initialize companion session if a table was explicitly selected or passed via URL
   useEffect(() => {
-    if (!hasLeftTable && !companionMember) {
-      initCompanionSession(cleanTable);
+    if (targetTable && !hasLeftTable && !companionMember) {
+      initCompanionSession(targetTable);
     }
-  }, [cleanTable, initCompanionSession, hasLeftTable, companionMember]);
+  }, [targetTable, initCompanionSession, hasLeftTable, companionMember]);
 
-  const session = tableSessions[cleanTable];
+  const session = targetTable ? tableSessions[targetTable] : undefined;
   const effectiveMember = companionMember || currentMember;
   const isSeatedAtTable = Boolean(
-    session && effectiveMember && (session.members || []).some((m) => m?.id === effectiveMember.id)
+    targetTable &&
+      session &&
+      effectiveMember &&
+      (session.members || []).some((m) => m?.id === effectiveMember.id)
   );
 
   // Lookup active order ticket for this table session
   const activeTicket = useMemo(() => {
+    if (!targetTable) return undefined;
     if (session?.activeOrderId) {
       const found = orders.find((o) => o.id === session.activeOrderId);
       if (found) return found;
     }
     const pendingOrder = orders.find(
-      (o) => o.tableNumber === cleanTable && (o.paymentStatus === 'pending_verification' || !o.isPaid)
+      (o) => o.tableNumber === targetTable && (o.paymentStatus === 'pending_verification' || !o.isPaid)
     );
     if (pendingOrder) return pendingOrder;
-    return orders.find((o) => o.tableNumber === cleanTable);
-  }, [orders, session?.activeOrderId, cleanTable]);
+    return orders.find((o) => o.tableNumber === targetTable);
+  }, [orders, session?.activeOrderId, targetTable]);
 
-  // Is table currently waiting for payment or recently created
   const isSettlementActive = Boolean(
     activeTicket && (session?.status === 'waiting_for_payment' || activeTicket.paymentStatus === 'pending_verification')
   );
@@ -90,11 +95,9 @@ export const CompanionPage: React.FC = () => {
   const companionVat = Math.round(companionSubtotal * 0.14 * 100) / 100;
   const companionTotalShare = Math.round((companionSubtotal + companionVat) * 100) / 100;
 
-  // Has this companion settled their share
   const paidRecord = effectiveMember && activeTicket?.paidDiners ? activeTicket.paidDiners[effectiveMember.id] : undefined;
   const isCompanionSharePaid = Boolean(paidRecord);
 
-  // Table total progress
   const totalPaidShares = Object.values(activeTicket?.paidDiners || {}).reduce(
     (sum, record) => sum + record.amount,
     0
@@ -120,23 +123,32 @@ export const CompanionPage: React.FC = () => {
       ? MENU_ITEMS
       : MENU_ITEMS.filter((item) => item.category === activeCategory);
 
-  if (hasLeftTable || !isSeatedAtTable) {
+  if (!targetTable || hasLeftTable || !isSeatedAtTable) {
     return (
-      <div className="flex-1 w-full bg-[#f9f9f9] min-h-screen py-16 px-4" data-ui-container="not-seated-view">
+      <div className="flex-1 w-full bg-[#f9f9f9] min-h-[100dvh] py-16 px-4" data-ui-container="not-seated-view">
         <div className="max-w-md mx-auto bg-white rounded-2xl border border-[#e5e7eb] p-6 sm:p-8 text-center shadow-xs">
-          <div className="w-14 h-14 rounded-full bg-[#fff0f3] border border-[#ffd1dc] flex items-center justify-center mx-auto text-[#FF0055] mb-4">
-            <svg className="w-6 h-6 stroke-[2px]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <div className="w-12 h-12 rounded-full bg-[#fff0f3] border border-[#ffd1dc] flex items-center justify-center mx-auto text-[#FF0055] mb-4">
+            <svg className="w-5 h-5 stroke-[2px]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
               <circle cx="9" cy="7" r="4" />
               <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
               <path d="M16 3.13a4 4 0 0 1 0 7.75" />
             </svg>
           </div>
-          <h2 className="text-xl font-bold text-[#262626]">Not Seated at Table {cleanTable}</h2>
+          <h2 className="text-xl font-bold text-[#262626]">
+            {hasLeftTable ? `You Left Table ${cleanTable}` : 'Join a Shared Table Session'}
+          </h2>
           <p className="mt-2 text-[#727272] text-[13px] leading-relaxed">
-            You have left Table {cleanTable} or are not currently part of this dining party. Join the table to select your dishes and settle your share directly.
+            Enter the 4-digit Table PIN shown on the host&apos;s phone to add your own dishes to the shared table cart and settle your personal share directly.
           </p>
           <div className="mt-6 flex flex-col gap-2.5">
+            <button
+              type="button"
+              onClick={() => openPinModal(cleanTable)}
+              className="w-full min-h-[44px] py-2.5 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[13px] font-bold transition-colors btn-crimson-glow shadow-xs cursor-pointer flex items-center justify-center"
+            >
+              Enter 4-Digit Table PIN
+            </button>
             <button
               type="button"
               onClick={() => {
@@ -145,15 +157,15 @@ export const CompanionPage: React.FC = () => {
                 });
                 initCompanionSession(cleanTable);
               }}
-              className="w-full min-h-[44px] py-2.5 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[13px] font-bold transition-all btn-crimson-glow shadow-xs cursor-pointer flex items-center justify-center"
+              className="w-full min-h-[44px] py-2.5 rounded-full bg-[#f9f9f9] hover:bg-[#f0f0f0] border border-[#e5e7eb] text-[#262626] text-[13px] font-semibold transition-colors cursor-pointer flex items-center justify-center"
             >
-              Join Table {cleanTable} as Guest Diner
+              Join Table {cleanTable} Directly
             </button>
             <Link
-              to={`/menu?table=${cleanTable}`}
-              className="w-full min-h-[44px] py-2.5 rounded-full bg-white hover:bg-[#f9f9f9] border border-[#e5e7eb] text-[#262626] text-[13px] font-medium transition-colors shadow-xs inline-flex items-center justify-center"
+              to={targetTable ? `/menu?table=${targetTable}` : '/menu'}
+              className="w-full min-h-[44px] py-2.5 rounded-full bg-white hover:bg-[#f9f9f9] border border-[#e5e7eb] text-[#727272] text-[13px] font-medium transition-colors inline-flex items-center justify-center"
             >
-              Browse Dine-In Menu
+              Return to Standard Menu
             </Link>
           </div>
         </div>
@@ -163,19 +175,18 @@ export const CompanionPage: React.FC = () => {
 
   return (
     <div className="flex-1 w-full bg-white pb-52 select-none" data-ui-container="companion-menu-view">
-      {/* Sticky Table Lobby Bar (PIN, Table Diners, Companion sync) */}
+      {/* Sticky Table Lobby Bar */}
       <TableLobbyBar />
 
-      {/* DEDICATED DISTRIBUTED SETTLEMENT CARD (Visible when table order is in checkout/settlement) */}
-      {isSettlementActive && activeTicket && (
-        <section className="bg-[#fff0f3] border-b-2 border-[#ffd1dc] py-5 px-4 sm:px-6">
+      {/* DISTRIBUTED SETTLEMENT CARD: Only shown when companion actually has attributed items or has paid */}
+      {isSettlementActive && activeTicket && (companionTotalShare > 0 || isCompanionSharePaid) && (
+        <section className="bg-[#fff0f3] border-b border-[#ffd1dc] py-5 px-4 sm:px-6">
           <div className="max-w-xl mx-auto space-y-4">
-            {/* Header Status Strip */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-[#FF0055]" />
                 <span className="text-xs font-bold text-[#FF0055]">
-                  Table Settlement Active
+                  Your Personal Table Share
                 </span>
               </div>
               <span className="text-xs text-[#727272]">
@@ -183,12 +194,11 @@ export const CompanionPage: React.FC = () => {
               </span>
             </div>
 
-            {/* Main Share Card */}
             <div className="bg-white rounded-2xl p-5 border border-[#e5e7eb] shadow-xs space-y-4">
               <div className="flex items-start justify-between border-b border-[#f0f0f0] pb-3">
                 <div>
                   <div className="text-xs font-medium text-[#727272]">
-                    Your Personal Dine-In Share
+                    Seated Companion
                   </div>
                   <h3 className="text-lg font-bold text-[#262626] mt-0.5">
                     {effectiveMember?.name || 'Companion'}
@@ -197,7 +207,7 @@ export const CompanionPage: React.FC = () => {
 
                 <div className="text-right">
                   <div className="text-xs font-medium text-[#727272]">
-                    Share Total
+                    Share Total (incl. 14% VAT)
                   </div>
                   <div className="text-lg font-mono-num font-bold text-[#FF0055]">
                     {companionTotalShare.toFixed(2)} EGP
@@ -206,7 +216,7 @@ export const CompanionPage: React.FC = () => {
               </div>
 
               {/* Exact Companion Item Breakdown */}
-              {companionItems.length > 0 ? (
+              {companionItems.length > 0 && (
                 <div className="space-y-2 text-sm">
                   <div className="text-xs font-semibold text-[#727272]">
                     Dishes Added by You ({companionItems.length}):
@@ -236,10 +246,6 @@ export const CompanionPage: React.FC = () => {
                     <span>14% VAT: <span className="font-mono-num">{companionVat.toFixed(2)} EGP</span></span>
                   </div>
                 </div>
-              ) : (
-                <div className="text-sm text-[#727272] py-2">
-                  No individual dishes were attributed to your profile in this round.
-                </div>
               )}
 
               {/* Settlement Action State */}
@@ -254,7 +260,7 @@ export const CompanionPage: React.FC = () => {
                       : `Awaiting other table diners (${remainingTableBalance.toFixed(2)} EGP remaining).`}
                   </div>
                 </div>
-              ) : companionTotalShare > 0 ? (
+              ) : (
                 <div className="space-y-3 pt-1">
                   <div className="text-xs font-semibold text-[#262626]">
                     Select Your Payment Method:
@@ -264,7 +270,7 @@ export const CompanionPage: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setSelectedMethod('apple_pay')}
-                      className={`p-2.5 min-h-[48px] rounded-lg border text-center transition-all cursor-pointer flex flex-col justify-center ${
+                      className={`p-2.5 min-h-[48px] rounded-lg border text-center transition-colors cursor-pointer flex flex-col justify-center ${
                         selectedMethod === 'apple_pay'
                           ? 'border-[#FF0055] bg-[#fff0f3] shadow-xs'
                           : 'border-[#e5e7eb] bg-white hover:bg-[#f9f9f9]'
@@ -277,7 +283,7 @@ export const CompanionPage: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setSelectedMethod('card')}
-                      className={`p-2.5 min-h-[48px] rounded-lg border text-center transition-all cursor-pointer flex flex-col justify-center ${
+                      className={`p-2.5 min-h-[48px] rounded-lg border text-center transition-colors cursor-pointer flex flex-col justify-center ${
                         selectedMethod === 'card'
                           ? 'border-[#FF0055] bg-[#fff0f3] shadow-xs'
                           : 'border-[#e5e7eb] bg-white hover:bg-[#f9f9f9]'
@@ -290,7 +296,7 @@ export const CompanionPage: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setSelectedMethod('cashier')}
-                      className={`p-2.5 min-h-[48px] rounded-lg border text-center transition-all cursor-pointer flex flex-col justify-center ${
+                      className={`p-2.5 min-h-[48px] rounded-lg border text-center transition-colors cursor-pointer flex flex-col justify-center ${
                         selectedMethod === 'cashier'
                           ? 'border-[#FF0055] bg-[#fff0f3] shadow-xs'
                           : 'border-[#e5e7eb] bg-white hover:bg-[#f9f9f9]'
@@ -306,7 +312,7 @@ export const CompanionPage: React.FC = () => {
                     onClick={handlePayMyShare}
                     disabled={isProcessing}
                     data-ui-radius="999"
-                    className="w-full min-h-[44px] py-3 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-sm font-bold transition-all btn-crimson-glow shadow-xs cursor-pointer flex items-center justify-center gap-2 active:scale-[0.99]"
+                    className="w-full min-h-[44px] py-3 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-sm font-bold transition-colors btn-crimson-glow shadow-xs cursor-pointer flex items-center justify-center gap-2 active:scale-[0.99]"
                   >
                     {isProcessing ? (
                       <span>Authorizing Payment...</span>
@@ -315,7 +321,7 @@ export const CompanionPage: React.FC = () => {
                     )}
                   </button>
                 </div>
-              ) : null}
+              )}
 
               {/* Table Progress Bar */}
               <div className="pt-2 border-t border-[#f0f0f0] space-y-1.5">
@@ -325,7 +331,7 @@ export const CompanionPage: React.FC = () => {
                 </div>
                 <div className="w-full bg-[#e5e7eb] h-1.5 rounded-full overflow-hidden">
                   <div
-                    className="bg-[#15803d] h-full transition-all duration-300"
+                    className="bg-[#15803d] h-full transition-[width] duration-300"
                     style={{
                       width: `${Math.min(100, Math.round((totalPaidShares / activeTicket.total) * 100))}%`,
                     }}
@@ -333,13 +339,12 @@ export const CompanionPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Auxiliary Link */}
               <div className="text-center pt-1">
                 <Link
                   to={`/settlement/${activeTicket.id}?table=${cleanTable}`}
                   className="text-xs text-[#727272] hover:text-[#262626] underline font-medium"
                 >
-                  View Full Table Thermal Chit -&gt;
+                  View Full Table Bill &amp; Split Options -&gt;
                 </Link>
               </div>
             </div>
@@ -347,31 +352,39 @@ export const CompanionPage: React.FC = () => {
         </section>
       )}
 
-      {/* Clean, Functional Menu Header */}
+      {/* Compact notice if table has an active bill but companion hasn't added individual items */}
+      {isSettlementActive && activeTicket && companionTotalShare === 0 && !isCompanionSharePaid && (
+        <div className="bg-[#fff0f3] border-b border-[#ffd1dc] px-4 py-2.5">
+          <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-xs">
+            <span className="text-[#262626]">
+              Table {cleanTable} has an active check (<span className="font-mono-num font-bold text-[#FF0055]">{remainingTableBalance.toFixed(2)} EGP</span> remaining).
+            </span>
+            <Link
+              to={`/settlement/${activeTicket.id}?table=${cleanTable}`}
+              className="font-bold text-[#FF0055] hover:underline"
+            >
+              Open Bill &amp; Equal Split Options -&gt;
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {/* Companion Menu Header */}
       <section className="bg-white border-b border-[#e5e7eb] pt-6 pb-5 sm:pt-8 sm:pb-6">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
             <div>
-              <div className="flex items-center gap-2 mb-1">
+              <div className="flex items-center gap-2.5 mb-1">
                 <h1 className="text-2xl sm:text-3xl font-bold text-[#262626] tracking-tight">
-                  Menu
+                  Companion Order
                 </h1>
                 <span className="px-2.5 py-0.5 rounded-full bg-[#fff0f3] border border-[#ffd1dc] text-[#FF0055] text-xs font-semibold">
                   {effectiveMember?.name || 'Guest'}
                 </span>
               </div>
               <p className="text-sm text-[#727272]">
-                Cooked fresh over wood flame coals upon payment confirmation. Touch any dish to customize.
+                Dishes you select are tagged with your name in the shared Table {cleanTable} cart so you can settle your exact share.
               </p>
-            </div>
-
-            <div className="sm:text-right bg-[#f9f9f9] px-4 py-2 rounded-2xl border border-[#e5e7eb] shrink-0">
-              <div className="text-xs font-medium text-[#727272]">
-                Table Seating
-              </div>
-              <div className="text-base font-mono-num font-bold text-[#FF0055]">
-                Table {cleanTable}
-              </div>
             </div>
           </div>
 
@@ -382,7 +395,7 @@ export const CompanionPage: React.FC = () => {
                 key={cat.id}
                 onClick={() => setActiveCategory(cat.id)}
                 data-ui-radius="999"
-                className={`px-4 py-2 min-h-[44px] rounded-full text-sm font-medium transition-all shrink-0 cursor-pointer flex items-center justify-center ${
+                className={`px-4 py-2 min-h-[44px] rounded-full text-sm font-medium transition-colors shrink-0 cursor-pointer flex items-center justify-center ${
                   activeCategory === cat.id
                     ? 'bg-[#fff0f3] text-[#FF0055] shadow-xs border-2 border-[#FF0055] font-bold'
                     : 'bg-white hover:bg-[#f0f0f0] text-[#727272] border border-[#e5e7eb]'
@@ -401,8 +414,8 @@ export const CompanionPage: React.FC = () => {
           <h2 className="text-lg font-bold text-[#262626]">
             {CATEGORIES.find((c) => c.id === activeCategory)?.label}
           </h2>
-          <span className="text-xs text-[#949494]">
-            <span className="font-mono-num">{filteredDishes.length}</span> dishes
+          <span className="text-xs text-[#727272]">
+            <span className="font-mono-num font-bold text-[#262626]">{filteredDishes.length}</span> dishes
           </span>
         </div>
 
