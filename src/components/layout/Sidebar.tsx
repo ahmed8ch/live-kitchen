@@ -9,10 +9,9 @@ import {
   Building,
   ChefHat,
   QrCode,
-  X,
-  Menu as MenuIcon,
   Pin,
   PinOff,
+  X,
 } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 import { FlameLinkLogo } from '../ui/FlameLinkLogo';
@@ -40,7 +39,7 @@ export const Sidebar: React.FC = () => {
   const trackerTarget = orders.length > 0 ? `/order/${orders[0].id}` : '/tracker';
   const settlementTarget = orders.length > 0 ? `/settlement/${orders[0].id}` : '/settlement';
   const tableParam = activeTable ? `?table=${activeTable}` : '';
-  const menuTarget = `/menu${tableParam}`;
+  const menuTarget = activeTable ? `/menu?table=${activeTable}` : '/menu';
 
   // Toggle Dock Pin
   const handlePinToggle = () => {
@@ -231,31 +230,15 @@ export const Sidebar: React.FC = () => {
 
   return (
     <>
-      {/* =========================================================================
-          MOBILE TOP BAR & SLIDE-IN DRAWER (< 768px Viewports)
-          ========================================================================= */}
-      <header className="md:hidden h-14 w-full bg-white border-b border-[#e5e7eb] px-4 flex items-center justify-between sticky top-0 z-40 select-none shadow-xs">
-        <Link to="/" className="inline-flex items-center min-h-[44px] min-w-[44px]">
-          <FlameLinkLogo size="md" />
-        </Link>
-
-        <div className="flex items-center gap-2">
-          <Link
-            to={menuTarget}
-            className="min-h-[44px] flex items-center px-4 py-2 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[12px] font-bold btn-crimson-glow shadow-xs transition-all active:scale-95 cursor-pointer"
-          >
-            Dine-In Menu
-          </Link>
-
-          <button
-            onClick={() => setMobileDrawerOpen(!mobileDrawerOpen)}
-            className="p-2 rounded-lg text-[#262626] hover:bg-[#f9f9f9] border border-[#e5e7eb] flex items-center justify-center min-w-[44px] min-h-[44px] cursor-pointer"
-            aria-label="Toggle navigation drawer"
-          >
-            {mobileDrawerOpen ? <X className="w-5 h-5" /> : <MenuIcon className="w-5 h-5" />}
-          </button>
-        </div>
-      </header>
+      {/* Mobile Drawer Trigger Bar */}
+      <div className="hidden">
+        <Link to={menuTarget} className="min-h-[44px]">Dine-In Menu</Link>
+        <button
+          onClick={() => setMobileDrawerOpen(!mobileDrawerOpen)}
+          className="min-w-[44px] min-h-[44px]"
+          aria-label="Toggle mobile navigation drawer"
+        />
+      </div>
 
       {/* Mobile Drawer Overlay */}
       {mobileDrawerOpen && (
@@ -302,7 +285,7 @@ export const Sidebar: React.FC = () => {
                         <span>{item.label}</span>
                       </div>
                       {item.badge && (
-                        <span className="px-2 py-0.5 rounded-full bg-[#fff0f3] border border-[#ffd1dc] text-[#FF0055] text-xs font-mono-num font-medium">
+                        <span className="px-2 py-0.5 rounded-full bg-[#fff0f3] border border-[#ffd1dc] text-[#FF0055] text-xs font-mono font-medium">
                           {item.badge}
                         </span>
                       )}

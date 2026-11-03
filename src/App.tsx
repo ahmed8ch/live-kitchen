@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { Routes, Route, useLocation, Link } from 'react-router-dom';
+import { UnifiedNavbar } from './components/layout/UnifiedNavbar';
 import { Sidebar } from './components/layout/Sidebar';
 import { ToastContainer } from './components/ui/ToastContainer';
 import { TableLobbyModal } from './components/multiplayer/TableLobbyModal';
@@ -42,7 +43,10 @@ export const App: React.FC = () => {
         Skip to main content
       </a>
 
-      {/* Primary Navigation System (Desktop macOS Dock + Mobile Header) */}
+      {/* Global Unified Navigation Bar across ALL screens */}
+      <UnifiedNavbar />
+
+      {/* Desktop Edge Dock System */}
       {!isKds && !isCashier && <Sidebar />}
 
       {/* Main Content Viewport */}

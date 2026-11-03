@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAppStore } from '../store/useAppStore';
-import { FlameLinkLogo } from '../components/ui/FlameLinkLogo';
 import { AsciiBackground } from '../components/ui/AsciiBackground';
+import { StageshowDemo } from '../components/home/StageshowDemo';
 
 export const HomePage: React.FC = () => {
   const activeTable = useAppStore((state) => state.activeTable);
@@ -11,42 +11,6 @@ export const HomePage: React.FC = () => {
   const showToast = useAppStore((state) => state.showToast);
 
   const menuLink = activeTable ? `/menu?table=${activeTable}` : '/menu';
-
-  // Section Tracking for Navigation Bar Spy
-  const [activeSection, setActiveSection] = useState<'hero' | 'flow' | 'roi' | 'support'>('hero');
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const scrollY = window.scrollY;
-      const flowEl = document.getElementById('flow');
-      const roiEl = document.getElementById('roi');
-      const supportEl = document.getElementById('support');
-
-      const flowTop = (flowEl?.offsetTop || 600) - 140;
-      const roiTop = (roiEl?.offsetTop || 1200) - 140;
-      const supportTop = (supportEl?.offsetTop || 1800) - 140;
-
-      if (scrollY >= supportTop) {
-        setActiveSection('support');
-      } else if (scrollY >= roiTop) {
-        setActiveSection('roi');
-      } else if (scrollY >= flowTop) {
-        setActiveSection('flow');
-      } else {
-        setActiveSection('hero');
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  const scrollTo = (id: string) => {
-    const el = document.getElementById(id);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
 
   // ROI Estimator State (EGP)
   const [tableCount, setTableCount] = useState<number>(24);
@@ -116,100 +80,6 @@ export const HomePage: React.FC = () => {
 
   return (
     <div className="flex-1 w-full bg-white text-[#262626]" data-ui-container="home-overview">
-      {/* Desktop Top Navigation Bar (Hidden on mobile to avoid duplicate headers) */}
-      <nav
-        aria-label="Overview Navigation"
-        className="hidden md:flex sticky top-0 z-30 bg-white/95 border-b border-[#e5e7eb] px-6 lg:px-10 py-3.5 items-center justify-between shadow-xs select-none"
-      >
-        <button
-          onClick={() => scrollTo('hero')}
-          className="flex items-center gap-2 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF0055] rounded-lg text-left"
-          aria-label="FlameLink Home"
-        >
-          <FlameLinkLogo size="md" />
-        </button>
-
-        {/* Section Navigation Pills */}
-        <div className="flex items-center gap-1.5 bg-[#f9f9f9] p-1 rounded-full border border-[#e5e7eb]">
-          <button
-            onClick={() => scrollTo('flow')}
-            className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
-              activeSection === 'flow'
-                ? 'bg-white text-[#FF0055] shadow-xs font-semibold'
-                : 'text-[#616161] hover:text-[#262626]'
-            }`}
-          >
-            Four Stage Flow
-          </button>
-
-          <button
-            onClick={() => scrollTo('roi')}
-            className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
-              activeSection === 'roi'
-                ? 'bg-white text-[#FF0055] shadow-xs font-semibold'
-                : 'text-[#616161] hover:text-[#262626]'
-            }`}
-          >
-            Table Economics
-          </button>
-
-          <button
-            onClick={() => scrollTo('support')}
-            className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
-              activeSection === 'support'
-                ? 'bg-white text-[#FF0055] shadow-xs font-semibold'
-                : 'text-[#616161] hover:text-[#262626]'
-            }`}
-          >
-            Direct Support Desk
-          </button>
-        </div>
-
-        {/* Action Button */}
-        <div className="flex items-center gap-3">
-          <Link
-            to={menuLink}
-            className="inline-flex items-center justify-center gap-1.5 px-5 py-2 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-xs font-bold btn-crimson-glow transition-all active:scale-[0.98] cursor-pointer shadow-xs"
-          >
-            <span>Dine In Menu -&gt;</span>
-          </Link>
-        </div>
-      </nav>
-
-      {/* Mobile Horizontal Sub-Navigation for Anchor Navigation */}
-      <div className="md:hidden flex items-center gap-2 px-4 py-2.5 bg-[#f9f9f9] border-b border-[#e5e7eb] overflow-x-auto scrollbar-none text-xs">
-        <button
-          onClick={() => scrollTo('flow')}
-          className={`px-3.5 py-1 rounded-full whitespace-nowrap cursor-pointer transition-colors ${
-            activeSection === 'flow'
-              ? 'bg-[#fff0f3] text-[#FF0055] font-semibold border border-[#ffd1dc]'
-              : 'text-[#727272] bg-white border border-[#e5e7eb]'
-          }`}
-        >
-          Four Stage Flow
-        </button>
-        <button
-          onClick={() => scrollTo('roi')}
-          className={`px-3.5 py-1 rounded-full whitespace-nowrap cursor-pointer transition-colors ${
-            activeSection === 'roi'
-              ? 'bg-[#fff0f3] text-[#FF0055] font-semibold border border-[#ffd1dc]'
-              : 'text-[#727272] bg-white border border-[#e5e7eb]'
-          }`}
-        >
-          Table Economics
-        </button>
-        <button
-          onClick={() => scrollTo('support')}
-          className={`px-3.5 py-1 rounded-full whitespace-nowrap cursor-pointer transition-colors ${
-            activeSection === 'support'
-              ? 'bg-[#fff0f3] text-[#FF0055] font-semibold border border-[#ffd1dc]'
-              : 'text-[#727272] bg-white border border-[#e5e7eb]'
-          }`}
-        >
-          Direct Support Desk
-        </button>
-      </div>
-
       {/* =========================================================================
           HERO SECTION: High-Craft Editorial Layout with Live Table Terminal Preview
           ========================================================================= */}
@@ -371,6 +241,11 @@ export const HomePage: React.FC = () => {
           </div>
         </div>
       </section>
+
+      {/* =========================================================================
+          STAGESHOW LIVE PRODUCT DEMONSTRATION: BYOD Phone & Kitchen Pass Synchronization
+          ========================================================================= */}
+      <StageshowDemo />
 
       {/* =========================================================================
           FOUR STAGE DINE-IN FLOW: Sequential Architecture (No Symmetrical Slop)

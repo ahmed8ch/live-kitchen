@@ -71,7 +71,7 @@ export const TableLobbyBar: React.FC = () => {
   };
 
   return (
-    <div className="w-full bg-[#fff0f3] border-b border-[#ffd1dc] px-4 py-2.5 transition-colors">
+    <div className="w-full bg-[#f9f9f9] border-b border-[#e5e7eb] px-4 py-2 transition-colors">
       <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
         {/* Left: Table Seating (Strictly 0 flicking dots per user directive) */}
         <div className="flex items-center gap-3">
