@@ -8,20 +8,13 @@ import { FloatingCartBar } from '../components/cart/FloatingCartBar';
 import { CartDrawer } from '../components/cart/CartDrawer';
 import { TableLobbyBar } from '../components/multiplayer/TableLobbyBar';
 import { useAppStore, flushPendingHostToasts } from '../store/useAppStore';
-
-const CATEGORIES: { id: 'all' | MenuCategory; label: string }[] = [
-  { id: 'all', label: 'All Dishes' },
-  { id: 'burgers', label: 'Flame Burgers' },
-  { id: 'steaks', label: 'Prime Steaks' },
-  { id: 'pizzas', label: 'Artisan Pizzas' },
-  { id: 'pastas', label: 'Pastas & Sides' },
-  { id: 'drinks', label: 'Drinks & Desserts' },
-];
+import { useTranslation } from '../i18n';
 
 const DIETARY_TAGS = ['all', 'Halal', 'Gluten-Free', 'High-Protein', 'Vegetarian', 'Wood-Fired'] as const;
 type DietaryTag = (typeof DIETARY_TAGS)[number];
 
 export const MenuPage: React.FC = () => {
+  const { t, localizeDish, localizeTag } = useTranslation();
   const [searchParams] = useSearchParams();
   const tableParam = searchParams.get('table');
 
@@ -33,6 +26,15 @@ export const MenuPage: React.FC = () => {
   const activeTable = useAppStore((state) => state.activeTable);
   const userAccount = useAppStore((state) => state.userAccount);
   const openAccountModal = useAppStore((state) => state.openAccountModal);
+
+  const categories: { id: 'all' | MenuCategory; label: string }[] = [
+    { id: 'all', label: t('menu.categories.all') },
+    { id: 'burgers', label: t('menu.categories.burgers') },
+    { id: 'steaks', label: t('menu.categories.steaks') },
+    { id: 'pizzas', label: t('menu.categories.pizzas') },
+    { id: 'pastas', label: t('menu.categories.pastas') },
+    { id: 'drinks', label: t('menu.categories.drinks') },
+  ];
 
   useEffect(() => {
     flushPendingHostToasts();
@@ -51,10 +53,14 @@ export const MenuPage: React.FC = () => {
     }
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase().trim();
-      const inName = item.name.toLowerCase().includes(q);
-      const inDesc = item.description.toLowerCase().includes(q);
-      const inBadge = item.badge?.toLowerCase().includes(q);
-      const inTags = item.tags?.some((t) => t.toLowerCase().includes(q));
+      const localDish = localizeDish(item);
+      const inName = item.name.toLowerCase().includes(q) || localDish.name.toLowerCase().includes(q);
+      const inDesc = item.description.toLowerCase().includes(q) || localDish.description.toLowerCase().includes(q);
+      const inBadge =
+        item.badge?.toLowerCase().includes(q) || localDish.badge?.toLowerCase().includes(q);
+      const inTags = item.tags?.some(
+        (tag) => tag.toLowerCase().includes(q) || localizeTag(tag).toLowerCase().includes(q)
+      );
       if (!inName && !inDesc && !inBadge && !inTags) return false;
     }
     return true;
@@ -72,16 +78,16 @@ export const MenuPage: React.FC = () => {
             <div>
               <div className="flex items-center gap-2.5">
                 <h1 className="text-2xl sm:text-3xl font-bold text-[#262626] tracking-tight">
-                  Dine-In Menu
+                  {t('menu.title')}
                 </h1>
                 {activeTable && (
                   <span className="px-3 py-1 rounded-full bg-[#fff0f3] border border-[#ffd1dc] text-xs font-mono-num font-bold text-[#FF0055]">
-                    Table {activeTable}
+                    {t('common.table')} {activeTable}
                   </span>
                 )}
               </div>
               <p className="mt-1 text-sm text-[#727272]">
-                Prepared fresh over wood-fired coals upon order settlement. Touch any dish to customize modifiers.
+                {t('menu.subtitle')}
               </p>
             </div>
 
@@ -89,14 +95,14 @@ export const MenuPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => openAccountModal()}
-                className="px-3.5 py-2 min-h-[44px] rounded-2xl border border-[#e5e7eb] bg-[#f9f9f9] hover:bg-[#f0f0f0] transition-colors flex items-center gap-2.5 text-left shrink-0 cursor-pointer"
+                className="px-3.5 py-2 min-h-[44px] rounded-2xl border border-[#e5e7eb] bg-[#f9f9f9] hover:bg-[#f0f0f0] transition-colors flex items-center gap-2.5 text-start shrink-0 cursor-pointer"
               >
                 <div className="w-7 h-7 rounded-full bg-[#FF0055]/10 flex items-center justify-center text-[#FF0055] shrink-0 font-bold text-xs">
                   {userAccount.fullName.charAt(0).toUpperCase()}
                 </div>
                 <div>
                   <div className="text-xs font-medium text-[#727272]">
-                    Diner Profile
+                    {t('menu.dinerProfile')}
                   </div>
                   <div className="text-xs font-bold text-[#262626] flex items-center gap-1">
                     <span>{userAccount.fullName}</span>
@@ -108,7 +114,7 @@ export const MenuPage: React.FC = () => {
 
           {/* Search Input Bar */}
           <div className="mb-4 relative">
-            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#727272]">
+            <div className="absolute inset-y-0 start-0 ps-3.5 flex items-center pointer-events-none text-[#727272]">
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="11" cy="11" r="8" />
                 <line x1="21" y1="21" x2="16.65" y2="16.65" />
@@ -118,15 +124,15 @@ export const MenuPage: React.FC = () => {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search dishes by name, ingredient, or cut..."
-              className="w-full pl-10 pr-12 min-h-[44px] h-11 rounded-lg border border-[#e5e7eb] bg-[#f9f9f9] text-[13px] text-[#262626] placeholder-[#727272] focus:outline-none focus:border-[#FF0055] transition-colors shadow-xs"
+              placeholder={t('menu.searchPlaceholder')}
+              className="w-full ps-10 pe-12 min-h-[44px] h-11 rounded-lg border border-[#e5e7eb] bg-[#f9f9f9] text-[13px] text-[#262626] placeholder-[#727272] focus:outline-none focus:border-[#FF0055] transition-colors shadow-xs"
             />
             {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery('')}
-                className="absolute inset-y-0 right-0 w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center text-[#727272] hover:text-[#262626] cursor-pointer"
-                aria-label="Clear search"
+                className="absolute inset-y-0 end-0 w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center text-[#727272] hover:text-[#262626] cursor-pointer"
+                aria-label={t('menu.clearSearch')}
               >
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <line x1="18" y1="6" x2="6" y2="18" />
@@ -138,7 +144,7 @@ export const MenuPage: React.FC = () => {
 
           {/* Category Filter Pills */}
           <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none" data-ui-actions="category-filters">
-            {CATEGORIES.map((cat) => (
+            {categories.map((cat) => (
               <button
                 key={cat.id}
                 onClick={() => setActiveCategory(cat.id)}
@@ -156,8 +162,8 @@ export const MenuPage: React.FC = () => {
 
           {/* Dietary Tag Filter Pills */}
           <div className="flex items-center gap-1.5 overflow-x-auto pt-3 pb-0.5 scrollbar-none" data-ui-actions="dietary-filters">
-            <span className="text-xs font-medium text-[#727272] mr-1 shrink-0">
-              Filter:
+            <span className="text-xs font-medium text-[#727272] me-1 shrink-0">
+              {t('menu.filterLabel')}
             </span>
             {DIETARY_TAGS.map((tag) => (
               <button
@@ -170,9 +176,9 @@ export const MenuPage: React.FC = () => {
                     : 'bg-[#f9f9f9] text-[#727272] hover:bg-[#f0f0f0] border border-[#e5e7eb]'
                 }`}
               >
-                <span>{tag === 'all' ? 'All Tags' : tag}</span>
+                <span>{tag === 'all' ? t('menu.tags.all') : localizeTag(tag)}</span>
                 {userAccount?.dietaryTags?.includes(tag) && (
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#FF0055]" title="Matches your profile" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#FF0055]" title={t('menu.matchesProfile')} />
                 )}
               </button>
             ))}
@@ -184,10 +190,10 @@ export const MenuPage: React.FC = () => {
       <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8">
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-lg font-bold text-[#262626]">
-            {CATEGORIES.find((c) => c.id === activeCategory)?.label}
+            {categories.find((c) => c.id === activeCategory)?.label}
           </h2>
           <span className="text-xs text-[#727272]">
-            <span className="font-mono-num font-bold text-[#262626]">{filteredDishes.length}</span> dishes
+            <span className="font-mono-num font-bold text-[#262626]">{filteredDishes.length}</span> {t('common.dishes')}
           </span>
         </div>
 
@@ -199,9 +205,9 @@ export const MenuPage: React.FC = () => {
                 <line x1="21" y1="21" x2="16.65" y2="16.65" />
               </svg>
             </div>
-            <h3 className="text-[16px] font-bold text-[#262626]">No matching dishes found</h3>
+            <h3 className="text-[16px] font-bold text-[#262626]">{t('menu.noMatchingTitle')}</h3>
             <p className="mt-1 text-[13px] text-[#727272]">
-              Try searching with another keyword or clearing your dietary tag filters.
+              {t('menu.noMatchingDesc')}
             </p>
             <button
               type="button"
@@ -212,7 +218,7 @@ export const MenuPage: React.FC = () => {
               }}
               className="mt-4 min-h-[44px] px-5 py-2.5 rounded-full bg-[#262626] text-white text-[12px] font-bold hover:bg-black transition-colors cursor-pointer active:scale-95 shadow-xs inline-flex items-center justify-center"
             >
-              Reset All Filters
+              {t('menu.resetAllFilters')}
             </button>
           </div>
         ) : (

@@ -1,26 +1,29 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { DirectionalArrow } from '../components/ui/DirectionalArrow';
 import QRCode from 'qrcode';
 import { useAppStore } from '../store/useAppStore';
 import { FlameLinkLogo } from '../components/ui/FlameLinkLogo';
+import { useTranslation } from '../i18n';
 
 interface TableOption {
   id: string;
-  label: string;
+  num: number;
 }
 
 const RESTAURANT_TABLES: TableOption[] = [
-  { id: 'T-01', label: 'Table 1' },
-  { id: 'T-02', label: 'Table 2' },
-  { id: 'T-03', label: 'Table 3' },
-  { id: 'T-04', label: 'Table 4' },
-  { id: 'T-05', label: 'Table 5' },
-  { id: 'T-06', label: 'Table 6' },
-  { id: 'T-08', label: 'Table 8' },
-  { id: 'T-12', label: 'Table 12' },
+  { id: 'T-01', num: 1 },
+  { id: 'T-02', num: 2 },
+  { id: 'T-03', num: 3 },
+  { id: 'T-04', num: 4 },
+  { id: 'T-05', num: 5 },
+  { id: 'T-06', num: 6 },
+  { id: 'T-08', num: 8 },
+  { id: 'T-12', num: 12 },
 ];
 
 export const TableStandPage: React.FC = () => {
+  const { t } = useTranslation();
   const [selectedTable, setSelectedTable] = useState('T-04');
   const [customTable, setCustomTable] = useState('');
   const [baseStyle, setBaseStyle] = useState<'oak' | 'acrylic'>('oak');
@@ -32,9 +35,9 @@ export const TableStandPage: React.FC = () => {
   const getTableLabel = (code: string): string => {
     const numericMatch = code.match(/^T-0*(\d+)$/i);
     if (numericMatch) {
-      return `Table ${numericMatch[1]}`;
+      return `${t('common.table')} ${numericMatch[1]}`;
     }
-    return code.startsWith('T-') ? `Table ${code.replace(/^T-/i, '')}` : `Table ${code}`;
+    return code.startsWith('T-') ? `${t('common.table')} ${code.replace(/^T-/i, '')}` : `${t('common.table')} ${code}`;
   };
 
   const targetUrl = typeof window !== 'undefined'
@@ -127,15 +130,15 @@ export const TableStandPage: React.FC = () => {
         {/* Tool Header (Hidden on Print) */}
         <div className="no-print text-center max-w-xl mx-auto mb-8">
           <h1 className="text-3xl font-extrabold text-[#262626] tracking-tight" data-ui-balance>
-            Table QR Stand
+            {t('stand.title')}
           </h1>
           <p className="mt-2 text-[14px] text-[#616161]" data-ui-pretty>
-            Select a table to preview and print its physical dining stand insert. Diners scan with their camera to browse and order directly.
+            {t('stand.subtitle')}
           </p>
 
           {/* Table Picker Bar */}
           <div className="mt-6 flex flex-wrap items-center justify-center gap-2" data-ui-actions="table-picker">
-            <span className="text-[13px] font-bold text-[#262626] mr-1">Select Table:</span>
+            <span className="text-[13px] font-bold text-[#262626] me-1">{t('stand.selectTableLabel')}</span>
             {RESTAURANT_TABLES.map((table) => {
               const isSelected = activeTableCode === table.id && !customTable;
               return (
@@ -149,18 +152,18 @@ export const TableStandPage: React.FC = () => {
                       : 'bg-white hover:bg-[#f0f0f0] text-[#727272] border border-[#e5e7eb]'
                   }`}
                 >
-                  {table.label}
+                  {t('common.table')} {table.num}
                 </button>
               );
             })}
 
-            <div className="flex items-center ml-2">
+            <div className="flex items-center ms-2">
               <input
                 type="text"
                 value={customTable}
                 onChange={(e) => setCustomTable(e.target.value)}
-                placeholder="Custom ID"
-                aria-label="Custom Table Code"
+                placeholder={t('stand.customIdPlaceholder')}
+                aria-label={t('stand.customTableCodeAria')}
                 className="w-28 px-3 py-1.5 text-[13px] font-mono-num font-bold rounded-lg border border-[#e5e7eb] bg-white text-[#262626] focus:outline-none focus:border-[#FF0055]"
               />
             </div>
@@ -168,7 +171,7 @@ export const TableStandPage: React.FC = () => {
 
           {/* Base Style Toggles */}
           <div className="mt-4 flex items-center justify-center gap-2 text-[12px]">
-            <span className="text-[#727272] mr-1">Preview Base:</span>
+            <span className="text-[#727272] me-1">{t('stand.previewBaseLabel')}</span>
             <div className="flex items-center gap-1 bg-white p-1 rounded-lg border border-[#e5e7eb]">
               <button
                 onClick={() => setBaseStyle('oak')}
@@ -176,7 +179,7 @@ export const TableStandPage: React.FC = () => {
                   baseStyle === 'oak' ? 'bg-[#262626] text-white font-bold' : 'text-[#727272]'
                 }`}
               >
-                Oak Base
+                {t('stand.oakBase')}
               </button>
               <button
                 onClick={() => setBaseStyle('acrylic')}
@@ -184,7 +187,7 @@ export const TableStandPage: React.FC = () => {
                   baseStyle === 'acrylic' ? 'bg-[#262626] text-white font-bold' : 'text-[#727272]'
                 }`}
               >
-                Clear Tent
+                {t('stand.clearTent')}
               </button>
             </div>
           </div>
@@ -200,18 +203,15 @@ export const TableStandPage: React.FC = () => {
                 <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
                 <rect x="6" y="14" width="12" height="8" />
               </svg>
-              <span>Print Ready Stand</span>
+              <span>{t('stand.printReadyStandBtn')}</span>
             </button>
 
             <button
               onClick={handlePreviewMenu}
               className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[13px] font-bold shadow-xs transition-all btn-crimson-glow active:scale-95 cursor-pointer"
             >
-              <span>Preview Menu ({activeTableCode})</span>
-              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <line x1="5" y1="12" x2="19" y2="12" />
-                <polyline points="12 5 19 12 12 19" />
-              </svg>
+              <span>{t('stand.previewMenuBtn', { table: activeTableCode })}</span>
+              <DirectionalArrow className="w-4 h-4" />
             </button>
           </div>
         </div>
@@ -230,16 +230,16 @@ export const TableStandPage: React.FC = () => {
             <div className="no-print absolute inset-2 rounded-2xl border border-white/80 pointer-events-none shadow-[inset_0_1px_3px_rgba(255,255,255,0.9)]" />
 
             <div className="h-full flex flex-col justify-between text-center relative z-10 py-1">
-              {/* Brand Header & Table Indicator */}
+              {/* Brand Header & Table Indicator (Live Kitchen (لايف كيتشن) · Republic Street, adjacent to El-Montazah Park) */}
               <div className="flex items-center justify-between pb-3 border-b border-[#f0f0f0]">
                 <div className="flex items-center gap-2.5">
                   <FlameLinkLogo size="sm" showWordmark={false} />
-                  <div className="text-left">
+                  <div className="text-start">
                     <div className="font-bold text-[#262626] text-[15px] leading-tight">
                       Live Kitchen (لايف كيتشن)
                     </div>
                     <div className="text-[11px] text-[#727272]">
-                      Republic Street, adjacent to El-Montazah Park
+                      {t('home.support.addressValue')}
                     </div>
                   </div>
                 </div>
@@ -251,7 +251,7 @@ export const TableStandPage: React.FC = () => {
               {/* Table Identification */}
               <div className="py-2">
                 <div className="text-xs font-semibold text-[#727272]">
-                  DINE-IN ORDERING
+                  {t('stand.dineInOrdering')}
                 </div>
                 <div className="text-2xl font-bold text-[#262626] mt-0.5">
                   {getTableLabel(activeTableCode)}
@@ -263,11 +263,11 @@ export const TableStandPage: React.FC = () => {
                 <svg
                   viewBox={`0 0 ${qrSvg.size} ${qrSvg.size}`}
                   role="img"
-                  aria-label={`QR Code to view menu and order for ${getTableLabel(activeTableCode)}`}
+                  aria-label={t('stand.qrCodeAria', { table: getTableLabel(activeTableCode) })}
                   className="w-full h-full object-contain"
                   shapeRendering="crispEdges"
                 >
-                  <title>{`QR Code for ${getTableLabel(activeTableCode)} - Live Kitchen (لايف كيتشن)`}</title>
+                  <title>{t('stand.qrCodeTitle', { table: getTableLabel(activeTableCode) })}</title>
                   <path d={qrSvg.path} fill="#262626" />
                 </svg>
               </div>
@@ -275,10 +275,10 @@ export const TableStandPage: React.FC = () => {
               {/* Diner Instructions */}
               <div className="space-y-1 text-center pt-2">
                 <div className="text-[15px] font-bold text-[#262626]">
-                  Scan with camera to view menu &amp; order
+                  {t('stand.scanHeadline')}
                 </div>
                 <div className="text-xs text-[#727272] leading-relaxed max-w-[260px] mx-auto">
-                  Point your smartphone camera at this code to explore our menu, customize dishes, and order directly to the kitchen.
+                  {t('stand.scanInstructions')}
                 </div>
                 <div className="text-[10px] text-[#949494] truncate pt-1 border-t border-[#f0f0f0]">
                   {targetUrl}
@@ -288,12 +288,12 @@ export const TableStandPage: React.FC = () => {
               {/* Tabletop Wi-Fi & Venue Notice */}
               <div className="pt-2 border-t border-[#f0f0f0] space-y-1">
                 <div className="flex items-center justify-center gap-3 text-xs text-[#727272]">
-                  <span>Wi-Fi: <strong className="text-[#262626]">LiveKitchen-Guest</strong></span>
+                  <span>{t('stand.wifiLabel')} <strong className="text-[#262626]">LiveKitchen-Guest</strong></span>
                   <span className="text-[#e5e7eb]">•</span>
-                  <span>Pass: <strong className="text-[#262626]">livekitchen2026</strong></span>
+                  <span>{t('stand.passLabel')} <strong className="text-[#262626]">livekitchen2026</strong></span>
                 </div>
                 <div className="text-[10px] text-[#949494]">
-                  Live Kitchen (لايف كيتشن) · Republic Street, adjacent to El-Montazah Park
+                  Live Kitchen (لايف كيتشن) · {t('home.support.addressValue')}
                 </div>
               </div>
             </div>

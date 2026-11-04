@@ -1,17 +1,20 @@
 import React, { useEffect, useState } from 'react';
+import { DirectionalArrow } from '../ui/DirectionalArrow';
 import { useAppStore } from '../../store/useAppStore';
+import { useTranslation } from '../../i18n';
 
 export const FloatingCartBar: React.FC = () => {
   const cart = useAppStore((state) => state.cart);
+  const activeTable = useAppStore((state) => state.activeTable);
   const isCartDrawerOpen = useAppStore((state) => state.isCartDrawerOpen);
   const openCartDrawer = useAppStore((state) => state.openCartDrawer);
+  const { t } = useTranslation();
 
   const [counterPop, setCounterPop] = useState(false);
 
   const safeCart = cart || [];
   const totalItems = safeCart.reduce((sum, item) => sum + (item?.quantity || 1), 0);
 
-  // Trigger tactile spring pop whenever totalItems changes (Agent 09)
   useEffect(() => {
     if (totalItems > 0) {
       setCounterPop(true);
@@ -33,7 +36,7 @@ export const FloatingCartBar: React.FC = () => {
 
   return (
     <aside
-      aria-label="Active Order Cart Summary"
+      aria-label={t('cart.floatingBar.tableBasket', { table: activeTable || 'T-04' })}
       data-ui-container="floating-cart"
       className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-[92%] sm:w-auto min-w-[320px] sm:min-w-[360px] animate-in slide-in-from-bottom-4 duration-200 select-none"
     >
@@ -47,7 +50,7 @@ export const FloatingCartBar: React.FC = () => {
           counterPop ? 'animate-spring-pop ring-2 ring-[#FF0055]' : ''
         } active:scale-95`}
       >
-        {/* Left: Item Count Badge & Label */}
+        {/* Start: Item Count Badge & Label */}
         <div className="flex items-center gap-3">
           <div
             className={`w-7 h-7 rounded-full bg-[#FF0055] text-white flex items-center justify-center font-mono-num font-bold text-[13px] shadow-xs transition-transform duration-200 ${
@@ -58,31 +61,21 @@ export const FloatingCartBar: React.FC = () => {
             {totalItems}
           </div>
           <span className="text-[14px] font-bold tracking-tight text-[#262626]">
-            View Order Cart
+            {t('cart.floatingBar.viewAndSubmit')}
           </span>
         </div>
 
-        {/* Right: Subtotal & Tax Note & Arrow */}
+        {/* End: Subtotal & Tax Note & Directional Arrow */}
         <div className="flex items-center gap-3">
-          <div className="flex flex-col items-end text-right">
+          <div className="flex flex-col items-end text-end">
             <span className="font-mono-num font-bold text-[15px] text-[#FF0055] leading-tight" data-ui-number>
-              {subtotal.toFixed(2)} EGP
+              {subtotal.toFixed(2)} {t('common.egp')}
             </span>
             <span className="text-[10px] text-[#727272] font-medium leading-tight">
-              + 14% VAT at checkout
+              + {t('brand.vatLabel')}
             </span>
           </div>
-          <svg
-            className="w-4 h-4 text-[#727272] group-hover:text-[#FF0055] transition-colors group-hover:translate-x-0.5"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M5 12h14M12 5l7 7-7 7" />
-          </svg>
+          <DirectionalArrow className="w-4 h-4 text-[#727272] group-hover:text-[#FF0055] transition-colors" />
         </div>
       </button>
     </aside>

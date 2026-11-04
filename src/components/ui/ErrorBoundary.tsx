@@ -1,5 +1,6 @@
 import { Component, ErrorInfo, ReactNode } from 'react';
 import { FlameLinkLogo } from './FlameLinkLogo';
+import { tGlobal } from '../../i18n';
 
 interface Props {
   children: ReactNode;
@@ -32,6 +33,7 @@ export class ErrorBoundary extends Component<Props, State> {
       if (typeof window !== 'undefined' && window.localStorage) {
         window.localStorage.removeItem('flamelink_multiplayer_store_v4');
         window.localStorage.removeItem('flamelink_multiplayer_store_v5');
+        window.localStorage.removeItem('flamelink_multiplayer_store_v6');
       }
     } catch {
       // Ignore storage errors
@@ -54,16 +56,15 @@ export class ErrorBoundary extends Component<Props, State> {
 
             <div className="space-y-2">
               <h1 className="text-xl font-bold text-[#262626]">
-                Application Recovery Interface
+                {tGlobal('common.errorUnexpected')}
               </h1>
               <p className="text-[13px] text-[#727272] leading-relaxed">
-                FlameLink encountered an unexpected rendering condition. Use the controls below to restore the application state.
+                {tGlobal('brand.bilingualName')}
               </p>
             </div>
 
             {this.state.error && (
-              <div className="p-4 bg-white border border-[#ffd1dc] rounded-xl text-left overflow-x-auto text-[12px] font-mono-num text-[#FF0055]">
-                <div className="font-bold mb-1">Error Diagnostics:</div>
+              <div className="p-4 bg-white border border-[#ffd1dc] rounded-xl text-start overflow-x-auto text-[12px] font-mono-num text-[#FF0055]">
                 <div className="text-[#262626] break-words">{this.state.error.toString()}</div>
               </div>
             )}
@@ -74,14 +75,14 @@ export class ErrorBoundary extends Component<Props, State> {
                 onClick={this.handleReset}
                 className="flex-1 px-5 py-3 rounded-full bg-[#FF0055] text-white font-medium text-[13px] hover:opacity-95 transition-opacity cursor-pointer shadow-xs"
               >
-                Reset Session &amp; Return Home
+                {tGlobal('common.retry')}
               </button>
               <button
                 type="button"
                 onClick={this.handleReload}
                 className="px-5 py-3 rounded-full bg-white border border-[#e5e7eb] text-[#262626] font-medium text-[13px] hover:bg-[#f0f0f0] transition-colors cursor-pointer"
               >
-                Reload Page
+                {tGlobal('common.retry')}
               </button>
             </div>
           </div>

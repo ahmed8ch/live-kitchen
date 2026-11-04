@@ -1,9 +1,11 @@
 import React, { useState, useRef, useMemo, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
+import { DirectionalArrow, DirectionalBackArrow } from '../components/ui/DirectionalArrow';
 import { useAppStore } from '../store/useAppStore';
 import { PaymentMethod } from '../types/domain';
 import { FlameLinkLogo } from '../components/ui/FlameLinkLogo';
 import { ThermalText } from '../components/ui/ThermalText';
+import { useTranslation } from '../i18n';
 
 const SPLIT_OPTIONS = [1, 2, 3, 4, 5, 6, 8];
 const TIP_PERCENTAGES = [0, 10, 15, 20];
@@ -22,6 +24,7 @@ export const calculateEqualSplitShares = (totalAmount: number, dinerCount: numbe
 };
 
 export const SettlementPage: React.FC = () => {
+  const { t, localizeDish, localizeModifier } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
@@ -77,9 +80,9 @@ export const SettlementPage: React.FC = () => {
             <line x1="2" y1="10" x2="22" y2="10" />
           </svg>
         </div>
-        <h2 className="text-[20px] sm:text-xl font-bold tracking-tight text-[#262626]">No Active Order Ticket</h2>
+        <h2 className="text-[20px] sm:text-xl font-bold tracking-tight text-[#262626]">{t('settlement.emptyTitle')}</h2>
         <p className="mt-2 text-[#727272] text-[14px] leading-relaxed max-w-sm mx-auto">
-          Your table currently has no orders placed. Select dishes from the menu to start.
+          {t('settlement.emptyDesc')}
         </p>
         <div className="mt-6">
           <Link
@@ -87,7 +90,8 @@ export const SettlementPage: React.FC = () => {
             data-ui-radius="999"
             className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#FF0055] text-white text-[13px] font-bold transition-all btn-crimson-glow shadow-xs hover:bg-[#e0004d] active:scale-95"
           >
-            <span>Open Dine-In Menu -&gt;</span>
+            <span>{t('settlement.openDineInMenu')}</span>
+            <DirectionalArrow className="w-4 h-4" />
           </Link>
         </div>
       </div>
@@ -126,9 +130,9 @@ export const SettlementPage: React.FC = () => {
 
     ticket.items.forEach((item) => {
       const memberId = item.addedBy?.memberId || 'host-diner';
-      const rawName = item.addedBy?.name || 'Table Host';
+      const rawName = item.addedBy?.name || t('common.tableHost');
       const memberName = rawName.replace(/\s*\(Host\)$/i, '') === 'Red Panda'
-        ? 'Table Host'
+        ? t('common.tableHost')
         : rawName.replace(/\s*\(Host\)$/i, '');
       const isHost = item.addedBy?.isHost || false;
       const isDeparted = currentSession
@@ -163,7 +167,7 @@ export const SettlementPage: React.FC = () => {
     });
 
     return Object.values(groups);
-  }, [ticket, effectiveMember, currentSession]);
+  }, [ticket, effectiveMember, currentSession, t]);
 
   const totalPaidShares = Object.values(ticket.paidDiners || {}).reduce(
     (sum, record) => sum + record.amount,
@@ -209,7 +213,7 @@ export const SettlementPage: React.FC = () => {
     setTimeout(() => {
       payDinerShare(ticket.id, memberId, selectedMethod, amount);
       setIsProcessing(false);
-      showToast(`Share of ${amount.toFixed(2)} EGP paid successfully.`);
+      showToast(t('settlement.sharePaidToast', { amount: amount.toFixed(2) }));
     }, 450);
   };
 
@@ -219,15 +223,15 @@ export const SettlementPage: React.FC = () => {
       if (splitMode === 'by_diner') {
         const memberId = effectiveMember?.id || 'host-diner';
         payDinerShare(ticket.id, memberId, selectedMethod, remainingTableBalance);
-        showToast(`Settled remaining table balance of ${remainingTableBalance.toFixed(2)} EGP.`);
+        showToast(t('settlement.settledRemainingToast', { amount: remainingTableBalance.toFixed(2) }));
       } else if (splitMode === 'equal') {
         const memberId = effectiveMember?.id || `diner-equal-${Date.now()}`;
         payDinerShare(ticket.id, memberId, selectedMethod, perPersonAmount);
-        showToast(`Paid equal share of ${perPersonAmount.toFixed(2)} EGP.`);
+        showToast(t('settlement.paidEqualShareToast', { amount: perPersonAmount.toFixed(2) }));
       } else {
         const memberId = effectiveMember?.id || `diner-custom-${Date.now()}`;
         payDinerShare(ticket.id, memberId, selectedMethod, itemizedTotal);
-        showToast(`Paid ${itemizedTotal.toFixed(2)} EGP for selected dishes.`);
+        showToast(t('settlement.paidSelectedDishesToast', { amount: itemizedTotal.toFixed(2) }));
       }
       setIsProcessing(false);
     }, 500);
@@ -272,7 +276,7 @@ export const SettlementPage: React.FC = () => {
 
     ctx.font = 'bold 16px Inter, sans-serif';
     ctx.fillStyle = '#ffffff';
-    ctx.fillText('FlameLink e-Receipt', 20, 26);
+    ctx.fillText('Live Kitchen e-Receipt', 20, 26);
 
     ctx.font = '12px monospace';
     ctx.fillStyle = '#ffffff';
@@ -321,10 +325,10 @@ export const SettlementPage: React.FC = () => {
 
     const dataUrl = canvas.toDataURL('image/png');
     const link = document.createElement('a');
-    link.download = `FlameLink-Receipt-${ticket.id}.png`;
+    link.download = `LiveKitchen-Receipt-${ticket.id}.png`;
     link.href = dataUrl;
     link.click();
-    showToast(`Receipt #${ticket.id} saved as image.`);
+    showToast(t('settlement.receiptSavedToast', { id: ticket.id }));
   };
 
   return (
@@ -336,10 +340,8 @@ export const SettlementPage: React.FC = () => {
             to={`/order/${ticket.id}`}
             className="min-h-[44px] inline-flex items-center gap-1.5 text-[13px] text-[#727272] hover:text-[#262626] transition-colors"
           >
-            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M19 12H5M12 19l-7-7 7-7" />
-            </svg>
-            <span>Back to Live Tracker</span>
+            <DirectionalBackArrow className="w-4 h-4" />
+            <span>{t('settlement.backToLiveTracker')}</span>
           </Link>
 
           {/* Loopback: Order Again button */}
@@ -347,7 +349,7 @@ export const SettlementPage: React.FC = () => {
             onClick={handleOrderAgain}
             className="min-h-[44px] px-4 py-2 rounded-full bg-[#262626] hover:bg-black text-white text-[12px] font-bold transition-all cursor-pointer shadow-xs inline-flex items-center justify-center"
           >
-            + Order Again
+            {t('settlement.orderAgainBtn')}
           </button>
         </div>
 
@@ -356,13 +358,13 @@ export const SettlementPage: React.FC = () => {
           <div className="no-print mb-6 p-4 rounded-2xl bg-[#fff0f3] border-2 border-[#ffd1dc] space-y-3">
             <div>
               <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#ffe0e8] text-[#FF0055] text-[11px] font-bold">
-                <span>PAYMENT REQUIRED BEFORE COOKING</span>
+                <span>{t('settlement.paymentRequiredBadge')}</span>
               </div>
               <h3 className="text-lg font-bold text-[#262626] mt-1">
-                Chit #<ThermalText text={ticket.cashierChitCode || ticket.id} durationMs={300} />
+                {t('common.chit')} #<ThermalText text={ticket.cashierChitCode || ticket.id} durationMs={300} />
               </h3>
               <p className="text-[13px] text-[#727272] mt-0.5">
-                Present this chit at the front register, or settle online below to fire order to kitchen line.
+                {t('settlement.chitNoticeDesc')}
               </p>
             </div>
           </div>
@@ -379,13 +381,13 @@ export const SettlementPage: React.FC = () => {
             <div className="min-w-0 flex-1">
               <FlameLinkLogo size="md" />
               <div className="text-[12px] text-[#727272] mt-1.5 leading-snug">
-                Official Egyptian Tax Authority (ETA) e-Receipt
+                {t('settlement.officialEtaReceipt')}
               </div>
             </div>
 
-            <div className="shrink-0 text-right whitespace-nowrap">
+            <div className="shrink-0 text-end whitespace-nowrap">
               <span className="text-[11px] text-[#949494] block">
-                {ticket.tableNumber ? `Table ${ticket.tableNumber}` : 'Dine-In'}
+                {ticket.tableNumber ? `${t('common.table')} ${ticket.tableNumber}` : t('settlement.dineIn')}
               </span>
               <span className="text-[15px] font-mono-num font-bold text-[#262626]" data-ui-number>
                 #<ThermalText text={ticket.id} durationMs={350} />
@@ -395,30 +397,31 @@ export const SettlementPage: React.FC = () => {
 
           {/* Notch Line Indicator */}
           <div className="py-2.5 my-1 thermal-tear-line flex items-center justify-between text-[11px] text-[#949494]">
-            <span>Fiscal ID: 849-204-118</span>
+            <span>{t('settlement.fiscalId')}</span>
             <span>{new Date(ticket.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
           </div>
 
           {/* Itemized Line Items */}
           <div className="py-4 space-y-3.5 border-b border-[#e5e7eb]">
             <div className="text-[11px] font-medium text-[#949494]">
-              Itemized Order Summary
+              {t('settlement.itemizedOrderSummary')}
             </div>
 
             {ticket.items.map((item) => {
               const itemModifiersTotal = item.selectedModifiers.reduce((sum, m) => sum + m.price, 0);
               const unitPrice = item.menuItem.basePrice + itemModifiersTotal;
               const lineTotal = unitPrice * item.quantity;
+              const localDish = localizeDish(item.menuItem);
 
               return (
                 <div key={item.cartItemId} className="space-y-1">
                   <div className="flex items-start justify-between text-[14px] gap-2">
-                    <div className="flex-1 min-w-0 pr-1">
+                    <div className="flex-1 min-w-0 pe-1">
                       <div className="flex items-baseline gap-1.5 flex-wrap">
                         <span className="font-mono-num font-bold text-[#262626] shrink-0" data-ui-number>
                           {item.quantity}x
                         </span>
-                        <span className="text-[#262626] font-medium leading-snug">{item.menuItem.name}</span>
+                        <span className="text-[#262626] font-medium leading-snug">{localDish.name}</span>
                         {item.quantity > 1 && (
                           <span className="text-[12px] font-mono-num text-[#949494] shrink-0" data-ui-number>
                             @{unitPrice.toFixed(2)}
@@ -427,22 +430,22 @@ export const SettlementPage: React.FC = () => {
                       </div>
                       {item.addedBy && (
                         <div className="text-[11px] text-[#727272] mt-0.5">
-                          Ordered by {item.addedBy.name.replace(/\s*\(Host\)$/i, '')}
+                          {t('settlement.orderedBy', { name: item.addedBy.name.replace(/\s*\(Host\)$/i, '') })}
                         </div>
                       )}
                     </div>
                     <span className="shrink-0 font-mono-num font-bold text-[#262626] whitespace-nowrap pt-0.5" data-ui-number>
-                      {lineTotal.toFixed(2)} EGP
+                      {lineTotal.toFixed(2)} {t('common.egp')}
                     </span>
                   </div>
 
                   {/* Modifiers List */}
                   {item.selectedModifiers.length > 0 && (
-                    <div className="pl-6 space-y-0.5 text-[12px] text-[#727272]">
+                    <div className="ps-6 space-y-0.5 text-[12px] text-[#727272]">
                       {item.selectedModifiers.map((m) => (
                         <div key={m.id} className="flex justify-between">
-                          <span>+ {m.name}</span>
-                          <span className="font-mono-num" data-ui-number>+{m.price.toFixed(2)} EGP</span>
+                          <span>+ {localizeModifier(item.menuItem.id, m.id, m.name)}</span>
+                          <span className="font-mono-num" data-ui-number>+{m.price.toFixed(2)} {t('common.egp')}</span>
                         </div>
                       ))}
                     </div>
@@ -450,8 +453,8 @@ export const SettlementPage: React.FC = () => {
 
                   {/* Customer Notes */}
                   {item.notes && (
-                    <div className="pl-6 text-[12px] italic text-[#949494]">
-                      Note: "{item.notes}"
+                    <div className="ps-6 text-[12px] italic text-[#949494]">
+                      {t('settlement.noteLabel', { notes: item.notes })}
                     </div>
                   )}
                 </div>
@@ -462,35 +465,40 @@ export const SettlementPage: React.FC = () => {
           {/* Tax & Total Calculation */}
           <div className="py-4 space-y-2 border-b border-[#e5e7eb] text-[13px]">
             <div className="flex justify-between text-[#727272]">
-              <span>Subtotal (Net of Tax)</span>
-              <span className="font-mono-num text-[#262626]" data-ui-number>{ticket.subtotal.toFixed(2)} EGP</span>
+              <span>{t('settlement.subtotalNetTax')}</span>
+              <span className="font-mono-num text-[#262626]" data-ui-number>{ticket.subtotal.toFixed(2)} {t('common.egp')}</span>
             </div>
 
             <div className="flex justify-between text-[#727272]">
-              <span>Taxes &amp; Service (14%)</span>
-              <span className="font-mono-num text-[#262626]" data-ui-number>{ticket.vatAmount.toFixed(2)} EGP</span>
+              <span>{t('settlement.taxesService14')}</span>
+              <span className="font-mono-num text-[#262626]" data-ui-number>{ticket.vatAmount.toFixed(2)} {t('common.egp')}</span>
             </div>
 
             <div className="pt-2 flex justify-between text-[18px] font-bold text-[#262626]">
-              <span>Grand Total</span>
-              <span className="font-mono-num font-bold text-[#FF0055]" data-ui-number>{ticket.total.toFixed(2)} EGP</span>
+              <span>{t('settlement.grandTotal')}</span>
+              <span className="font-mono-num font-bold text-[#FF0055]" data-ui-number>{ticket.total.toFixed(2)} {t('common.egp')}</span>
             </div>
 
             {totalPaidShares > 0 && (
               <div className="pt-2.5 mt-2 border-t border-dashed border-[#e5e7eb] space-y-1.5 text-[12px]">
                 <div className="text-[11px] uppercase text-[#727272] font-semibold tracking-wide">
-                  Pre-Settled Companion Shares:
+                  {t('settlement.preSettledCompanionShares')}
                 </div>
                 {Object.values(ticket.paidDiners || {}).map((rec) => (
                   <div key={rec.memberId} className="flex justify-between text-[#262626]">
-                    <span>Less: Settled by {rec.name} ({rec.paymentMethod.replace('_', ' ').toUpperCase()})</span>
-                    <span className="font-mono-num font-medium">-{rec.amount.toFixed(2)} EGP</span>
+                    <span>
+                      {t('settlement.lessSettledBy', {
+                        name: rec.name,
+                        method: rec.paymentMethod.replace('_', ' ').toUpperCase(),
+                      })}
+                    </span>
+                    <span className="font-mono-num font-medium">-{rec.amount.toFixed(2)} {t('common.egp')}</span>
                   </div>
                 ))}
                 <div className="flex justify-between text-[15px] font-bold text-[#262626] pt-1.5 border-t border-[#e5e7eb]">
-                  <span>{isVerifiedPaid ? 'Balance Due:' : 'Net Balance Due (Host):'}</span>
+                  <span>{isVerifiedPaid ? t('settlement.balanceDue') : t('settlement.netBalanceDueHost')}</span>
                   <span className={`font-mono-num ${isVerifiedPaid ? 'text-[#262626]' : 'text-[#FF0055]'}`}>
-                    {isVerifiedPaid ? '0.00 EGP' : `${remainingTableBalance.toFixed(2)} EGP`}
+                    {isVerifiedPaid ? `0.00 ${t('common.egp')}` : `${remainingTableBalance.toFixed(2)} ${t('common.egp')}`}
                   </span>
                 </div>
               </div>
@@ -500,8 +508,9 @@ export const SettlementPage: React.FC = () => {
           {/* ADVANCED BILL SPLITTING ENGINE (NO-PRINT) */}
           {!isVerifiedPaid && (
             <div className="no-print py-4 border-b border-[#e5e7eb] space-y-3">
+              {/* Split Bill Mode */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-                <span className="text-[12px] font-medium text-[#262626]">Split Bill Mode</span>
+                <span className="text-[12px] font-medium text-[#262626]">{t('settlement.splitBillMode')}</span>
                 <div className="grid grid-cols-3 sm:flex items-center gap-1 bg-[#f9f9f9] p-1.5 rounded-full border border-[#e5e7eb] w-full sm:w-auto">
                   <button
                     onClick={() => setSplitMode('by_diner')}
@@ -509,7 +518,7 @@ export const SettlementPage: React.FC = () => {
                       splitMode === 'by_diner' ? 'bg-[#262626] text-white shadow-xs' : 'text-[#727272] hover:text-[#262626]'
                     }`}
                   >
-                    Split by Diner
+                    {t('settlement.splitByDiner')}
                   </button>
                   <button
                     onClick={() => setSplitMode('equal')}
@@ -517,7 +526,7 @@ export const SettlementPage: React.FC = () => {
                       splitMode === 'equal' ? 'bg-[#262626] text-white shadow-xs' : 'text-[#727272] hover:text-[#262626]'
                     }`}
                   >
-                    Equal Split
+                    {t('settlement.equalSplit')}
                   </button>
                   <button
                     onClick={() => {
@@ -528,7 +537,7 @@ export const SettlementPage: React.FC = () => {
                       splitMode === 'itemized' ? 'bg-[#262626] text-white shadow-xs' : 'text-[#727272] hover:text-[#262626]'
                     }`}
                   >
-                    Custom Dishes
+                    {t('settlement.customDishes')}
                   </button>
                 </div>
               </div>
@@ -539,9 +548,9 @@ export const SettlementPage: React.FC = () => {
                   {/* Table Balance Progress Banner */}
                   <div className="p-3.5 rounded-2xl bg-[#f9f9f9] border border-[#e5e7eb] space-y-2">
                     <div className="flex items-center justify-between text-[12px]">
-                      <span className="text-[#727272]">Remaining Table Balance:</span>
+                      <span className="text-[#727272]">{t('settlement.remainingTableBalance')}</span>
                       <span className="font-mono-num font-bold text-[#FF0055] text-[15px]">
-                        {remainingTableBalance.toFixed(2)} EGP
+                        {remainingTableBalance.toFixed(2)} {t('common.egp')}
                       </span>
                     </div>
                     <div className="w-full bg-[#e5e7eb] h-1.5 rounded-full overflow-hidden">
@@ -553,8 +562,8 @@ export const SettlementPage: React.FC = () => {
                       />
                     </div>
                     <div className="flex justify-between text-[11px] text-[#727272]">
-                      <span>Settled: <span className="font-mono-num font-medium">{totalPaidShares.toFixed(2)} EGP</span></span>
-                      <span>Total: <span className="font-mono-num font-medium">{ticket.total.toFixed(2)} EGP</span></span>
+                      <span>{t('settlement.settledLabel')} <span className="font-mono-num font-medium">{totalPaidShares.toFixed(2)} {t('common.egp')}</span></span>
+                      <span>{t('settlement.totalLabel')} <span className="font-mono-num font-medium">{ticket.total.toFixed(2)} {t('common.egp')}</span></span>
                     </div>
                   </div>
 
@@ -576,7 +585,7 @@ export const SettlementPage: React.FC = () => {
                             </span>
                             {group.isCurrentUser && (
                               <span className="px-2 py-0.5 rounded-full bg-[#FF0055]/10 text-[#FF0055] text-[10px] font-bold">
-                                You
+                                {t('common.you')}
                               </span>
                             )}
                           </div>
@@ -589,19 +598,19 @@ export const SettlementPage: React.FC = () => {
                                   : 'bg-[#262626] text-white'
                               }`}
                             >
-                              {group.isDeparted ? 'PAID & DEPARTED' : 'PAID'}
+                              {group.isDeparted ? t('settlement.paidAndDeparted') : t('common.paid')}
                             </span>
                           ) : group.isDeparted ? (
                             <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[10px]">
-                              LEFT TABLE
+                              {t('settlement.leftTable')}
                             </span>
                           ) : group.isCurrentUser ? (
                             <span className="text-[11px] text-[#FF0055] font-bold">
-                              YOUR SHARE
+                              {t('settlement.yourShare')}
                             </span>
                           ) : (
                             <span className="px-2.5 py-0.5 rounded-full bg-[#f9f9f9] border border-[#e5e7eb] text-[#727272] text-[10px]">
-                              AWAITING DINER DEVICE
+                              {t('settlement.awaitingDinerDevice')}
                             </span>
                           )}
                         </div>
@@ -611,18 +620,19 @@ export const SettlementPage: React.FC = () => {
                           {group.items.map((item) => {
                             const modTotal = (item.selectedModifiers || []).reduce((sum, m) => sum + m.price, 0);
                             const unitPriceWithMods = item.menuItem.basePrice + modTotal;
+                            const localDish = localizeDish(item.menuItem);
                             return (
                               <div key={item.cartItemId} className="flex justify-between items-start text-[#262626]">
                                 <div>
-                                  <span>{item.quantity}x {item.menuItem.name}</span>
+                                  <span>{item.quantity}x {localDish.name}</span>
                                   {modTotal > 0 && (
                                     <div className="text-[10px] text-[#727272]">
-                                      +{item.selectedModifiers.map((m) => m.name).join(', ')}
+                                      +{item.selectedModifiers.map((m) => localizeModifier(item.menuItem.id, m.id, m.name)).join(', ')}
                                     </div>
                                   )}
                                 </div>
-                                <span className="font-mono-num text-[#727272] shrink-0 ml-2">
-                                  {(unitPriceWithMods * item.quantity).toFixed(2)} EGP
+                                <span className="font-mono-num text-[#727272] shrink-0 ms-2">
+                                  {(unitPriceWithMods * item.quantity).toFixed(2)} {t('common.egp')}
                                 </span>
                               </div>
                             );
@@ -632,16 +642,16 @@ export const SettlementPage: React.FC = () => {
                         {/* Financial calculations for this diner */}
                         <div className="pt-2 border-t border-[#f0f0f0] space-y-1 text-[11px]">
                           <div className="flex justify-between text-[#727272]">
-                            <span>Subtotal:</span>
-                            <span className="font-mono-num">{group.subtotal.toFixed(2)} EGP</span>
+                            <span>{t('common.subtotal')}:</span>
+                            <span className="font-mono-num">{group.subtotal.toFixed(2)} {t('common.egp')}</span>
                           </div>
                           <div className="flex justify-between text-[#727272]">
-                            <span>Taxes (14%):</span>
-                            <span className="font-mono-num">{group.vatAmount.toFixed(2)} EGP</span>
+                            <span>{t('settlement.taxes14')}</span>
+                            <span className="font-mono-num">{group.vatAmount.toFixed(2)} {t('common.egp')}</span>
                           </div>
                           <div className="flex justify-between text-[13px] font-bold text-[#262626] pt-1">
-                            <span>Total Share:</span>
-                            <span className="font-mono-num text-[#FF0055]">{group.total.toFixed(2)} EGP</span>
+                            <span>{t('settlement.totalShare')}</span>
+                            <span className="font-mono-num text-[#FF0055]">{group.total.toFixed(2)} {t('common.egp')}</span>
                           </div>
                         </div>
 
@@ -653,9 +663,9 @@ export const SettlementPage: React.FC = () => {
                                 ? 'bg-slate-50 border-slate-200 text-slate-700'
                                 : 'bg-[#f9f9f9] border-[#e5e7eb] text-[#262626]'
                             }`}>
-                              <span>{group.isDeparted ? 'PAID & DEPARTED' : 'PAID'} // </span>
-                              <span className="font-mono-num font-bold">{group.total.toFixed(2)} EGP</span>
-                              <span> via {group.paymentRecord?.paymentMethod?.toUpperCase() || 'ONLINE'}</span>
+                              <span>{group.isDeparted ? t('settlement.paidAndDeparted') : t('common.paid')} // </span>
+                              <span className="font-mono-num font-bold">{group.total.toFixed(2)} {t('common.egp')}</span>
+                              <span> {t('settlement.paidVia', { method: group.paymentRecord?.paymentMethod?.toUpperCase() || 'ONLINE' })}</span>
                             </div>
                           ) : group.isCurrentUser ? (
                             <button
@@ -664,13 +674,14 @@ export const SettlementPage: React.FC = () => {
                               disabled={isProcessing}
                               className="min-h-[44px] w-full py-2.5 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[12px] font-bold transition-all btn-crimson-glow cursor-pointer shadow-xs flex items-center justify-center gap-1.5"
                             >
-                              <span>Pay My Share ({group.total.toFixed(2)} EGP) -&gt;</span>
+                              <span>{t('settlement.payMyShareBtn', { amount: group.total.toFixed(2) })}</span>
+                              <DirectionalArrow className="w-3.5 h-3.5" />
                             </button>
                           ) : (
                             <div className="space-y-1.5">
                               <div className="text-[11px] text-[#727272] flex items-center justify-between px-1">
-                                <span>Awaiting payment on diner phone...</span>
-                                <span className="font-mono-num font-bold text-[#FF0055]">{group.total.toFixed(2)} EGP</span>
+                                <span>{t('settlement.awaitingDinerPhone')}</span>
+                                <span className="font-mono-num font-bold text-[#FF0055]">{group.total.toFixed(2)} {t('common.egp')}</span>
                               </div>
                               <button
                                 type="button"
@@ -678,7 +689,8 @@ export const SettlementPage: React.FC = () => {
                                 disabled={isProcessing}
                                 className="min-h-[44px] w-full py-2 rounded-full bg-white hover:bg-[#f9f9f9] border border-[#e5e7eb] text-[#262626] text-[11px] font-bold transition-all cursor-pointer shadow-xs flex items-center justify-center gap-1"
                               >
-                                <span>Cover for {group.name} ({group.total.toFixed(2)} EGP) -&gt;</span>
+                                <span>{t('settlement.coverForBtn', { name: group.name, amount: group.total.toFixed(2) })}</span>
+                                <DirectionalArrow className="w-3 h-3" />
                               </button>
                             </div>
                           )}
@@ -692,11 +704,11 @@ export const SettlementPage: React.FC = () => {
               {splitMode === 'equal' && (
                 <div className="space-y-2.5">
                   <div className="flex items-center justify-between">
-                    <span className="text-[12px] text-[#727272]">Diners sharing bill:</span>
+                    <span className="text-[12px] text-[#727272]">{t('settlement.dinersSharingBill')}</span>
                     <span className="text-[13px] font-mono-num font-bold text-[#FF0055]">
                       {equalSplitShares.length > 1 && equalSplitShares[0] !== equalSplitShares[equalSplitShares.length - 1]
-                        ? `${equalSplitShares[0].toFixed(2)} - ${equalSplitShares[equalSplitShares.length - 1].toFixed(2)} EGP / person`
-                        : `${perPersonAmount.toFixed(2)} EGP / person`}
+                        ? `${equalSplitShares[0].toFixed(2)} - ${equalSplitShares[equalSplitShares.length - 1].toFixed(2)} ${t('common.egp')} ${t('settlement.perPerson')}`
+                        : `${perPersonAmount.toFixed(2)} ${t('common.egp')} ${t('settlement.perPerson')}`}
                     </span>
                   </div>
 
@@ -712,7 +724,7 @@ export const SettlementPage: React.FC = () => {
                             : 'bg-[#f9f9f9] hover:bg-[#f0f0f0] text-[#727272] border border-[#e5e7eb]'
                         }`}
                       >
-                        {num === 1 ? '1 Pay All' : `${num} Ways`}
+                        {num === 1 ? t('settlement.onePayAll') : t('settlement.nWays', { count: num })}
                       </button>
                     ))}
                   </div>
@@ -724,7 +736,7 @@ export const SettlementPage: React.FC = () => {
                           key={`share-${idx}`}
                           className="px-2.5 py-1 rounded-full bg-[#f9f9f9] border border-[#e5e7eb] text-[11px] font-mono-num text-[#262626]"
                         >
-                          Diner #{idx + 1}: <span className="font-bold text-[#FF0055]">{share.toFixed(2)} EGP</span>
+                          {t('settlement.dinerNumber', { num: idx + 1 })} <span className="font-bold text-[#FF0055]">{share.toFixed(2)} {t('common.egp')}</span>
                         </span>
                       ))}
                     </div>
@@ -735,12 +747,12 @@ export const SettlementPage: React.FC = () => {
               {splitMode === 'itemized' && (
                 <div className="space-y-2.5 bg-[#f9f9f9] p-3 rounded-2xl border border-[#e5e7eb]">
                   <div className="flex items-center justify-between text-[12px]">
-                    <span className="font-medium text-[#262626]">Select Dishes You Consumed:</span>
+                    <span className="font-medium text-[#262626]">{t('settlement.selectDishesConsumed')}</span>
                     <button
                       onClick={selectAllItems}
                       className="min-h-[44px] px-2 flex items-center text-[11px] text-[#FF0055] hover:underline cursor-pointer"
                     >
-                      Select All
+                      {t('settlement.selectAll')}
                     </button>
                   </div>
 
@@ -749,6 +761,7 @@ export const SettlementPage: React.FC = () => {
                       const isSelected = selectedItemIds.includes(item.cartItemId);
                       const modTotal = item.selectedModifiers.reduce((mSum, m) => mSum + m.price, 0);
                       const itemPrice = (item.menuItem.basePrice + modTotal) * item.quantity;
+                      const localDish = localizeDish(item.menuItem);
 
                       return (
                         <label
@@ -766,10 +779,10 @@ export const SettlementPage: React.FC = () => {
                               onChange={() => toggleItemSelection(item.cartItemId)}
                               className="accent-[#FF0055] rounded cursor-pointer"
                             />
-                            <span>{item.quantity}x {item.menuItem.name}</span>
+                            <span>{item.quantity}x {localDish.name}</span>
                           </div>
                           <span className="font-mono-num font-bold">
-                            {itemPrice.toFixed(2)} EGP
+                            {itemPrice.toFixed(2)} {t('common.egp')}
                           </span>
                         </label>
                       );
@@ -777,9 +790,9 @@ export const SettlementPage: React.FC = () => {
                   </div>
 
                   <div className="pt-2 border-t border-[#e5e7eb] flex items-center justify-between text-[12px]">
-                    <span className="text-[#727272]">Your Share (incl. 14% VAT):</span>
+                    <span className="text-[#727272]">{t('settlement.yourShareInclVat')}</span>
                     <span className="font-mono-num font-bold text-[#FF0055]">
-                      {itemizedTotal.toFixed(2)} EGP
+                      {itemizedTotal.toFixed(2)} {t('common.egp')}
                     </span>
                   </div>
                 </div>
@@ -792,15 +805,18 @@ export const SettlementPage: React.FC = () => {
             {isVerifiedPaid ? (
               <div className="p-4 rounded-2xl bg-[#f9f9f9] border border-[#e5e7eb] text-center space-y-1">
                 <div className="text-[#262626] font-bold text-[14px]">
-                  <ThermalText text="PAID IN FULL // VERIFIED AT REGISTER" durationMs={350} />
+                  <ThermalText text={t('settlement.paidInFullVerified')} durationMs={350} />
                 </div>
                 <div className="text-[12px] text-[#727272]">
-                  Auth: #AUTH-{ticket.id.replace('ORD-', '99')}-01 • Method: {ticket.paymentMethod?.replace('_', ' ').toUpperCase()}
+                  {t('settlement.authMethod', {
+                    auth: `AUTH-${ticket.id.replace('ORD-', '99')}-01`,
+                    method: ticket.paymentMethod?.replace('_', ' ').toUpperCase() || 'ONLINE',
+                  })}
                 </div>
               </div>
             ) : (
               <div className="no-print space-y-4">
-                <div className="text-[12px] font-medium text-[#262626]">Select Payment Verification Method:</div>
+                <div className="text-[12px] font-medium text-[#262626]">{t('settlement.selectPaymentVerificationMethod')}</div>
                 <div className="grid grid-cols-3 gap-2">
                   <button
                     onClick={() => setSelectedMethod('apple_pay')}
@@ -811,8 +827,8 @@ export const SettlementPage: React.FC = () => {
                         : 'border-[#e5e7eb] bg-white hover:bg-[#f9f9f9]'
                     }`}
                   >
-                    <div className="text-[13px] font-bold text-[#262626]">Apple Pay</div>
-                    <div className="text-[11px] text-[#949494] mt-0.5">Instant Auth</div>
+                    <div className="text-[13px] font-bold text-[#262626]">{t('cart.drawer.applePay')}</div>
+                    <div className="text-[11px] text-[#949494] mt-0.5">{t('settlement.instantAuth')}</div>
                   </button>
 
                   <button
@@ -824,8 +840,8 @@ export const SettlementPage: React.FC = () => {
                         : 'border-[#e5e7eb] bg-white hover:bg-[#f9f9f9]'
                     }`}
                   >
-                    <div className="text-[13px] font-bold text-[#262626]">Card</div>
-                    <div className="text-[11px] text-[#949494] mt-0.5">Visa / Meeza</div>
+                    <div className="text-[13px] font-bold text-[#262626]">{t('cart.drawer.card')}</div>
+                    <div className="text-[11px] text-[#949494] mt-0.5">{t('cart.drawer.cardSub')}</div>
                   </button>
 
                   <button
@@ -837,8 +853,8 @@ export const SettlementPage: React.FC = () => {
                         : 'border-[#e5e7eb] bg-white hover:bg-[#f9f9f9]'
                     }`}
                   >
-                    <div className="text-[13px] font-bold text-[#262626]">Cashier Desk</div>
-                    <div className="text-[11px] text-[#949494] mt-0.5">Pay at Door</div>
+                    <div className="text-[13px] font-bold text-[#262626]">{t('settlement.cashierDesk')}</div>
+                    <div className="text-[11px] text-[#949494] mt-0.5">{t('settlement.payAtDoor')}</div>
                   </button>
                 </div>
 
@@ -846,18 +862,21 @@ export const SettlementPage: React.FC = () => {
                   onClick={handleSettleAction}
                   disabled={isProcessing}
                   data-ui-radius="999"
-                  className="min-h-[44px] w-full py-3.5 px-4 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[13px] sm:text-[14px] font-bold transition-all btn-crimson-glow active:scale-[0.99] cursor-pointer flex items-center justify-center text-center shadow-xs"
+                  className="min-h-[44px] w-full py-3.5 px-4 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[13px] sm:text-[14px] font-bold transition-all btn-crimson-glow active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2 text-center shadow-xs"
                 >
                   {isProcessing ? (
-                    <span>Authorizing Transaction...</span>
+                    <span>{t('settlement.authorizingTransaction')}</span>
                   ) : (
-                    <span>
-                      {splitMode === 'by_diner'
-                        ? `Settle Remaining Balance (${remainingTableBalance.toFixed(2)} EGP) ->`
-                        : splitMode === 'equal'
-                        ? `Settle Equal Share (${perPersonAmount.toFixed(2)} EGP / person) ->`
-                        : `Settle Selected Dishes (${itemizedTotal.toFixed(2)} EGP) ->`}
-                    </span>
+                    <>
+                      <span>
+                        {splitMode === 'by_diner'
+                          ? t('settlement.settleRemainingBalanceBtn', { amount: remainingTableBalance.toFixed(2) })
+                          : splitMode === 'equal'
+                          ? t('settlement.settleEqualShareBtn', { amount: perPersonAmount.toFixed(2) })
+                          : t('settlement.settleSelectedDishesBtn', { amount: itemizedTotal.toFixed(2) })}
+                      </span>
+                      <DirectionalArrow className="w-4 h-4" />
+                    </>
                   )}
                 </button>
               </div>
@@ -874,17 +893,17 @@ export const SettlementPage: React.FC = () => {
                   onClick={() => setShowRatingForm(true)}
                   className="min-h-[44px] px-5 py-2.5 rounded-full bg-[#f9f9f9] hover:bg-[#f0f0f0] border border-[#e5e7eb] text-[#262626] text-[13px] font-bold transition-colors cursor-pointer inline-flex items-center justify-center"
                 >
-                  Rate Dining Experience & Tip Kitchen
+                  {t('settlement.rateDiningExperienceBtn')}
                 </button>
               </div>
             ) : !reviewSubmitted ? (
               <form onSubmit={handleSubmitReview} className="space-y-4">
                 <div className="text-center mb-3">
                   <h3 className="text-lg font-bold text-[#262626]">
-                    Rate Your Flame Dining Experience
+                    {t('settlement.rateTitle')}
                   </h3>
                   <p className="text-[13px] text-[#727272]">
-                    Feedback directly supports our wood-fire kitchen crew.
+                    {t('settlement.rateSubtitle')}
                   </p>
                 </div>
 
@@ -896,7 +915,7 @@ export const SettlementPage: React.FC = () => {
                       type="button"
                       onClick={() => setRating(star)}
                       className="min-w-[44px] min-h-[44px] p-2 flex items-center justify-center cursor-pointer transition-transform hover:scale-110 rounded-full"
-                      aria-label={`Rate ${star} stars`}
+                      aria-label={t('settlement.rateStarsAria', { count: star })}
                     >
                       <svg
                         className={`w-7 h-7 ${star <= rating ? 'text-[#FBBF24] fill-[#FBBF24]' : 'text-[#e5e7eb]'}`}
@@ -913,9 +932,9 @@ export const SettlementPage: React.FC = () => {
                 {/* Optional Kitchen Gratuity */}
                 <div className="pt-2">
                   <div className="flex items-center justify-between text-[12px] mb-2">
-                    <span className="font-medium text-[#262626]">Optional Kitchen Gratuity</span>
+                    <span className="font-medium text-[#262626]">{t('settlement.optionalGratuity')}</span>
                     <span className="font-mono-num text-[#727272]">
-                      {tipPercent}% ({tipAmount.toFixed(2)} EGP)
+                      {tipPercent}% ({tipAmount.toFixed(2)} {t('common.egp')})
                     </span>
                   </div>
                   <div className="grid grid-cols-4 gap-2">
@@ -930,7 +949,7 @@ export const SettlementPage: React.FC = () => {
                             : 'bg-[#f9f9f9] border border-[#e5e7eb] text-[#727272] hover:bg-[#f0f0f0]'
                         }`}
                       >
-                        {pct === 0 ? 'No Tip' : `${pct}%`}
+                        {pct === 0 ? t('settlement.noTip') : `${pct}%`}
                       </button>
                     ))}
                   </div>
@@ -941,7 +960,7 @@ export const SettlementPage: React.FC = () => {
                     value={feedback}
                     onChange={(e) => setFeedback(e.target.value)}
                     rows={2}
-                    placeholder="Kitchen notes or comments (optional)"
+                    placeholder={t('settlement.reviewCommentsPlaceholder')}
                     className="w-full px-3 py-2 text-[13px] rounded-lg border border-[#e5e7eb] focus:outline-none focus:border-[#FF0055]"
                   />
                 </div>
@@ -952,19 +971,20 @@ export const SettlementPage: React.FC = () => {
                     onClick={() => setShowRatingForm(false)}
                     className="min-h-[44px] px-4 py-2 rounded-full border border-[#e5e7eb] text-[#727272] text-[12px] hover:bg-[#f9f9f9] inline-flex items-center justify-center"
                   >
-                    Cancel
+                    {t('common.cancel')}
                   </button>
                   <button
                     type="submit"
-                    className="min-h-[44px] flex-1 py-2.5 rounded-full bg-[#262626] hover:bg-black text-white text-[13px] font-bold transition-colors cursor-pointer shadow-xs inline-flex items-center justify-center"
+                    className="min-h-[44px] flex-1 py-2.5 rounded-full bg-[#262626] hover:bg-black text-white text-[13px] font-bold transition-colors cursor-pointer shadow-xs inline-flex items-center justify-center gap-1.5"
                   >
-                    Submit Review & Gratuity -&gt;
+                    <span>{t('settlement.submitReviewBtn')}</span>
+                    <DirectionalArrow className="w-3.5 h-3.5" />
                   </button>
                 </div>
               </form>
             ) : (
               <div className="p-4 rounded-2xl bg-[#f9f9f9] border border-[#e5e7eb] text-center text-[#262626] text-[13px] font-bold">
-                Thank you! Your review and gratuity have been credited to the kitchen team.
+                {t('settlement.thankYouReview')}
               </div>
             )}
           </section>
@@ -974,20 +994,18 @@ export const SettlementPage: React.FC = () => {
         {isVerifiedPaid && (
           <div className="no-print mt-6 p-6 rounded-2xl bg-[#fff0f3] border-2 border-[#ffd1dc] text-center space-y-3 shadow-xs">
             <h3 className="text-base font-bold text-[#262626]">
-              Still at Table {ticket.tableNumber || activeTable}?
+              {t('settlement.stillAtTableTitle', { table: ticket.tableNumber || activeTable || '' })}
             </h3>
             <p className="text-[13px] text-[#727272] max-w-sm mx-auto">
-              Ready for another round? Order drinks, desserts, or extra plates without losing your table session.
+              {t('settlement.stillAtTableDesc')}
             </p>
             <div className="pt-1">
               <button
                 onClick={handleOrderAgain}
                 className="min-h-[44px] w-full sm:w-auto px-8 py-3.5 rounded-full bg-[#FF0055] hover:opacity-95 text-white font-bold text-[14px] btn-crimson-glow shadow-md cursor-pointer transition-all active:scale-[0.99] inline-flex items-center justify-center gap-2"
               >
-                <span>+ Order Another Round</span>
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <path d="M5 12h14M12 5l7 7-7 7" />
-                </svg>
+                <span>{t('settlement.orderAnotherRoundBtn')}</span>
+                <DirectionalArrow className="w-4 h-4" />
               </button>
             </div>
           </div>
@@ -1004,7 +1022,7 @@ export const SettlementPage: React.FC = () => {
               <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
               <rect x="6" y="14" width="12" height="8" />
             </svg>
-            <span>Print Receipt</span>
+            <span>{t('settlement.printReceipt')}</span>
           </button>
 
           <button
@@ -1016,7 +1034,7 @@ export const SettlementPage: React.FC = () => {
               <polyline points="7 10 12 15 17 10" />
               <line x1="12" y1="15" x2="12" y2="3" />
             </svg>
-            <span>Download PDF</span>
+            <span>{t('settlement.downloadPdf')}</span>
           </button>
 
           <button
@@ -1028,7 +1046,7 @@ export const SettlementPage: React.FC = () => {
               <circle cx="8.5" cy="8.5" r="1.5" />
               <polyline points="21 15 16 10 5 21" />
             </svg>
-            <span>Save as Image</span>
+            <span>{t('settlement.saveAsImage')}</span>
           </button>
         </div>
       </div>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAppStore } from '../../store/useAppStore';
+import { useTranslation } from '../../i18n';
 
 export const TableLobbyBar: React.FC = () => {
   const activeTable = useAppStore((state) => state.activeTable);
@@ -14,6 +15,7 @@ export const TableLobbyBar: React.FC = () => {
   const resetTableSession = useAppStore((state) => state.resetTableSession);
   const leaveTableSession = useAppStore((state) => state.leaveTableSession);
   const showToast = useAppStore((state) => state.showToast);
+  const { t, lang } = useTranslation();
 
   const [copied, setCopied] = useState(false);
   const location = useLocation();
@@ -45,7 +47,11 @@ export const TableLobbyBar: React.FC = () => {
     if (typeof navigator !== 'undefined' && navigator.clipboard) {
       navigator.clipboard.writeText(pin);
       setCopied(true);
-      showToast(`Copied Table ${activeTable} PIN: ${pin}`);
+      showToast(
+        lang === 'eg'
+          ? `تم نسخ رمز PIN لترابيزة ${activeTable}: ${pin}`
+          : `Copied Table ${activeTable} PIN: ${pin}`
+      );
       setTimeout(() => setCopied(false), 2000);
     }
   };
@@ -57,21 +63,21 @@ export const TableLobbyBar: React.FC = () => {
   };
 
   return (
-    <div className="w-full bg-[#f9f9f9] border-b border-[#e5e7eb] px-4 py-2 transition-colors">
+    <div className="w-full bg-[#f9f9f9] border-b border-[#e5e7eb] px-4 py-2 transition-colors text-start">
       <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
-        {/* Left: Table Seating */}
+        {/* Start: Table Seating */}
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
             <span className="font-mono-num font-bold text-[14px] text-[#262626]">
-              Table {activeTable}
+              {t('lobby.bar.tableLabel', { table: activeTable })}
             </span>
             {isHost ? (
               <span className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full bg-[#FF0055] text-white">
-                Host
+                {t('common.host')}
               </span>
             ) : (
               <span className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full bg-white border border-[#ffd1dc] text-[#FF0055]">
-                {(effectiveUser?.name || 'Guest').replace(/\s*\(Host\)$/i, '')}
+                {(effectiveUser?.name || t('common.companion')).replace(/\s*\(Host\)$/i, '')}
               </span>
             )}
           </div>
@@ -82,12 +88,12 @@ export const TableLobbyBar: React.FC = () => {
           {isHost ? (
             <div className="flex items-center gap-1.5">
               <span className="text-[11px] font-semibold text-[#727272]">
-                PIN:
+                {t('common.pin')}:
               </span>
               <button
                 type="button"
                 onClick={handleCopyPin}
-                title="Copy 4-digit PIN for companions at your table"
+                title={t('lobby.modal.pinCardHint', { table: activeTable })}
                 className="inline-flex items-center gap-1.5 px-3 min-h-[44px] rounded-full bg-white border border-[#ffd1dc] text-[#FF0055] text-[13px] font-mono-num font-bold shadow-xs hover:border-[#FF0055] transition-colors cursor-pointer"
               >
                 <span>{pin}</span>
@@ -97,12 +103,14 @@ export const TableLobbyBar: React.FC = () => {
                 </svg>
               </button>
               {copied && (
-                <span className="text-[11px] text-[#262626] font-medium">Copied</span>
+                <span className="text-[11px] text-[#262626] font-medium">
+                  {t('lobby.modal.copiedLink')}
+                </span>
               )}
             </div>
           ) : (
             <span className="text-[11px] text-[#727272]">
-              Shared Table Session
+              {t('lobby.modal.title', { table: activeTable })}
             </span>
           )}
         </div>
@@ -110,7 +118,7 @@ export const TableLobbyBar: React.FC = () => {
         {/* Center: Party Members seated with Kick / Leave Controls */}
         <div className="flex items-center gap-2 overflow-x-auto max-w-full pb-1 md:pb-0 scrollbar-none">
           <span className="text-[11px] text-[#727272] shrink-0 font-medium">
-            Seated ({members.length}):
+            {t('lobby.bar.dinersCount', { count: members.length })}:
           </span>
 
           {members.map((member, idx) => {
@@ -118,7 +126,7 @@ export const TableLobbyBar: React.FC = () => {
             const isMe = isHost
               ? Boolean(member.isHost || (hostMember && member.id === hostMember.id))
               : Boolean(effectiveUser && member.id === effectiveUser.id);
-            const cleanName = (member.name || 'Diner').replace(/\s*\(Host\)$/i, '');
+            const cleanName = (member.name || t('common.companion')).replace(/\s*\(Host\)$/i, '');
 
             return (
               <div
@@ -133,18 +141,21 @@ export const TableLobbyBar: React.FC = () => {
                   className={`w-2 h-2 rounded-full ${
                     member.isReadyToPay ? 'bg-[#15803d]' : 'bg-[#e5e7eb]'
                   }`}
-                  title={member.isReadyToPay ? 'Done choosing dishes' : 'Browsing menu'}
+                  title={member.isReadyToPay ? t('common.ready') : t('common.ordering')}
                 />
-                <span>{cleanName}{member.isHost ? ' (Host)' : ''}</span>
+                <span>
+                  {cleanName}
+                  {member.isHost ? ` (${t('common.host')})` : ''}
+                </span>
 
                 {/* Host can remove duplicate/departed companions */}
                 {isHost && !member.isHost && activeTable && (
                   <button
                     type="button"
                     onClick={() => removeMemberFromTable(activeTable, member.id)}
-                    className="min-w-[44px] min-h-[44px] rounded-full bg-[#f9f9f9] hover:bg-red-50 text-[#727272] hover:text-red-600 inline-flex items-center justify-center text-sm ml-1 cursor-pointer transition-colors border border-[#e5e7eb]"
-                    title={`Remove ${cleanName}`}
-                    aria-label={`Remove ${cleanName}`}
+                    className="min-w-[44px] min-h-[44px] rounded-full bg-[#f9f9f9] hover:bg-red-50 text-[#727272] hover:text-red-600 inline-flex items-center justify-center text-sm ms-1 cursor-pointer transition-colors border border-[#e5e7eb]"
+                    title={`${t('lobby.modal.removeMemberBtn')} ${cleanName}`}
+                    aria-label={`${t('lobby.modal.removeMemberBtn')} ${cleanName}`}
                   >
                     ×
                   </button>
@@ -158,14 +169,14 @@ export const TableLobbyBar: React.FC = () => {
               type="button"
               onClick={() => resetTableSession(activeTable)}
               className="min-h-[44px] text-[12px] font-medium text-[#727272] hover:text-[#FF0055] px-3.5 py-1.5 rounded-full bg-white border border-[#e5e7eb] shrink-0 cursor-pointer inline-flex items-center transition-colors"
-              title="Reset table session to single host"
+              title={t('common.clear')}
             >
-              Clear Guests
+              {t('common.clear')}
             </button>
           )}
         </div>
 
-        {/* Right: Seated Actions */}
+        {/* End: Seated Actions */}
         <div className="flex items-center gap-2">
           {!isHost && effectiveUser && (
             <div className="flex items-center gap-1.5">
@@ -178,16 +189,18 @@ export const TableLobbyBar: React.FC = () => {
                     : 'bg-white text-[#262626] border border-[#e5e7eb] hover:border-[#FF0055]'
                 }`}
               >
-                {effectiveUser.isReadyToPay ? 'Ready (Done Choosing)' : 'I am Done Choosing'}
+                {effectiveUser.isReadyToPay
+                  ? t('cart.drawer.markedReadyBtn')
+                  : t('cart.drawer.markReadyBtn')}
               </button>
               {activeTable && (
                 <button
                   type="button"
                   onClick={() => leaveTableSession(activeTable, effectiveUser.id)}
                   className="min-h-[44px] min-w-[44px] text-[12px] text-red-600 hover:underline px-2 cursor-pointer inline-flex items-center justify-center font-medium"
-                  title="Leave table pool"
+                  title={t('lobby.modal.leaveSessionBtn')}
                 >
-                  Leave
+                  {t('lobby.modal.leaveSessionBtn')}
                 </button>
               )}
             </div>
@@ -197,7 +210,10 @@ export const TableLobbyBar: React.FC = () => {
             <div className="flex items-center gap-2">
               {members.length > 1 && (
                 <span className="text-[11px] text-[#727272] px-2.5 py-1 rounded-full bg-white border border-[#e5e7eb]">
-                  <span className="font-mono-num font-bold text-[#262626]">{members.filter((m) => m?.isReadyToPay).length}/{members.length}</span> Ready
+                  <span className="font-mono-num font-bold text-[#262626]">
+                    {members.filter((m) => m?.isReadyToPay).length}/{members.length}
+                  </span>{' '}
+                  {t('common.ready')}
                 </span>
               )}
               <button
@@ -205,7 +221,7 @@ export const TableLobbyBar: React.FC = () => {
                 onClick={() => setActiveTable(null)}
                 className="min-h-[44px] px-3 py-1.5 rounded-full bg-white hover:bg-[#f0f0f0] border border-[#e5e7eb] text-[11px] font-medium text-[#727272] hover:text-[#262626] transition-colors cursor-pointer"
               >
-                Change Table
+                {t('nav.switchTablePrompt')}
               </button>
             </div>
           )}

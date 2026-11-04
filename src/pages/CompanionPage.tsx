@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
+import { DirectionalArrow } from '../components/ui/DirectionalArrow';
 import { useAppStore } from '../store/useAppStore';
 import { MENU_ITEMS } from '../domain/menuData';
 import { MenuCategory, MenuItem, PaymentMethod } from '../types/domain';
@@ -8,17 +9,10 @@ import { DishCard } from '../components/menu/DishCard';
 import { FloatingCartBar } from '../components/cart/FloatingCartBar';
 import { CartDrawer } from '../components/cart/CartDrawer';
 import { TableLobbyBar } from '../components/multiplayer/TableLobbyBar';
-
-const CATEGORIES: { id: 'all' | MenuCategory; label: string }[] = [
-  { id: 'all', label: 'All Dishes' },
-  { id: 'burgers', label: 'Flame Burgers' },
-  { id: 'steaks', label: 'Prime Steaks' },
-  { id: 'pizzas', label: 'Artisan Pizzas' },
-  { id: 'pastas', label: 'Pastas & Sides' },
-  { id: 'drinks', label: 'Drinks & Desserts' },
-];
+import { useTranslation } from '../i18n';
 
 export const CompanionPage: React.FC = () => {
+  const { t, localizeDish, localizeModifier } = useTranslation();
   const [searchParams] = useSearchParams();
   const tableParam = searchParams.get('table');
 
@@ -38,6 +32,15 @@ export const CompanionPage: React.FC = () => {
   const [selectedDish, setSelectedDish] = useState<MenuItem | null>(null);
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>('apple_pay');
   const [isProcessing, setIsProcessing] = useState(false);
+
+  const categories: { id: 'all' | MenuCategory; label: string }[] = [
+    { id: 'all', label: t('menu.categories.all') },
+    { id: 'burgers', label: t('menu.categories.burgers') },
+    { id: 'steaks', label: t('menu.categories.steaks') },
+    { id: 'pizzas', label: t('menu.categories.pizzas') },
+    { id: 'pastas', label: t('menu.categories.pastas') },
+    { id: 'drinks', label: t('menu.categories.drinks') },
+  ];
 
   const targetTable = (tableParam || activeTable || '').trim().toUpperCase();
   const cleanTable = targetTable || 'T-04';
@@ -114,7 +117,12 @@ export const CompanionPage: React.FC = () => {
     setTimeout(() => {
       payDinerShare(activeTicket.id, effectiveMember.id, selectedMethod, companionTotalShare);
       setIsProcessing(false);
-      showToast(`Your share of ${companionTotalShare.toFixed(2)} EGP authorized via ${selectedMethod.replace('_', ' ').toUpperCase()}.`);
+      showToast(
+        t('companion.shareAuthorizedToast', {
+          amount: companionTotalShare.toFixed(2),
+          method: selectedMethod.replace('_', ' ').toUpperCase(),
+        })
+      );
     }, 450);
   };
 
@@ -136,10 +144,12 @@ export const CompanionPage: React.FC = () => {
             </svg>
           </div>
           <h2 className="text-xl font-bold text-[#262626]">
-            {hasLeftTable ? `You Left Table ${cleanTable}` : 'Join a Shared Table Session'}
+            {hasLeftTable
+              ? t('companion.leftTableTitle', { table: cleanTable })
+              : t('companion.joinSessionTitle')}
           </h2>
           <p className="mt-2 text-[#727272] text-[13px] leading-relaxed">
-            Enter the 4-digit Table PIN shown on the host&apos;s phone to add your own dishes to the shared table cart and settle your personal share directly.
+            {t('companion.joinSessionDesc')}
           </p>
           <div className="mt-6 flex flex-col gap-2.5">
             <button
@@ -147,7 +157,7 @@ export const CompanionPage: React.FC = () => {
               onClick={() => openPinModal(cleanTable)}
               className="w-full min-h-[44px] py-2.5 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[13px] font-bold transition-colors btn-crimson-glow shadow-xs cursor-pointer flex items-center justify-center"
             >
-              Enter 4-Digit Table PIN
+              {t('companion.enterPinBtn')}
             </button>
             <button
               type="button"
@@ -159,13 +169,13 @@ export const CompanionPage: React.FC = () => {
               }}
               className="w-full min-h-[44px] py-2.5 rounded-full bg-[#f9f9f9] hover:bg-[#f0f0f0] border border-[#e5e7eb] text-[#262626] text-[13px] font-semibold transition-colors cursor-pointer flex items-center justify-center"
             >
-              Join Table {cleanTable} Directly
+              {t('companion.joinTableDirectlyBtn', { table: cleanTable })}
             </button>
             <Link
               to={targetTable ? `/menu?table=${targetTable}` : '/menu'}
               className="w-full min-h-[44px] py-2.5 rounded-full bg-white hover:bg-[#f9f9f9] border border-[#e5e7eb] text-[#727272] text-[13px] font-medium transition-colors inline-flex items-center justify-center"
             >
-              Return to Standard Menu
+              {t('companion.returnStandardMenuBtn')}
             </Link>
           </div>
         </div>
@@ -186,11 +196,11 @@ export const CompanionPage: React.FC = () => {
               <div className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-[#FF0055]" />
                 <span className="text-xs font-bold text-[#FF0055]">
-                  Your Personal Table Share
+                  {t('companion.personalTableShare')}
                 </span>
               </div>
               <span className="text-xs text-[#727272]">
-                Chit #<span className="font-mono-num">{activeTicket.cashierChitCode || activeTicket.id}</span>
+                {t('common.chit')} #<span className="font-mono-num">{activeTicket.cashierChitCode || activeTicket.id}</span>
               </span>
             </div>
 
@@ -198,19 +208,19 @@ export const CompanionPage: React.FC = () => {
               <div className="flex items-start justify-between border-b border-[#f0f0f0] pb-3">
                 <div>
                   <div className="text-xs font-medium text-[#727272]">
-                    Seated Companion
+                    {t('companion.seatedCompanion')}
                   </div>
                   <h3 className="text-lg font-bold text-[#262626] mt-0.5">
-                    {effectiveMember?.name || 'Companion'}
+                    {effectiveMember?.name || t('common.companion')}
                   </h3>
                 </div>
 
-                <div className="text-right">
+                <div className="text-end">
                   <div className="text-xs font-medium text-[#727272]">
-                    Share Total (incl. 14% VAT)
+                    {t('companion.shareTotalInclVat')}
                   </div>
                   <div className="text-lg font-mono-num font-bold text-[#FF0055]">
-                    {companionTotalShare.toFixed(2)} EGP
+                    {companionTotalShare.toFixed(2)} {t('common.egp')}
                   </div>
                 </div>
               </div>
@@ -219,31 +229,32 @@ export const CompanionPage: React.FC = () => {
               {companionItems.length > 0 && (
                 <div className="space-y-2 text-sm">
                   <div className="text-xs font-semibold text-[#727272]">
-                    Dishes Added by You ({companionItems.length}):
+                    {t('companion.dishesAddedByYou', { count: companionItems.length })}
                   </div>
                   {companionItems.map((item) => {
                     const modTotal = (item.selectedModifiers || []).reduce((s, m) => s + m.price, 0);
                     const linePrice = (item.menuItem.basePrice + modTotal) * item.quantity;
+                    const localDish = localizeDish(item.menuItem);
                     return (
                       <div key={item.cartItemId} className="flex justify-between items-start text-[#262626]">
                         <div>
-                          <span className="font-medium">{item.quantity}x {item.menuItem.name}</span>
+                          <span className="font-medium">{item.quantity}x {localDish.name}</span>
                           {item.selectedModifiers.length > 0 && (
                             <div className="text-xs text-[#727272]">
-                              +{item.selectedModifiers.map((m) => m.name).join(', ')}
+                              +{item.selectedModifiers.map((m) => localizeModifier(item.menuItem.id, m.id, m.name)).join(', ')}
                             </div>
                           )}
                         </div>
-                        <span className="font-mono-num text-[#727272] shrink-0 ml-2">
-                          {linePrice.toFixed(2)} EGP
+                        <span className="font-mono-num text-[#727272] shrink-0 ms-2">
+                          {linePrice.toFixed(2)} {t('common.egp')}
                         </span>
                       </div>
                     );
                   })}
 
                   <div className="pt-2 border-t border-[#f0f0f0] flex justify-between text-xs text-[#727272]">
-                    <span>Net Subtotal: <span className="font-mono-num">{companionSubtotal.toFixed(2)} EGP</span></span>
-                    <span>14% VAT: <span className="font-mono-num">{companionVat.toFixed(2)} EGP</span></span>
+                    <span>{t('companion.netSubtotal')}: <span className="font-mono-num">{companionSubtotal.toFixed(2)} {t('common.egp')}</span></span>
+                    <span>{t('common.vat14')}: <span className="font-mono-num">{companionVat.toFixed(2)} {t('common.egp')}</span></span>
                   </div>
                 </div>
               )}
@@ -252,18 +263,21 @@ export const CompanionPage: React.FC = () => {
               {isCompanionSharePaid ? (
                 <div className="p-3.5 rounded-2xl bg-[#f9f9f9] border border-[#e5e7eb] text-center space-y-1">
                   <div className="text-[#262626] font-bold text-sm">
-                    Share Settled: <span className="font-mono-num">{paidRecord?.amount.toFixed(2)} EGP</span> via {paidRecord?.paymentMethod?.replace('_', ' ').toUpperCase()}
+                    {t('companion.shareSettledVia', {
+                      amount: paidRecord?.amount.toFixed(2) || '0.00',
+                      method: paidRecord?.paymentMethod?.replace('_', ' ').toUpperCase() || 'ONLINE',
+                    })}
                   </div>
                   <div className="text-xs text-[#727272]">
                     {isOrderFullySettled
-                      ? 'All table shares settled. Dishes are firing to the kitchen pass.'
-                      : `Awaiting other table diners (${remainingTableBalance.toFixed(2)} EGP remaining).`}
+                      ? t('companion.allSharesSettledDesc')
+                      : t('companion.awaitingOtherDinersDesc', { amount: remainingTableBalance.toFixed(2) })}
                   </div>
                 </div>
               ) : (
                 <div className="space-y-3 pt-1">
                   <div className="text-xs font-semibold text-[#262626]">
-                    Select Your Payment Method:
+                    {t('companion.selectPaymentMethod')}
                   </div>
 
                   <div className="grid grid-cols-3 gap-2">
@@ -276,8 +290,8 @@ export const CompanionPage: React.FC = () => {
                           : 'border-[#e5e7eb] bg-white hover:bg-[#f9f9f9]'
                       }`}
                     >
-                      <div className="text-xs font-bold text-[#262626]">Apple Pay</div>
-                      <div className="text-xs text-[#727272] mt-0.5">Biometric Auth</div>
+                      <div className="text-xs font-bold text-[#262626]">{t('cart.drawer.applePay')}</div>
+                      <div className="text-xs text-[#727272] mt-0.5">{t('companion.biometricAuth')}</div>
                     </button>
 
                     <button
@@ -289,8 +303,8 @@ export const CompanionPage: React.FC = () => {
                           : 'border-[#e5e7eb] bg-white hover:bg-[#f9f9f9]'
                       }`}
                     >
-                      <div className="text-xs font-bold text-[#262626]">Card</div>
-                      <div className="text-xs text-[#727272] mt-0.5">Visa / Meeza</div>
+                      <div className="text-xs font-bold text-[#262626]">{t('cart.drawer.card')}</div>
+                      <div className="text-xs text-[#727272] mt-0.5">{t('cart.drawer.cardSub')}</div>
                     </button>
 
                     <button
@@ -302,8 +316,8 @@ export const CompanionPage: React.FC = () => {
                           : 'border-[#e5e7eb] bg-white hover:bg-[#f9f9f9]'
                       }`}
                     >
-                      <div className="text-xs font-bold text-[#262626]">Cashier</div>
-                      <div className="text-xs text-[#727272] mt-0.5">Desk Chit</div>
+                      <div className="text-xs font-bold text-[#262626]">{t('cart.drawer.cashier')}</div>
+                      <div className="text-xs text-[#727272] mt-0.5">{t('companion.deskChit')}</div>
                     </button>
                   </div>
 
@@ -315,9 +329,12 @@ export const CompanionPage: React.FC = () => {
                     className="w-full min-h-[44px] py-3 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-sm font-bold transition-colors btn-crimson-glow shadow-xs cursor-pointer flex items-center justify-center gap-2 active:scale-[0.99]"
                   >
                     {isProcessing ? (
-                      <span>Authorizing Payment...</span>
+                      <span>{t('companion.authorizingPayment')}</span>
                     ) : (
-                      <span>Pay My Share ({companionTotalShare.toFixed(2)} EGP) -&gt;</span>
+                      <>
+                        <span>{t('companion.payMyShareBtn', { amount: companionTotalShare.toFixed(2) })}</span>
+                        <DirectionalArrow className="w-4 h-4" />
+                      </>
                     )}
                   </button>
                 </div>
@@ -326,8 +343,8 @@ export const CompanionPage: React.FC = () => {
               {/* Table Progress Bar */}
               <div className="pt-2 border-t border-[#f0f0f0] space-y-1.5">
                 <div className="flex justify-between text-xs text-[#727272]">
-                  <span>Table Balance Remaining:</span>
-                  <span className="font-mono-num font-bold text-[#FF0055]">{remainingTableBalance.toFixed(2)} EGP</span>
+                  <span>{t('companion.tableBalanceRemaining')}</span>
+                  <span className="font-mono-num font-bold text-[#FF0055]">{remainingTableBalance.toFixed(2)} {t('common.egp')}</span>
                 </div>
                 <div className="w-full bg-[#e5e7eb] h-1.5 rounded-full overflow-hidden">
                   <div
@@ -342,9 +359,10 @@ export const CompanionPage: React.FC = () => {
               <div className="text-center pt-1">
                 <Link
                   to={`/settlement/${activeTicket.id}?table=${cleanTable}`}
-                  className="text-xs text-[#727272] hover:text-[#262626] underline font-medium"
+                  className="text-xs text-[#727272] hover:text-[#262626] underline font-medium inline-flex items-center gap-1"
                 >
-                  View Full Table Bill &amp; Split Options -&gt;
+                  <span>{t('companion.viewFullTableBill')}</span>
+                  <DirectionalArrow className="w-3 h-3" />
                 </Link>
               </div>
             </div>
@@ -357,13 +375,17 @@ export const CompanionPage: React.FC = () => {
         <div className="bg-[#fff0f3] border-b border-[#ffd1dc] px-4 py-2.5">
           <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-xs">
             <span className="text-[#262626]">
-              Table {cleanTable} has an active check (<span className="font-mono-num font-bold text-[#FF0055]">{remainingTableBalance.toFixed(2)} EGP</span> remaining).
+              {t('companion.activeCheckNotice', {
+                table: cleanTable,
+                amount: remainingTableBalance.toFixed(2),
+              })}
             </span>
             <Link
               to={`/settlement/${activeTicket.id}?table=${cleanTable}`}
-              className="font-bold text-[#FF0055] hover:underline"
+              className="font-bold text-[#FF0055] hover:underline inline-flex items-center gap-1"
             >
-              Open Bill &amp; Equal Split Options -&gt;
+              <span>{t('companion.openBillEqualSplit')}</span>
+              <DirectionalArrow className="w-3 h-3" />
             </Link>
           </div>
         </div>
@@ -376,21 +398,21 @@ export const CompanionPage: React.FC = () => {
             <div>
               <div className="flex items-center gap-2.5 mb-1">
                 <h1 className="text-2xl sm:text-3xl font-bold text-[#262626] tracking-tight">
-                  Companion Order
+                  {t('companion.title')}
                 </h1>
                 <span className="px-2.5 py-0.5 rounded-full bg-[#fff0f3] border border-[#ffd1dc] text-[#FF0055] text-xs font-semibold">
-                  {effectiveMember?.name || 'Guest'}
+                  {effectiveMember?.name || t('common.guest')}
                 </span>
               </div>
               <p className="text-sm text-[#727272]">
-                Dishes you select are tagged with your name in the shared Table {cleanTable} cart so you can settle your exact share.
+                {t('companion.subtitle', { table: cleanTable })}
               </p>
             </div>
           </div>
 
           {/* Category Filter Pills */}
           <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none" data-ui-actions="category-filters">
-            {CATEGORIES.map((cat) => (
+            {categories.map((cat) => (
               <button
                 key={cat.id}
                 onClick={() => setActiveCategory(cat.id)}
@@ -412,10 +434,10 @@ export const CompanionPage: React.FC = () => {
       <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8">
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-lg font-bold text-[#262626]">
-            {CATEGORIES.find((c) => c.id === activeCategory)?.label}
+            {categories.find((c) => c.id === activeCategory)?.label}
           </h2>
           <span className="text-xs text-[#727272]">
-            <span className="font-mono-num font-bold text-[#262626]">{filteredDishes.length}</span> dishes
+            <span className="font-mono-num font-bold text-[#262626]">{filteredDishes.length}</span> {t('common.dishes')}
           </span>
         </div>
 

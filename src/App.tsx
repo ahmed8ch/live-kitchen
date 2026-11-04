@@ -16,10 +16,13 @@ import { CompanionPage } from './pages/CompanionPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { useAppStore } from './store/useAppStore';
 import { FlameLinkLogo } from './components/ui/FlameLinkLogo';
+import { useTranslation } from './i18n';
 
 export const App: React.FC = () => {
   const location = useLocation();
   const setActiveTable = useAppStore((state) => state.setActiveTable);
+  const { t, dir, lang } = useTranslation();
+
   const isKds = location.pathname.startsWith('/kds');
   const isStand = location.pathname.startsWith('/stand');
   const isCashier = location.pathname.startsWith('/cashier');
@@ -34,13 +37,13 @@ export const App: React.FC = () => {
   }, [location.search, setActiveTable]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-white text-[#262626]">
+    <div dir={dir} data-lang={lang} className="min-h-screen flex flex-col bg-white text-[#262626]">
       {/* Accessible Skip to Content Link */}
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-[#262626] focus:text-white focus:rounded-full focus:text-xs focus:font-bold focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#FF0055]"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:start-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-[#262626] focus:text-white focus:rounded-full focus:text-xs focus:font-bold focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#FF0055]"
       >
-        Skip to main content
+        {lang === 'eg' ? 'تخطي إلى المحتوى الرئيسي' : 'Skip to main content'}
       </a>
 
       {/* Single Contextual Top Bar */}
@@ -74,18 +77,26 @@ export const App: React.FC = () => {
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 text-xs text-[#727272]">
               <div className="flex flex-wrap items-center gap-3">
                 <FlameLinkLogo size="sm" showWordmark={false} />
-                <span className="font-bold text-[#262626]">Live Kitchen (لايف كيتشن)</span>
+                <span className="font-bold text-[#262626]">{t('brand.bilingualName')}</span>
                 <span>·</span>
-                <span>Republic Street, next to El-Montazah Park</span>
+                <span>{t('brand.address')}</span>
                 <span>·</span>
-                <span>Daily 12:00 PM – 12:00 AM (Fri from 1:00 PM)</span>
+                <span>{t('brand.hours')}</span>
               </div>
 
               <div className="flex flex-wrap items-center gap-4">
-                <Link to="/menu" className="hover:text-[#262626] transition-colors font-medium">Dine-In Menu</Link>
-                <Link to="/companion" className="hover:text-[#262626] transition-colors font-medium">Join Table Pool</Link>
-                <Link to="/tracker" className="hover:text-[#262626] transition-colors font-medium">Order Status</Link>
-                <Link to="/settlement" className="hover:text-[#262626] transition-colors font-medium">Table Bill</Link>
+                <Link to="/menu" className="hover:text-[#262626] transition-colors font-medium">
+                  {t('nav.liveMenu')}
+                </Link>
+                <Link to="/companion" className="hover:text-[#262626] transition-colors font-medium">
+                  {t('nav.companionJoin')}
+                </Link>
+                <Link to="/tracker" className="hover:text-[#262626] transition-colors font-medium">
+                  {t('nav.orderTracker')}
+                </Link>
+                <Link to="/settlement" className="hover:text-[#262626] transition-colors font-medium">
+                  {t('nav.splitSettle')}
+                </Link>
               </div>
             </div>
           </footer>

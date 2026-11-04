@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
+import { DirectionalArrow } from '../ui/DirectionalArrow';
 import { useAppStore } from '../../store/useAppStore';
 import { AccountModalTab } from '../../types/domain';
+import { useTranslation } from '../../i18n';
 
 const DIETARY_OPTIONS = [
   'Halal',
   'Gluten-Free',
   'Dairy-Free',
-  'Nut Allergy',
-  'Low Carb',
   'Vegetarian',
-  'No Seafood',
+  'High-Protein',
 ];
 
 export const AccountModal: React.FC = () => {
@@ -26,6 +26,7 @@ export const AccountModal: React.FC = () => {
   const reorderPastOrder = useAppStore((state) => state.reorderPastOrder);
   const reorderSingleItem = useAppStore((state) => state.reorderSingleItem);
   const orders = useAppStore((state) => state.orders);
+  const { t, localizeDish, localizeTag, lang } = useTranslation();
 
   // Sign In Form State
   const [signInPhone, setSignInPhone] = useState('01012345678');
@@ -60,7 +61,7 @@ export const AccountModal: React.FC = () => {
 
   const toggleSignUpDietary = (tag: string) => {
     if (signUpDietary.includes(tag)) {
-      setSignUpDietary(signUpDietary.filter((t) => t !== tag));
+      setSignUpDietary(signUpDietary.filter((item) => item !== tag));
     } else {
       setSignUpDietary([...signUpDietary, tag]);
     }
@@ -70,7 +71,7 @@ export const AccountModal: React.FC = () => {
     if (!userAccount) return;
     const currentTags = userAccount.dietaryTags || [];
     const updatedTags = currentTags.includes(tag)
-      ? currentTags.filter((t) => t !== tag)
+      ? currentTags.filter((item) => item !== tag)
       : [...currentTags, tag];
     updateDinerProfile({ dietaryTags: updatedTags });
   };
@@ -90,25 +91,27 @@ export const AccountModal: React.FC = () => {
       role="dialog"
       aria-modal="true"
       aria-labelledby="account-modal-title"
+      onClick={closeAccountModal}
     >
-      <div className="bg-white border border-[#e5e7eb] rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden">
+      <div
+        className="bg-white border border-[#e5e7eb] rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden text-start"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Modal Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-[#e5e7eb] bg-[#f9f9f9]">
           <div>
             <h2 id="account-modal-title" className="text-[15px] font-bold text-[#262626]">
-              {userAccount ? userAccount.fullName : 'Guest Profile & Order History'}
+              {userAccount ? userAccount.fullName : t('account.modalTitle')}
             </h2>
             <p className="text-[12px] text-[#727272]">
-              {userAccount
-                ? `Phone: ${userAccount.phone}`
-                : 'Optional profile to save dietary preferences and past receipts'}
+              {userAccount ? userAccount.phone : t('account.modalSubtitle')}
             </p>
           </div>
 
           <button
             onClick={closeAccountModal}
             className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full text-[#727272] hover:text-[#262626] hover:bg-black/5 transition-colors cursor-pointer"
-            aria-label="Close dialog"
+            aria-label={t('account.closeAria')}
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <line x1="18" y1="6" x2="6" y2="18" />
@@ -129,7 +132,7 @@ export const AccountModal: React.FC = () => {
                     : 'border-transparent text-[#727272] hover:text-[#262626]'
                 }`}
               >
-                Dietary Preferences
+                {t('account.tabs.profile')}
               </button>
               <button
                 onClick={() => setAccountModalTab('history')}
@@ -139,7 +142,7 @@ export const AccountModal: React.FC = () => {
                     : 'border-transparent text-[#727272] hover:text-[#262626]'
                 }`}
               >
-                Past Orders ({pastOrders.length})
+                {t('account.tabs.orders', { count: pastOrders.length })}
               </button>
             </>
           ) : (
@@ -152,7 +155,7 @@ export const AccountModal: React.FC = () => {
                     : 'border-transparent text-[#727272] hover:text-[#262626]'
                 }`}
               >
-                Sign In
+                {t('nav.signIn')}
               </button>
               <button
                 onClick={() => setAccountModalTab('signup')}
@@ -162,7 +165,7 @@ export const AccountModal: React.FC = () => {
                     : 'border-transparent text-[#727272] hover:text-[#262626]'
                 }`}
               >
-                Create Account
+                {t('account.createProfileBtn')}
               </button>
               <button
                 onClick={() => setAccountModalTab('history')}
@@ -172,7 +175,7 @@ export const AccountModal: React.FC = () => {
                     : 'border-transparent text-[#727272] hover:text-[#262626]'
                 }`}
               >
-                Past Orders ({pastOrders.length})
+                {t('account.tabs.orders', { count: pastOrders.length })}
               </button>
             </>
           )}
@@ -184,17 +187,17 @@ export const AccountModal: React.FC = () => {
           {currentTab === 'signin' && (
             <form onSubmit={handleSignInSubmit} className="space-y-4">
               <p className="text-[13px] text-[#727272] leading-relaxed">
-                Enter your mobile number and 4-digit PIN to load your saved dietary filters and past table orders.
+                {t('account.modalSubtitle')}
               </p>
 
               <div>
                 <label className="block text-[12px] font-medium text-[#262626] mb-1">
-                  Mobile Phone Number
+                  {t('account.phoneLabel')}
                 </label>
                 <input
                   type="tel"
                   required
-                  placeholder="e.g. 01012345678"
+                  placeholder={t('account.phonePlaceholder')}
                   value={signInPhone}
                   onChange={(e) => setSignInPhone(e.target.value)}
                   className="w-full px-3 py-2 min-h-[44px] bg-[#f9f9f9] border border-[#e5e7eb] rounded-lg text-[13px] font-mono-num text-[#262626] focus:outline-hidden focus:border-[#FF0055]"
@@ -203,7 +206,7 @@ export const AccountModal: React.FC = () => {
 
               <div>
                 <label className="block text-[12px] font-medium text-[#262626] mb-1">
-                  4-Digit PIN
+                  {t('common.pin')}
                 </label>
                 <input
                   type="password"
@@ -221,7 +224,7 @@ export const AccountModal: React.FC = () => {
                   type="submit"
                   className="w-full min-h-[44px] py-2.5 bg-[#FF0055] hover:bg-[#d90048] text-white rounded-full text-[13px] font-bold transition-colors shadow-xs flex items-center justify-center cursor-pointer"
                 >
-                  Sign In
+                  {t('nav.signIn')}
                 </button>
 
                 {savedAccounts['01012345678'] && (
@@ -234,7 +237,9 @@ export const AccountModal: React.FC = () => {
                     }}
                     className="w-full min-h-[44px] py-2 bg-[#f9f9f9] hover:bg-[#e5e7eb] border border-[#e5e7eb] text-[#262626] rounded-full text-[12px] font-medium transition-colors flex items-center justify-center cursor-pointer"
                   >
-                    Demo Guest: Ahmed Hassan (01012345678)
+                    {lang === 'eg'
+                      ? 'حساب تجريبي سريع: أحمد حسن (01012345678)'
+                      : 'Demo Guest: Ahmed Hassan (01012345678)'}
                   </button>
                 )}
               </div>
@@ -243,9 +248,10 @@ export const AccountModal: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setAccountModalTab('signup')}
-                  className="min-h-[44px] inline-flex items-center text-[12px] text-[#727272] hover:text-[#FF0055] transition-colors cursor-pointer"
+                  className="min-h-[44px] inline-flex items-center gap-1.5 text-[12px] text-[#727272] hover:text-[#FF0055] transition-colors cursor-pointer"
                 >
-                  New guest? Create a free profile -&gt;
+                  <span>{t('account.createProfileBtn')}</span>
+                  <DirectionalArrow className="w-3.5 h-3.5" />
                 </button>
               </div>
             </form>
@@ -255,17 +261,17 @@ export const AccountModal: React.FC = () => {
           {currentTab === 'signup' && (
             <form onSubmit={handleSignUpSubmit} className="space-y-4">
               <p className="text-[13px] text-[#727272] leading-relaxed">
-                Save your dietary preferences and keep your digital receipts in one place. Creating a guest profile is free and optional.
+                {t('account.dietaryHint')}
               </p>
 
               <div>
                 <label className="block text-[12px] font-medium text-[#262626] mb-1">
-                  Full Name
+                  {t('account.nameLabel')}
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Mariam El-Sayed"
+                  placeholder={t('account.namePlaceholder')}
                   value={signUpName}
                   onChange={(e) => setSignUpName(e.target.value)}
                   className="w-full px-3 py-2 min-h-[44px] bg-[#f9f9f9] border border-[#e5e7eb] rounded-lg text-[13px] text-[#262626] focus:outline-hidden focus:border-[#FF0055]"
@@ -275,12 +281,12 @@ export const AccountModal: React.FC = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[12px] font-medium text-[#262626] mb-1">
-                    Phone Number
+                    {t('account.phoneLabel')}
                   </label>
                   <input
                     type="tel"
                     required
-                    placeholder="01xxxxxxxxx"
+                    placeholder={t('account.phonePlaceholder')}
                     value={signUpPhone}
                     onChange={(e) => setSignUpPhone(e.target.value)}
                     className="w-full px-3 py-2 min-h-[44px] bg-[#f9f9f9] border border-[#e5e7eb] rounded-lg text-[13px] font-mono-num text-[#262626] focus:outline-hidden focus:border-[#FF0055]"
@@ -289,7 +295,7 @@ export const AccountModal: React.FC = () => {
 
                 <div>
                   <label className="block text-[12px] font-medium text-[#262626] mb-1">
-                    4-Digit PIN
+                    {t('common.pin')}
                   </label>
                   <input
                     type="password"
@@ -305,11 +311,11 @@ export const AccountModal: React.FC = () => {
 
               <div>
                 <label className="block text-[12px] font-medium text-[#262626] mb-1">
-                  Email (Optional for e-receipts)
+                  {t('account.emailLabel')}
                 </label>
                 <input
                   type="email"
-                  placeholder="name@example.com"
+                  placeholder={t('account.emailPlaceholder')}
                   value={signUpEmail}
                   onChange={(e) => setSignUpEmail(e.target.value)}
                   className="w-full px-3 py-2 min-h-[44px] bg-[#f9f9f9] border border-[#e5e7eb] rounded-lg text-[13px] text-[#262626] focus:outline-hidden focus:border-[#FF0055]"
@@ -318,7 +324,7 @@ export const AccountModal: React.FC = () => {
 
               <div>
                 <label className="block text-[12px] font-medium text-[#262626] mb-1.5">
-                  Dietary Preferences &amp; Allergies
+                  {t('account.dietaryTitle')}
                 </label>
                 <div className="flex flex-wrap gap-1.5">
                   {DIETARY_OPTIONS.map((tag) => {
@@ -334,7 +340,7 @@ export const AccountModal: React.FC = () => {
                             : 'bg-[#f9f9f9] text-[#727272] border-[#e5e7eb] hover:border-[#262626]'
                         }`}
                       >
-                        {tag}
+                        {localizeTag(tag)}
                       </button>
                     );
                   })}
@@ -346,7 +352,7 @@ export const AccountModal: React.FC = () => {
                   type="submit"
                   className="w-full min-h-[44px] py-2.5 bg-[#FF0055] hover:bg-[#d90048] text-white rounded-full text-[13px] font-bold transition-colors shadow-xs flex items-center justify-center cursor-pointer"
                 >
-                  Save Guest Profile
+                  {t('account.createProfileBtn')}
                 </button>
               </div>
             </form>
@@ -359,7 +365,7 @@ export const AccountModal: React.FC = () => {
                 <div className="flex items-start justify-between">
                   <div>
                     <span className="text-[12px] text-[#727272] font-medium">
-                      Registered Diner
+                      {t('account.modalTitle')}
                     </span>
                     <div className="text-xl font-bold text-[#262626] mt-0.5">
                       {userAccount.fullName}
@@ -371,8 +377,12 @@ export const AccountModal: React.FC = () => {
                 </div>
 
                 <div className="mt-4 pt-3.5 border-t border-[#e5e7eb] flex items-center justify-between text-[12px] text-[#727272]">
-                  <span>Past Table Visits: <strong className="font-mono-num text-[#262626]">{pastOrders.length}</strong></span>
-                  <span>Member Since {new Date(userAccount.createdAt).toLocaleDateString()}</span>
+                  <span>
+                    {t('account.tabs.orders', { count: pastOrders.length })}
+                  </span>
+                  <span>
+                    {new Date(userAccount.createdAt).toLocaleDateString(lang === 'eg' ? 'ar-EG' : 'en-US')}
+                  </span>
                 </div>
               </div>
 
@@ -380,9 +390,8 @@ export const AccountModal: React.FC = () => {
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-[12px] font-bold text-[#262626]">
-                    Saved Dietary &amp; Allergy Filters
+                    {t('account.dietaryTitle')}
                   </span>
-                  <span className="text-[11px] text-[#727272]">Tap to update</span>
                 </div>
                 <div className="flex flex-wrap gap-1.5">
                   {DIETARY_OPTIONS.map((tag) => {
@@ -397,7 +406,7 @@ export const AccountModal: React.FC = () => {
                             : 'bg-[#f9f9f9] text-[#727272] border-[#e5e7eb] hover:border-[#262626]'
                         }`}
                       >
-                        <span>{tag}</span>
+                        <span>{localizeTag(tag)}</span>
                         {isSelected && (
                           <svg className="w-3 h-3 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
                             <polyline points="20 6 9 17 4 12" />
@@ -413,16 +422,17 @@ export const AccountModal: React.FC = () => {
               <div className="flex items-center justify-between pt-4 border-t border-[#e5e7eb]">
                 <button
                   onClick={() => setAccountModalTab('history')}
-                  className="px-4 py-2 min-h-[44px] inline-flex items-center bg-[#262626] hover:bg-black text-white rounded-full text-[12px] font-medium transition-colors cursor-pointer"
+                  className="px-4 py-2 min-h-[44px] inline-flex items-center gap-1.5 bg-[#262626] hover:bg-black text-white rounded-full text-[12px] font-medium transition-colors cursor-pointer"
                 >
-                  View Past Orders ({pastOrders.length}) -&gt;
+                  <span>{t('account.tabs.orders', { count: pastOrders.length })}</span>
+                  <DirectionalArrow className="w-3.5 h-3.5" />
                 </button>
 
                 <button
                   onClick={signOutDiner}
                   className="px-4 py-2 min-h-[44px] inline-flex items-center border border-[#e5e7eb] hover:bg-[#f9f9f9] text-[#727272] hover:text-[#dc2626] rounded-full text-[12px] font-medium transition-colors cursor-pointer"
                 >
-                  Sign Out
+                  {t('account.signOutBtn')}
                 </button>
               </div>
             </div>
@@ -433,9 +443,8 @@ export const AccountModal: React.FC = () => {
             <div className="space-y-4">
               {pastOrders.length === 0 ? (
                 <div className="text-center py-10 px-4 bg-[#f9f9f9] border border-[#e5e7eb] rounded-2xl">
-                  <h3 className="text-[14px] font-bold text-[#262626]">No Past Orders Yet</h3>
-                  <p className="text-[12px] text-[#727272] max-w-xs mx-auto mt-1">
-                    Orders settled at your table will appear here for 1-touch re-ordering and receipt lookup.
+                  <p className="text-[13px] text-[#727272] max-w-xs mx-auto">
+                    {t('account.pastOrdersEmpty')}
                   </p>
                 </div>
               ) : (
@@ -451,43 +460,46 @@ export const AccountModal: React.FC = () => {
                         </span>
                         {order.tableNumber && (
                           <span className="text-[12px] text-[#727272]">
-                            Table {order.tableNumber}
+                            {t('nav.tableNumber', { table: order.tableNumber })}
                           </span>
                         )}
                       </div>
 
                       <span className="text-[13px] font-mono-num font-bold text-[#262626]">
-                        {order.total.toFixed(2)} EGP
+                        {order.total.toFixed(2)} {t('common.egp')}
                       </span>
                     </div>
 
                     <div className="space-y-1.5 pt-1">
-                      {order.items.map((item, idx) => (
-                        <div
-                          key={`${order.id}-item-${idx}`}
-                          className="flex items-center justify-between text-[12px] text-[#616161]"
-                        >
-                          <div className="flex items-center gap-2">
-                            <span className="font-mono-num text-[#262626] font-medium">
-                              {item.quantity}x
-                            </span>
-                            <span>{item.menuItem.name}</span>
-                          </div>
-
-                          <button
-                            type="button"
-                            onClick={() => reorderSingleItem(item)}
-                            className="min-h-[44px] px-2 text-[11px] text-[#FF0055] hover:underline font-medium inline-flex items-center cursor-pointer"
+                      {order.items.map((item, idx) => {
+                        const localized = localizeDish(item.menuItem);
+                        return (
+                          <div
+                            key={`${order.id}-item-${idx}`}
+                            className="flex items-center justify-between text-[12px] text-[#616161]"
                           >
-                            + Add to Cart
-                          </button>
-                        </div>
-                      ))}
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono-num text-[#262626] font-medium">
+                                {item.quantity}x
+                              </span>
+                              <span>{localized.name}</span>
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={() => reorderSingleItem(item)}
+                              className="min-h-[44px] px-2 text-[11px] text-[#FF0055] hover:underline font-medium inline-flex items-center cursor-pointer"
+                            >
+                              + {t('menu.card.addToTable')}
+                            </button>
+                          </div>
+                        );
+                      })}
                     </div>
 
                     <div className="pt-2 border-t border-[#e5e7eb] flex items-center justify-between">
                       <span className="text-[11px] text-[#727272]">
-                        {new Date(order.createdAt).toLocaleDateString()}
+                        {new Date(order.createdAt).toLocaleDateString(lang === 'eg' ? 'ar-EG' : 'en-US')}
                       </span>
 
                       <button
@@ -495,7 +507,7 @@ export const AccountModal: React.FC = () => {
                         onClick={() => reorderPastOrder(order.id)}
                         className="px-4 py-2 min-h-[44px] bg-[#FF0055] hover:bg-[#d90048] text-white rounded-full text-[11px] font-bold transition-colors shadow-xs inline-flex items-center cursor-pointer"
                       >
-                        Re-order Meal ({order.items.length} items)
+                        {t('tracker.orderMoreDishesBtn')} ({order.items.length})
                       </button>
                     </div>
                   </div>

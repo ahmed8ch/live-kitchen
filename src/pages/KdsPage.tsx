@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
+import { DirectionalArrow } from '../components/ui/DirectionalArrow';
 import { useAppStore } from '../store/useAppStore';
 import { OrderStatus, OrderTicket } from '../types/domain';
 import { WorkstationBarrier } from '../components/layout/WorkstationBarrier';
+import { useTranslation } from '../i18n';
 
 export const KdsPage: React.FC = () => {
+  const { t, localizeDish, localizeModifier } = useTranslation();
+
   const orders = useAppStore((state) => state.orders);
   const advanceOrderStatus = useAppStore((state) => state.advanceOrderStatus);
   const addSampleOrder = useAppStore((state) => state.addSampleOrder);
@@ -52,17 +56,17 @@ export const KdsPage: React.FC = () => {
   const getStatusActionText = (status: OrderStatus) => {
     switch (status) {
       case 'received':
-        return 'Start Cooking ->';
+        return t('kds.actions.startCooking');
       case 'cooking':
-        return 'Mark Ready for Pass ->';
+        return t('kds.actions.markReady');
       case 'ready':
-        return 'Bump / Served ->';
+        return t('kds.actions.bumpServed');
       case 'served':
-        return 'Closed';
+        return t('kds.actions.closed');
       case 'voided':
-        return 'Voided';
+        return t('kds.actions.voided');
       default:
-        return 'Action';
+        return t('kds.actions.startCooking');
     }
   };
 
@@ -75,7 +79,7 @@ export const KdsPage: React.FC = () => {
         bg: '#64748b',
         cardBorder: 'border-2 border-[#475569]',
         cardShadow: 'shadow-md opacity-60',
-        label: 'VOIDED // CANCELLED',
+        label: t('kds.statusLabels.voided'),
         stage: 'VOIDED',
         buttonClass: 'bg-[#475569] text-white cursor-default',
         isRush: false,
@@ -87,7 +91,7 @@ export const KdsPage: React.FC = () => {
         bg: '#475569',
         cardBorder: 'border-2 border-[#334155]',
         cardShadow: 'shadow-md opacity-80',
-        label: 'SERVED // ARCHIVED',
+        label: t('kds.statusLabels.served'),
         stage: 'SERVED',
         buttonClass: 'bg-[#334155] text-[#94a3b8] cursor-default',
         isRush: false,
@@ -99,7 +103,7 @@ export const KdsPage: React.FC = () => {
         bg: '#16a34a', // Emerald Green
         cardBorder: 'border-2 border-emerald-500',
         cardShadow: 'shadow-[0_0_24px_rgba(22,163,74,0.35)] ring-2 ring-emerald-500/30',
-        label: isRush ? 'READY AT PASS // RUSH (>10M)' : 'READY AT PASS // EXPEDITE',
+        label: isRush ? t('kds.statusLabels.readyRush') : t('kds.statusLabels.readyExpedite'),
         stage: 'READY',
         buttonClass: 'bg-[#15803d] hover:bg-[#166534] text-white font-bold',
         isRush,
@@ -111,7 +115,7 @@ export const KdsPage: React.FC = () => {
         bg: isRush ? '#dc2626' : '#ea580c', // Red if rush, Vivid Amber if normal cooking
         cardBorder: isRush ? 'border-2 border-red-500' : 'border-2 border-amber-500',
         cardShadow: isRush ? 'shadow-[0_0_24px_rgba(239,68,68,0.4)]' : 'shadow-[0_0_20px_rgba(234,88,12,0.25)]',
-        label: isRush ? 'ON GRILL // RUSH (>10M)' : 'ON GRILL // COOKING',
+        label: isRush ? t('kds.statusLabels.cookingRush') : t('kds.statusLabels.cookingNormal'),
         stage: 'GRILL',
         buttonClass: isRush ? 'bg-[#dc2626] hover:bg-[#b91c1c] text-white font-bold' : 'bg-[#ea580c] hover:bg-[#c2410c] text-white font-bold',
         isRush,
@@ -123,7 +127,7 @@ export const KdsPage: React.FC = () => {
       bg: isRush ? '#dc2626' : '#0284c7', // Sky Blue for New, Red if rush
       cardBorder: isRush ? 'border-2 border-red-500' : 'border-2 border-sky-500',
       cardShadow: isRush ? 'shadow-[0_0_24px_rgba(239,68,68,0.4)]' : 'shadow-[0_0_20px_rgba(2,132,199,0.25)]',
-      label: isRush ? 'NEW ORDER // RUSH (>10M)' : 'NEW ORDER // PENDING GRILL',
+      label: isRush ? t('kds.statusLabels.newRush') : t('kds.statusLabels.newNormal'),
       stage: 'NEW',
       buttonClass: isRush ? 'bg-[#dc2626] hover:bg-[#b91c1c] text-white font-bold' : 'bg-[#0284c7] hover:bg-[#0369a1] text-white font-bold',
       isRush,
@@ -135,277 +139,295 @@ export const KdsPage: React.FC = () => {
   const dishAggregations: Record<string, number> = {};
   activeOrdersForStats.forEach((ticket) => {
     ticket.items.forEach((item) => {
-      dishAggregations[item.menuItem.name] =
-        (dishAggregations[item.menuItem.name] || 0) + item.quantity;
+      const localName = localizeDish(item.menuItem).name;
+      dishAggregations[localName] =
+        (dishAggregations[localName] || 0) + item.quantity;
     });
   });
 
+  const getStationLabel = (st: 'all' | 'grill' | 'oven' | 'fry' | 'pantry') => {
+    if (st === 'all') return t('kds.allStations');
+    return t(`kds.stations.${st}`);
+  };
+
   return (
     <WorkstationBarrier
-      portalName="Kitchen Display System (KDS)"
+      portalName={t('kds.portalName')}
       portalCode="KDS-BOH-01"
-      stationRole="Kitchen Expeditor Pass"
-      description="The FlameLink Kitchen Display System (KDS) is an operational pass terminal engineered strictly for line expeditor screens and high-temperature kitchen displays (minimum 1024px horizontal resolution). Mobile phone access is locked to maintain order dispatch safety and line coordination."
+      stationRole={t('kds.stationRole')}
+      description={t('kds.portalDesc')}
     >
       <div
         className="min-h-screen bg-white blueprint-dots text-[#262626] flex flex-col font-sans select-none overflow-x-hidden pb-16"
         data-ui-container="kds-screen"
       >
-      {/* Real-Time Kitchen Metric Counters & Station Filters Bar (No duplicate header) */}
-      <section className="px-6 sm:px-8 py-3.5 bg-[#f9f9f9] border-b border-[#e5e7eb] flex flex-wrap items-center justify-between gap-4 text-[13px]">
-        {/* Stage Filter Pills */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-          <button
-            onClick={() => setStatusFilter('active')}
-            className={`px-3.5 py-1 rounded-full text-[12px] transition-colors cursor-pointer ${
-              statusFilter === 'active'
-                ? 'bg-[#262626] text-white font-semibold'
-                : 'bg-white text-[#727272] border border-[#e5e7eb] hover:text-[#262626]'
-            }`}
-          >
-            Active Tickets ({openTickets.length + cookingTickets.length + readyTickets.length})
-          </button>
-
-          <button
-            onClick={() => setStatusFilter('received')}
-            className={`px-3.5 py-1 rounded-full text-[12px] transition-colors cursor-pointer ${
-              statusFilter === 'received'
-                ? 'bg-[#0284c7] text-white font-semibold shadow-xs'
-                : 'bg-white text-[#727272] border border-[#e5e7eb] hover:text-[#262626]'
-            }`}
-          >
-            New ({openTickets.length})
-          </button>
-
-          <button
-            onClick={() => setStatusFilter('cooking')}
-            className={`px-3.5 py-1 rounded-full text-[12px] transition-colors cursor-pointer ${
-              statusFilter === 'cooking'
-                ? 'bg-[#d97706] text-white font-semibold'
-                : 'bg-white text-[#727272] border border-[#e5e7eb] hover:text-[#262626]'
-            }`}
-          >
-            On Grill ({cookingTickets.length})
-          </button>
-
-          <button
-            onClick={() => setStatusFilter('ready')}
-            className={`px-3.5 py-1 rounded-full text-[12px] transition-colors cursor-pointer ${
-              statusFilter === 'ready'
-                ? 'bg-[#15803d] text-white font-semibold'
-                : 'bg-white text-[#727272] border border-[#e5e7eb] hover:text-[#262626]'
-            }`}
-          >
-            Ready for Pass ({readyTickets.length})
-          </button>
-
-          <button
-            onClick={() => setStatusFilter('served')}
-            className={`px-3.5 py-1 rounded-full text-[12px] transition-colors cursor-pointer ${
-              statusFilter === 'served'
-                ? 'bg-[#64748b] text-white font-semibold'
-                : 'bg-white text-[#727272] border border-[#e5e7eb] hover:text-[#262626]'
-            }`}
-          >
-            Served ({servedTickets.length})
-          </button>
-
-          <div className="w-[1px] h-4 bg-[#e5e7eb] mx-1 shrink-0" />
-
-          {/* Station Filters */}
-          {(['all', 'grill', 'oven', 'fry', 'pantry'] as const).map((st) => (
+        {/* Real-Time Kitchen Metric Counters & Station Filters Bar */}
+        <section className="px-6 sm:px-8 py-3.5 bg-[#f9f9f9] border-b border-[#e5e7eb] flex flex-wrap items-center justify-between gap-4 text-[13px]">
+          {/* Stage Filter Pills */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
             <button
-              key={st}
-              onClick={() => setStationFilter(st)}
-              className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors cursor-pointer shrink-0 ${
-                stationFilter === st
-                  ? 'bg-[#FF0055] text-white font-bold shadow-xs'
+              onClick={() => setStatusFilter('active')}
+              className={`px-3.5 py-1 rounded-full text-[12px] transition-colors cursor-pointer ${
+                statusFilter === 'active'
+                  ? 'bg-[#262626] text-white font-semibold'
                   : 'bg-white text-[#727272] border border-[#e5e7eb] hover:text-[#262626]'
               }`}
             >
-              {st === 'all' ? 'All Stations' : st}
+              {t('kds.activeTickets', {
+                count: openTickets.length + cookingTickets.length + readyTickets.length,
+              })}
             </button>
-          ))}
-        </div>
 
-        {/* Live Clock & Test Order Trigger */}
-        <div className="flex items-center gap-3 text-[#727272]">
-          <button
-            onClick={() => addSampleOrder()}
-            data-ui-radius="999"
-            className="px-3.5 py-1 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[12px] font-medium transition-colors shadow-xs cursor-pointer"
-          >
-            + Test Chit
-          </button>
+            <button
+              onClick={() => setStatusFilter('received')}
+              className={`px-3.5 py-1 rounded-full text-[12px] transition-colors cursor-pointer ${
+                statusFilter === 'received'
+                  ? 'bg-[#0284c7] text-white font-semibold shadow-xs'
+                  : 'bg-white text-[#727272] border border-[#e5e7eb] hover:text-[#262626]'
+              }`}
+            >
+              {t('kds.newTickets', { count: openTickets.length })}
+            </button>
 
-          <div className="flex items-center gap-1.5">
-            <span className="text-xs">Clock:</span>
-            <span className="text-[#262626] font-mono-num font-medium" data-ui-number>
-              {new Date(currentTime).toLocaleTimeString()}
-            </span>
-          </div>
-        </div>
-      </section>
+            <button
+              onClick={() => setStatusFilter('cooking')}
+              className={`px-3.5 py-1 rounded-full text-[12px] transition-colors cursor-pointer ${
+                statusFilter === 'cooking'
+                  ? 'bg-[#d97706] text-white font-semibold'
+                  : 'bg-white text-[#727272] border border-[#e5e7eb] hover:text-[#262626]'
+              }`}
+            >
+              {t('kds.onGrillTickets', { count: cookingTickets.length })}
+            </button>
 
-      {/* Main Single Unsectioned Auto-Fill Grid (DESIGN.md §5.5) with Large Legible Font Hierarchy */}
-      <main className="flex-1 p-6 sm:p-8 overflow-y-auto">
-        {filteredOrders.length === 0 ? (
-          <div className="h-96 flex flex-col items-center justify-center text-center text-[#727272]">
-            <div className="w-16 h-16 rounded-full bg-[#f9f9f9] border border-[#e5e7eb] flex items-center justify-center text-[#262626] mb-4">
-              <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
-            </div>
-            <h3 className="text-xl font-bold text-[#262626]">Line All Clear</h3>
-            <p className="text-[14px] text-[#727272] mt-1">
-              No tickets matching current station or active filter. Pass is currently empty.
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 items-start">
-            {filteredOrders.map((ticket) => {
-              const elapsedSeconds = getElapsedSeconds(ticket);
-              const theme = getTicketStatusTheme(ticket.status, elapsedSeconds);
+            <button
+              onClick={() => setStatusFilter('ready')}
+              className={`px-3.5 py-1 rounded-full text-[12px] transition-colors cursor-pointer ${
+                statusFilter === 'ready'
+                  ? 'bg-[#15803d] text-white font-semibold'
+                  : 'bg-white text-[#727272] border border-[#e5e7eb] hover:text-[#262626]'
+              }`}
+            >
+              {t('kds.readyForPassTickets', { count: readyTickets.length })}
+            </button>
 
-              return (
-                <article
-                  key={ticket.id}
-                  className={`thermal-chit-kds flex flex-col justify-between animate-in zoom-in-95 duration-150 ${theme.cardBorder} ${theme.cardShadow} transition-all`}
-                  style={{ minHeight: '420px' }}
-                >
-                  {/* Status-Driven Top Band */}
-                  <div
-                    style={{ backgroundColor: theme.bg }}
-                    className="h-12 px-4 flex items-center justify-between text-white font-mono-num font-bold text-[13px] tracking-wider rounded-t-[5px]"
-                  >
-                    <div className="flex items-center gap-2">
-                      {theme.isRush && (
-                        <span className="w-2.5 h-2.5 rounded-full bg-white animate-ping shrink-0" />
-                      )}
-                      <span>{theme.label}</span>
-                    </div>
-                    <span className="text-white font-mono-num text-[14px]" data-ui-number>
-                      {formatElapsed(ticket)}
-                    </span>
-                  </div>
+            <button
+              onClick={() => setStatusFilter('served')}
+              className={`px-3.5 py-1 rounded-full text-[12px] transition-colors cursor-pointer ${
+                statusFilter === 'served'
+                  ? 'bg-[#64748b] text-white font-semibold'
+                  : 'bg-white text-[#727272] border border-[#e5e7eb] hover:text-[#262626]'
+              }`}
+            >
+              {t('kds.servedTickets', { count: servedTickets.length })}
+            </button>
 
-                  {/* Chit Header: 24px Font Size Table & Order ID (Agent 06 spec) */}
-                  <div className="px-5 pt-4 pb-3 border-b border-[#e2e8f0] flex items-start justify-between bg-white">
-                    <div>
-                      <div className="text-[24px] font-mono-num font-bold text-[#111827] leading-none" data-ui-number>
-                        {ticket.tableNumber ? `TABLE ${ticket.tableNumber}` : 'ONLINE ORDER'}
-                      </div>
-                      <div className="text-[13px] font-mono-num text-[#64748b] mt-1.5" data-ui-number>
-                        CHIT #{ticket.cashierChitCode || ticket.id} • {ticket.items.reduce((s, i) => s + i.quantity, 0)} ITEMS
-                      </div>
-                    </div>
+            <div className="w-[1px] h-4 bg-[#e5e7eb] mx-1 shrink-0" />
 
-                    <div className="text-right">
-                      <span className="text-[11px] text-[#64748b] block font-medium uppercase">
-                        FIRED
-                      </span>
-                      <span className="text-[13px] font-mono-num font-semibold text-[#111827]">
-                        {new Date(ticket.paidAt || ticket.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Notch Divider Tear Line */}
-                  <div className="thermal-tear-line my-1" />
-
-                  {/* Ticket Items: Instant Readability for Cooks */}
-                  <div className="px-5 py-4 space-y-5 flex-1 bg-white">
-                    {ticket.items.map((item, idx) => (
-                      <div key={item.cartItemId || idx} className="space-y-1.5 border-b border-dashed border-[#e2e8f0] pb-3 last:border-b-0 last:pb-0">
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="flex items-baseline gap-2.5">
-                            <span className="text-[20px] font-mono-num font-bold text-[#111827]" data-ui-number>
-                              {item.quantity}x
-                            </span>
-                            <span className="text-[20px] font-bold text-[#111827] leading-snug">
-                              {item.menuItem.name}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Modifiers List: 18px Bold Crimson (Agent 06 spec) */}
-                        {item.selectedModifiers.length > 0 && (
-                          <div className="pl-6 space-y-1">
-                            {item.selectedModifiers.map((mod) => (
-                              <div
-                                key={mod.id}
-                                className="text-[18px] font-mono-num font-bold text-[#FF0055]"
-                              >
-                                + {mod.name}
-                              </div>
-                            ))}
-                          </div>
-                        )}
-
-                        {/* Special Kitchen Notes */}
-                        {item.notes && (
-                          <div className="pl-6 text-[14px] font-mono-num text-[#b91c1c] font-bold uppercase bg-red-50 p-1.5 rounded">
-                            ! NOTE: {item.notes}
-                          </div>
-                        )}
-
-                        {/* Diner Attribution */}
-                        {item.addedBy && (
-                          <div className="pl-6 text-[11px] text-[#727272]">
-                            Diner: {item.addedBy.name}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Bottom Action Footer & Bump Button */}
-                  <div className="p-4 bg-[#f9f9f9] border-t border-[#e2e8f0] rounded-b-[5px]">
-                    {ticket.status !== 'served' ? (
-                      <button
-                        onClick={() => advanceOrderStatus(ticket.id)}
-                        data-ui-radius="6"
-                        className={`w-full py-3.5 px-4 rounded text-[15px] font-bold transition-all active:scale-[0.99] cursor-pointer shadow-md ${theme.buttonClass}`}
-                      >
-                        {getStatusActionText(ticket.status)}
-                      </button>
-                    ) : (
-                      <div className="w-full py-2.5 text-center text-[13px] text-[#64748b]">
-                        Ticket Completed & Expedited
-                      </div>
-                    )}
-                  </div>
-                </article>
-              );
-            })}
-          </div>
-        )}
-      </main>
-
-      {/* Sticky Bottom Footer: Whole Number Totals across all active orders */}
-      <footer className="fixed bottom-0 inset-x-0 bg-white border-t border-[#e5e7eb] py-2.5 px-6 z-30 flex items-center justify-between text-[12px] shadow-sm">
-        <div className="flex items-center gap-2 text-[#727272] shrink-0 mr-4">
-          <span className="w-2 h-2 rounded-full bg-[#FF0055]" />
-          <span className="font-semibold text-[#262626] uppercase">Kitchen Batch Totals:</span>
-        </div>
-
-        <div className="flex items-center gap-4 overflow-x-auto scrollbar-none py-1">
-          {Object.keys(dishAggregations).length === 0 ? (
-            <span className="text-[#727272]">No active dishes on the grill line</span>
-          ) : (
-            Object.entries(dishAggregations).map(([name, count]) => (
-              <div
-                key={name}
-                className="px-2.5 py-1 rounded-full bg-[#f9f9f9] border border-[#e5e7eb] text-[#262626] shrink-0 flex items-center gap-1.5"
+            {/* Station Filters */}
+            {(['all', 'grill', 'oven', 'fry', 'pantry'] as const).map((st) => (
+              <button
+                key={st}
+                onClick={() => setStationFilter(st)}
+                className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors cursor-pointer shrink-0 ${
+                  stationFilter === st
+                    ? 'bg-[#FF0055] text-white font-bold shadow-xs'
+                    : 'bg-white text-[#727272] border border-[#e5e7eb] hover:text-[#262626]'
+                }`}
               >
-                <span className="text-[#FF0055] font-mono-num font-bold text-[13px]">{count}x</span>
-                <span>{name}</span>
+                {getStationLabel(st)}
+              </button>
+            ))}
+          </div>
+
+          {/* Live Clock & Test Order Trigger */}
+          <div className="flex items-center gap-3 text-[#727272]">
+            <button
+              onClick={() => addSampleOrder()}
+              data-ui-radius="999"
+              className="px-3.5 py-1 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[12px] font-medium transition-colors shadow-xs cursor-pointer"
+            >
+              {t('kds.testChitBtn')}
+            </button>
+
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs">{t('kds.clockLabel')}</span>
+              <span className="text-[#262626] font-mono-num font-medium" data-ui-number>
+                {new Date(currentTime).toLocaleTimeString()}
+              </span>
+            </div>
+          </div>
+        </section>
+
+        {/* Main Single Unsectioned Auto-Fill Grid with Large Legible Font Hierarchy */}
+        <main className="flex-1 p-6 sm:p-8 overflow-y-auto">
+          {/* Empty State: No tickets matching current station or active filter */}
+          {filteredOrders.length === 0 ? (
+            <div className="h-96 flex flex-col items-center justify-center text-center text-[#727272]">
+              <div className="w-16 h-16 rounded-full bg-[#f9f9f9] border border-[#e5e7eb] flex items-center justify-center text-[#262626] mb-4">
+                <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
               </div>
-            ))
+              <h3 className="text-xl font-bold text-[#262626]">{t('kds.lineAllClearTitle')}</h3>
+              <p className="text-[14px] text-[#727272] mt-1">
+                {t('kds.lineAllClearDesc')}
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 items-start">
+              {filteredOrders.map((ticket) => {
+                const elapsedSeconds = getElapsedSeconds(ticket);
+                const theme = getTicketStatusTheme(ticket.status, elapsedSeconds);
+
+                return (
+                  <article
+                    key={ticket.id}
+                    className={`thermal-chit-kds flex flex-col justify-between animate-in zoom-in-95 duration-150 ${theme.cardBorder} ${theme.cardShadow} transition-all`}
+                    style={{ minHeight: '420px' }}
+                  >
+                    {/* Status-Driven Top Band */}
+                    <div
+                      style={{ backgroundColor: theme.bg }}
+                      className="h-12 px-4 flex items-center justify-between text-white font-mono-num font-bold text-[13px] tracking-wider rounded-t-[5px]"
+                    >
+                      <div className="flex items-center gap-2">
+                        {theme.isRush && (
+                          <span className="w-2.5 h-2.5 rounded-full bg-white animate-ping shrink-0" />
+                        )}
+                        <span>{theme.label}</span>
+                      </div>
+                      <span className="text-white font-mono-num text-[14px]" data-ui-number>
+                        {formatElapsed(ticket)}
+                      </span>
+                    </div>
+
+                    {/* Chit Header: 24px Font Size Table & Order ID */}
+                    <div className="px-5 pt-4 pb-3 border-b border-[#e2e8f0] flex items-start justify-between bg-white">
+                      <div>
+                        <div className="text-[24px] font-mono-num font-bold text-[#111827] leading-none" data-ui-number>
+                          {ticket.tableNumber
+                            ? `${t('common.table')} ${ticket.tableNumber}`
+                            : t('kds.onlineOrder')}
+                        </div>
+                        <div className="text-[13px] font-mono-num text-[#64748b] mt-1.5" data-ui-number>
+                          {t('common.chit')} #{ticket.cashierChitCode || ticket.id} •{' '}
+                          {t('kds.itemsCountUpper', {
+                            count: ticket.items.reduce((s, i) => s + i.quantity, 0),
+                          })}
+                        </div>
+                      </div>
+
+                      <div className="text-end">
+                        <span className="text-[11px] text-[#64748b] block font-medium uppercase">
+                          {t('kds.firedLabel')}
+                        </span>
+                        <span className="text-[13px] font-mono-num font-semibold text-[#111827]">
+                          {new Date(ticket.paidAt || ticket.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Notch Divider Tear Line */}
+                    <div className="thermal-tear-line my-1" />
+
+                    {/* Ticket Items: Instant Readability for Cooks */}
+                    <div className="px-5 py-4 space-y-5 flex-1 bg-white">
+                      {ticket.items.map((item, idx) => {
+                        const localDish = localizeDish(item.menuItem);
+                        return (
+                          <div key={item.cartItemId || idx} className="space-y-1.5 border-b border-dashed border-[#e2e8f0] pb-3 last:border-b-0 last:pb-0">
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="flex items-baseline gap-2.5">
+                                <span className="text-[20px] font-mono-num font-bold text-[#111827]" data-ui-number>
+                                  {item.quantity}x
+                                </span>
+                                <span className="text-[20px] font-bold text-[#111827] leading-snug">
+                                  {localDish.name}
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Modifiers List: 18px Bold Crimson */}
+                            {item.selectedModifiers.length > 0 && (
+                              <div className="ps-6 space-y-1">
+                                {item.selectedModifiers.map((mod) => (
+                                  <div
+                                    key={mod.id}
+                                    className="text-[18px] font-mono-num font-bold text-[#FF0055]"
+                                  >
+                                    + {localizeModifier(item.menuItem.id, mod.id, mod.name)}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+
+                            {/* Special Kitchen Notes */}
+                            {item.notes && (
+                              <div className="ps-6 text-[14px] font-mono-num text-[#b91c1c] font-bold uppercase bg-red-50 p-1.5 rounded">
+                                ! {t('kds.notePrefix')} {item.notes}
+                              </div>
+                            )}
+
+                            {/* Diner Attribution */}
+                            {item.addedBy && (
+                              <div className="ps-6 text-[11px] text-[#727272]">
+                                {t('kds.dinerPrefix')} {item.addedBy.name}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Bottom Action Footer & Bump Button */}
+                    <div className="p-4 bg-[#f9f9f9] border-t border-[#e2e8f0] rounded-b-[5px]">
+                      {ticket.status !== 'served' ? (
+                        <button
+                          onClick={() => advanceOrderStatus(ticket.id)}
+                          data-ui-radius="6"
+                          className={`w-full py-3.5 px-4 rounded text-[15px] font-bold transition-all active:scale-[0.99] cursor-pointer shadow-md inline-flex items-center justify-center gap-2 ${theme.buttonClass}`}
+                        >
+                          <span>{getStatusActionText(ticket.status)}</span>
+                          <DirectionalArrow className="w-4 h-4" />
+                        </button>
+                      ) : (
+                        <div className="w-full py-2.5 text-center text-[13px] text-[#64748b]">
+                          {t('kds.ticketCompleted')}
+                        </div>
+                      )}
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
           )}
-        </div>
-      </footer>
-    </div>
+        </main>
+
+        {/* Sticky Bottom Footer: Whole Number Totals across all active orders */}
+        <footer className="fixed bottom-0 inset-x-0 bg-white border-t border-[#e5e7eb] py-2.5 px-6 z-30 flex items-center justify-between text-[12px] shadow-sm">
+          <div className="flex items-center gap-2 text-[#727272] shrink-0 me-4">
+            <span className="w-2 h-2 rounded-full bg-[#FF0055]" />
+            <span className="font-semibold text-[#262626] uppercase">{t('kds.kitchenBatchTotals')}</span>
+          </div>
+
+          <div className="flex items-center gap-4 overflow-x-auto scrollbar-none py-1">
+            {Object.keys(dishAggregations).length === 0 ? (
+              <span className="text-[#727272]">{t('kds.noActiveDishesOnGrill')}</span>
+            ) : (
+              Object.entries(dishAggregations).map(([name, count]) => (
+                <div
+                  key={name}
+                  className="px-2.5 py-1 rounded-full bg-[#f9f9f9] border border-[#e5e7eb] text-[#262626] shrink-0 flex items-center gap-1.5"
+                >
+                  <span className="text-[#FF0055] font-mono-num font-bold text-[13px]">{count}x</span>
+                  <span>{name}</span>
+                </div>
+              ))
+            )}
+          </div>
+        </footer>
+      </div>
     </WorkstationBarrier>
   );
 };

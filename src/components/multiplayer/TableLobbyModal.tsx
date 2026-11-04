@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
+import { DirectionalArrow } from '../ui/DirectionalArrow';
 import { useAppStore } from '../../store/useAppStore';
 import { FlameLinkLogo } from '../ui/FlameLinkLogo';
+import { useTranslation } from '../../i18n';
 
 const ANIMAL_IDENTITIES = [
-  { id: 'panda', name: 'Red Panda', color: 'border-[#FF0055] bg-[#fff0f3] text-[#FF0055]', dot: '#FF0055' },
-  { id: 'fox', name: 'Orange Fox', color: 'border-amber-500 bg-amber-50 text-amber-800', dot: '#f59e0b' },
-  { id: 'eagle', name: 'Golden Eagle', color: 'border-yellow-500 bg-yellow-50 text-yellow-800', dot: '#eab308' },
-  { id: 'falcon', name: 'Blue Falcon', color: 'border-sky-500 bg-sky-50 text-sky-800', dot: '#0284c7' },
-  { id: 'owl', name: 'Charcoal Owl', color: 'border-[#262626] bg-[#f9f9f9] text-[#262626]', dot: '#262626' },
-  { id: 'wolf', name: 'Silver Wolf', color: 'border-slate-500 bg-slate-50 text-slate-800', dot: '#64748b' },
+  { id: 'panda', name: 'Red Panda', nameEg: 'الباندا الأحمر', color: 'border-[#FF0055] bg-[#fff0f3] text-[#FF0055]', dot: '#FF0055' },
+  { id: 'fox', name: 'Orange Fox', nameEg: 'الثعلب البرتقالي', color: 'border-amber-500 bg-amber-50 text-amber-800', dot: '#f59e0b' },
+  { id: 'eagle', name: 'Golden Eagle', nameEg: 'النسر الذهبي', color: 'border-yellow-500 bg-yellow-50 text-yellow-800', dot: '#eab308' },
+  { id: 'falcon', name: 'Blue Falcon', nameEg: 'الصقر الأزرق', color: 'border-sky-500 bg-sky-50 text-sky-800', dot: '#0284c7' },
+  { id: 'owl', name: 'Charcoal Owl', nameEg: 'البومة الفحمية', color: 'border-[#262626] bg-[#f9f9f9] text-[#262626]', dot: '#262626' },
+  { id: 'wolf', name: 'Silver Wolf', nameEg: 'الذئب الفضي', color: 'border-slate-500 bg-slate-50 text-slate-800', dot: '#64748b' },
 ];
 
 export const TableLobbyModal: React.FC = () => {
@@ -18,15 +20,14 @@ export const TableLobbyModal: React.FC = () => {
   const joinTableWithPin = useAppStore((state) => state.joinTableWithPin);
   const initTableSession = useAppStore((state) => state.initTableSession);
   const tableSessions = useAppStore((state) => state.tableSessions);
+  const { t, lang } = useTranslation();
 
   const [selectedAnimal, setSelectedAnimal] = useState(ANIMAL_IDENTITIES[0].name);
   const [customName, setCustomName] = useState('');
   const [pin, setPin] = useState('');
   const [error, setError] = useState<string | null>(null);
 
-  if (!isPinModalOpen || !pendingJoinTable) return null;
-
-  const targetTable = pendingJoinTable.trim().toUpperCase();
+  const targetTable = (pendingJoinTable || 'T-04').trim().toUpperCase();
   const existingSession = tableSessions[targetTable];
   const isNewSession = !existingSession || !existingSession.members || existingSession.members.length === 0;
 
@@ -47,6 +48,8 @@ export const TableLobbyModal: React.FC = () => {
     }
   }, [pendingJoinTable, existingSession]);
 
+  if (!isPinModalOpen || !pendingJoinTable) return null;
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -54,7 +57,11 @@ export const TableLobbyModal: React.FC = () => {
     const displayName = customName.trim() || selectedAnimal;
 
     if (!isNewSession && takenNames.has(displayName.toLowerCase())) {
-      setError(`Identity "${displayName}" is already seated at Table ${targetTable}. Please choose an untaken identity.`);
+      setError(
+        lang === 'eg'
+          ? `الاسم "${displayName}" مستخدم بالفعل على ترابيزة ${targetTable}. يرجى اختيار اسم آخر.`
+          : `Identity "${displayName}" is already seated at Table ${targetTable}. Please choose an untaken identity.`
+      );
       return;
     }
 
@@ -65,13 +72,13 @@ export const TableLobbyModal: React.FC = () => {
     }
 
     if (!pin.trim()) {
-      setError('Please enter the 4-digit table PIN');
+      setError(t('companion.invalidPinError', { table: targetTable }));
       return;
     }
 
     const success = joinTableWithPin(targetTable, pin.trim(), displayName, selectedAnimal);
     if (!success) {
-      setError(`Incorrect PIN for Table ${targetTable}. Ask the seated host for the PIN.`);
+      setError(t('companion.invalidPinError', { table: targetTable }));
     } else {
       closePinModal();
     }
@@ -83,13 +90,13 @@ export const TableLobbyModal: React.FC = () => {
       onClick={closePinModal}
     >
       <div
-        className="w-full max-w-md bg-white rounded-2xl shadow-2xl border border-[#e5e7eb] p-6 sm:p-7 relative select-none animate-in zoom-in-95 duration-150"
+        className="w-full max-w-md bg-white rounded-2xl shadow-2xl border border-[#e5e7eb] p-6 sm:p-7 relative select-none animate-in zoom-in-95 duration-150 text-start"
         onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={closePinModal}
-          className="absolute top-4 right-4 min-w-[44px] min-h-[44px] rounded-full bg-[#f9f9f9] hover:bg-[#e5e7eb] flex items-center justify-center text-[#727272] transition-colors cursor-pointer"
-          aria-label="Close modal"
+          className="absolute top-4 end-4 min-w-[44px] min-h-[44px] rounded-full bg-[#f9f9f9] hover:bg-[#e5e7eb] flex items-center justify-center text-[#727272] transition-colors cursor-pointer"
+          aria-label={t('lobby.modal.closeAria')}
         >
           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
             <path d="M18 6L6 18M6 6l12 12" />
@@ -99,14 +106,10 @@ export const TableLobbyModal: React.FC = () => {
         <div className="text-center mb-6">
           <FlameLinkLogo size="md" className="justify-center mb-3" />
           <h2 className="text-xl font-bold text-[#262626]">
-            {isNewSession
-              ? `Open Table ${targetTable} Session`
-              : `Table ${targetTable} is currently active. Join the pool?`}
+            {t('lobby.modal.title', { table: targetTable })}
           </h2>
           <p className="text-[13px] text-[#727272] mt-1">
-            {isNewSession
-              ? `You are the first seated diner at Table ${targetTable}. You will be assigned as Host with a private PIN.`
-              : `Enter the 4-digit PIN provided by your table host to join the shared cart.`}
+            {t('lobby.modal.subtitle')}
           </p>
         </div>
 
@@ -114,11 +117,12 @@ export const TableLobbyModal: React.FC = () => {
           {/* Diner Persona Identity Selector */}
           <div>
             <label className="block text-[12px] font-semibold text-[#262626] mb-1.5">
-              Select Your Diner Identity:
+              {t('lobby.modal.switchRoleTitle')}:
             </label>
             <div className="grid grid-cols-3 gap-2">
               {ANIMAL_IDENTITIES.map((animal) => {
                 const isTaken = !isNewSession && takenNames.has(animal.name.toLowerCase());
+                const label = lang === 'eg' ? animal.nameEg : animal.name;
                 return (
                   <button
                     key={animal.id}
@@ -137,12 +141,7 @@ export const TableLobbyModal: React.FC = () => {
                       className="w-2.5 h-2.5 rounded-full shrink-0"
                       style={{ backgroundColor: isTaken ? '#d1d5db' : animal.dot }}
                     />
-                    <span className="truncate">{animal.name}</span>
-                    {isTaken && (
-                      <span className="text-[9px] uppercase tracking-wider text-[#949494] no-underline">
-                        (Taken)
-                      </span>
-                    )}
+                    <span className="truncate">{label}</span>
                   </button>
                 );
               })}
@@ -151,14 +150,14 @@ export const TableLobbyModal: React.FC = () => {
 
           <div>
             <label htmlFor="custom-nickname" className="block text-[12px] font-medium text-[#262626] mb-1">
-              Nickname (Optional)
+              {t('companion.yourNameLabel')}
             </label>
             <input
               id="custom-nickname"
               type="text"
               value={customName}
               onChange={(e) => setCustomName(e.target.value)}
-              placeholder={`e.g. ${selectedAnimal} or Alex`}
+              placeholder={t('companion.yourNamePlaceholder')}
               className="w-full px-3.5 py-2.5 min-h-[44px] rounded-lg border border-[#e5e7eb] bg-white text-[#262626] text-[14px] focus:outline-none focus:border-[#FF0055]"
             />
           </div>
@@ -167,10 +166,10 @@ export const TableLobbyModal: React.FC = () => {
             <div>
               <div className="flex items-center justify-between mb-1">
                 <label htmlFor="table-pin" className="block text-[12px] font-semibold text-[#262626]">
-                  Enter 4-Digit Table PIN
+                  {t('companion.tablePinLabel')}
                 </label>
                 <span className="text-[11px] text-[#949494]">
-                  Ask Seated Host
+                  {t('common.host')}
                 </span>
               </div>
               <input
@@ -194,9 +193,10 @@ export const TableLobbyModal: React.FC = () => {
 
           <button
             type="submit"
-            className="w-full min-h-[44px] py-3.5 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[14px] font-bold transition-all btn-crimson-glow active:scale-[0.99] cursor-pointer shadow-xs flex items-center justify-center"
+            className="w-full min-h-[44px] py-3.5 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[14px] font-bold transition-all btn-crimson-glow active:scale-[0.99] cursor-pointer shadow-xs flex items-center justify-center gap-2"
           >
-            {isNewSession ? `Start Table ${targetTable} Session ->` : `Join Table ${targetTable} Pool ->`}
+            <span>{t('companion.joinTableBtn', { table: targetTable })}</span>
+            <DirectionalArrow className="w-4 h-4" />
           </button>
         </form>
       </div>

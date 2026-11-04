@@ -14,6 +14,7 @@ import {
   AccountModalTab,
 } from '../types/domain';
 import { MENU_ITEMS } from '../domain/menuData';
+import { tGlobal, getCurrentLanguage, localizeDish } from '../i18n';
 
 interface AppState {
   cart: CartItem[];
@@ -377,7 +378,11 @@ export const useAppStore = create<AppState>()(
           broadcastChannel.postMessage({ type: 'SESSIONS_SYNC', tableSessions: updatedSessions });
         }
 
-        get().showToast(`Table ${cleanTable} session started. Your PIN is ${hostPin}`);
+        get().showToast(
+          getCurrentLanguage() === 'eg'
+            ? `بدأت جلسة ترابيزة ${cleanTable} · رمز الانضمام PIN: ${hostPin}`
+            : `Table ${cleanTable} session started. Your PIN is ${hostPin}`
+        );
         return newSession;
       },
 
@@ -387,12 +392,20 @@ export const useAppStore = create<AppState>()(
         const session = tableSessions[cleanTable];
 
         if (!session) {
-          get().showToast(`Table ${cleanTable} not found.`);
+          get().showToast(
+            getCurrentLanguage() === 'eg'
+              ? `ترابيزة ${cleanTable} غير موجودة.`
+              : `Table ${cleanTable} not found.`
+          );
           return false;
         }
 
         if (session.pin !== pin.trim()) {
-          get().showToast(`Incorrect PIN for Table ${cleanTable}. Ask the host.`);
+          get().showToast(
+            getCurrentLanguage() === 'eg'
+              ? `رمز PIN غير صحيح لترابيزة ${cleanTable}. تأكد من الرمز مع مضيف الترابيزة.`
+              : `Incorrect PIN for Table ${cleanTable}. Ask the host.`
+          );
           return false;
         }
 
@@ -447,7 +460,9 @@ export const useAppStore = create<AppState>()(
           });
         }
 
-        get().showToast(`Joined Table ${cleanTable} as ${newGuestMember.name}`);
+        get().showToast(
+          tGlobal('toasts.companionJoined', { name: newGuestMember.name, table: cleanTable })
+        );
         return true;
       },
 
@@ -584,7 +599,14 @@ export const useAppStore = create<AppState>()(
         }
 
         set({ cart: nextCart });
-        get().showToast(`Added ${quantity}x ${menuItem.name} (${activeUser.name})`);
+        const localizedItem = localizeDish(menuItem, getCurrentLanguage());
+        get().showToast(
+          tGlobal('toasts.addedAsCompanion', {
+            user: activeUser.name,
+            qty: quantity,
+            name: localizedItem.name,
+          })
+        );
 
         if (broadcastChannel && activeTable) {
           broadcastChannel.postMessage({ type: 'CART_SYNC', cart: nextCart, tableNumber: activeTable });
@@ -638,7 +660,11 @@ export const useAppStore = create<AppState>()(
 
         const member = session.members.find((m) => m.id === memberId);
         get().showToast(
-          isReady
+          getCurrentLanguage() === 'eg'
+            ? isReady
+              ? `${member?.name || 'الضيف'} جاهز لإرسال الطلب`
+              : `${member?.name || 'الضيف'} ما زال يختار أطباقه`
+            : isReady
             ? `${member?.name || 'Diner'} is ready to pay`
             : `${member?.name || 'Diner'} is still browsing`
         );
@@ -674,7 +700,7 @@ export const useAppStore = create<AppState>()(
         }
 
         const target = session.members.find((m) => m.id === targetMemberId);
-        get().showToast(`Host transferred to ${target?.name || 'Diner'}`);
+        get().showToast(tGlobal('toasts.hostTransferred', { name: target?.name || 'Diner' }));
       },
 
       clearTableSession: (tableNumber) => {
@@ -714,7 +740,11 @@ export const useAppStore = create<AppState>()(
           broadcastChannel.postMessage({ type: 'ORDERS_SYNC', orders: updatedOrders });
         }
 
-        get().showToast(`Table ${cleanTable} cleared & marked available.`);
+        get().showToast(
+          getCurrentLanguage() === 'eg'
+            ? `تم إخلاء ترابيزة ${cleanTable} وتجهيزها لضيوف جدد.`
+            : `Table ${cleanTable} cleared & marked available.`
+        );
       },
 
       leaveTableSession: (tableNumber, memberId) => {
@@ -806,7 +836,7 @@ export const useAppStore = create<AppState>()(
           broadcastChannel.postMessage({ type: 'ORDERS_SYNC', orders: updatedOrders });
         }
 
-        get().showToast(`Left Table ${cleanTable}.`);
+        get().showToast(tGlobal('toasts.companionLeft', { table: cleanTable }));
       },
 
       removeMemberFromTable: (tableNumber, targetMemberId) => {
@@ -889,7 +919,11 @@ export const useAppStore = create<AppState>()(
           broadcastChannel.postMessage({ type: 'MEMBER_REMOVED', targetMemberId, tableNumber: cleanTable });
         }
 
-        get().showToast(`Removed ${target?.name || 'Diner'} from Table ${cleanTable}`);
+        get().showToast(
+          getCurrentLanguage() === 'eg'
+            ? `تمت إزالة ${target?.name || 'الضيف'} من ترابيزة ${cleanTable}`
+            : `Removed ${target?.name || 'Diner'} from Table ${cleanTable}`
+        );
       },
 
       resetTableSession: (tableNumber) => {
@@ -929,7 +963,11 @@ export const useAppStore = create<AppState>()(
           broadcastChannel.postMessage({ type: 'SESSIONS_SYNC', tableSessions: updatedSessions });
         }
 
-        get().showToast(`Table ${cleanTable} session reset to clean Host state.`);
+        get().showToast(
+          getCurrentLanguage() === 'eg'
+            ? `تمت إعادة ضبط جلسة ترابيزة ${cleanTable} بنجاح.`
+            : `Table ${cleanTable} session reset to clean Host state.`
+        );
       },
 
       submitPlatformFeedback: (data) => {
@@ -944,7 +982,7 @@ export const useAppStore = create<AppState>()(
           platformFeedback: [newRecord, ...state.platformFeedback],
         }));
 
-        get().showToast(`Feedback submitted! Reference Ticket #${ticketId}`);
+        get().showToast(tGlobal('toasts.feedbackSubmitted', { id: ticketId }));
         return ticketId;
       },
 
@@ -1000,7 +1038,14 @@ export const useAppStore = create<AppState>()(
         }
 
         set({ cart: nextCart });
-        get().showToast(`Added ${quantity}x ${menuItem.name} to cart`);
+        const localizedItem = localizeDish(menuItem, getCurrentLanguage());
+        get().showToast(
+          tGlobal('toasts.addedToCart', {
+            qty: quantity,
+            name: localizedItem.name,
+            table: activeTable || 'T-04',
+          })
+        );
 
         if (broadcastChannel && activeTable) {
           broadcastChannel.postMessage({ type: 'CART_SYNC', cart: nextCart, tableNumber: activeTable });
@@ -1108,7 +1153,7 @@ export const useAppStore = create<AppState>()(
           isCartDrawerOpen: false,
         });
 
-        get().showToast(`Order #${orderId} placed. Ready for settlement.`);
+        get().showToast(tGlobal('toasts.orderSentCashier', { id: orderId }));
 
         if (broadcastChannel) {
           broadcastChannel.postMessage({
@@ -1186,7 +1231,7 @@ export const useAppStore = create<AppState>()(
           });
         }
 
-        get().showToast(`Payment for #${orderId} confirmed. Fired to KDS pass!`);
+        get().showToast(tGlobal('toasts.paymentVerifiedKds', { id: orderId }));
       },
 
       payOrderOnline: (orderId, method, splitCount = 1) => {
@@ -1250,7 +1295,7 @@ export const useAppStore = create<AppState>()(
           });
         }
 
-        get().showToast(`Order #${orderId} paid in full via ${method.toUpperCase()}!`);
+        get().showToast(tGlobal('toasts.orderFiredCard', { id: orderId }));
       },
 
       payDinerShare: (orderId, memberId, method, amount) => {
@@ -1368,7 +1413,11 @@ export const useAppStore = create<AppState>()(
             tableSessions: updatedSessions,
           });
         }
-        get().showToast(`Ready for your next round of dishes!`);
+        get().showToast(
+          getCurrentLanguage() === 'eg'
+            ? 'الترابيزة جاهزة لإضافة جولة أطباق جديدة!'
+            : 'Ready for your next round of dishes!'
+        );
       },
 
       // Post-meal 5-Star Review & Optional Kitchen Tip
@@ -1391,7 +1440,7 @@ export const useAppStore = create<AppState>()(
           return { orders: updated };
         });
 
-        get().showToast(`Thank you! Your ${rating}-star feedback received.`);
+        get().showToast(tGlobal('toasts.reviewSubmitted', { rating }));
       },
 
       // KDS Bump Pipeline
@@ -1449,9 +1498,17 @@ export const useAppStore = create<AppState>()(
         });
 
         if (isNowReady && notifiedTable) {
-          get().showToast(`Dishes for Table ${notifiedTable} are ready at the pass!`);
+          get().showToast(
+            getCurrentLanguage() === 'eg'
+              ? `أطباق ترابيزة ${notifiedTable} جاهزة الآن للتقديم!`
+              : `Dishes for Table ${notifiedTable} are ready at the pass!`
+          );
         } else {
-          get().showToast(`Ticket #${orderId} bumped to next stage`);
+          get().showToast(
+            getCurrentLanguage() === 'eg'
+              ? `تم نقل التذكرة #${orderId} للمرحلة التالية`
+              : `Ticket #${orderId} bumped to next stage`
+          );
         }
       },
 
@@ -1517,7 +1574,11 @@ export const useAppStore = create<AppState>()(
           broadcastChannel.postMessage({ type: 'ORDER_CREATED', orders: updated, tableSessions: updatedSessions });
         }
 
-        get().showToast(`Chit #${nextId} sent to KDS pass for Table ${targetTable}`);
+        get().showToast(
+          getCurrentLanguage() === 'eg'
+            ? `تم إرسال تذكرة #${nextId} لشاشة المطبخ لترابيزة ${targetTable}`
+            : `Chit #${nextId} sent to KDS pass for Table ${targetTable}`
+        );
       },
 
       deleteOrder: (orderId) => {
@@ -1550,7 +1611,9 @@ export const useAppStore = create<AppState>()(
           broadcastChannel.postMessage({ type: 'ORDERS_SYNC', orders: updatedOrders });
           broadcastChannel.postMessage({ type: 'SESSIONS_SYNC', tableSessions: updatedSessions });
         }
-        get().showToast(`Order #${orderId} deleted.`);
+        get().showToast(
+          getCurrentLanguage() === 'eg' ? `تم حذف الطلب #${orderId}.` : `Order #${orderId} deleted.`
+        );
       },
 
       voidOrder: (orderId, reason) => {
@@ -1594,13 +1657,17 @@ export const useAppStore = create<AppState>()(
           broadcastChannel.postMessage({ type: 'ORDERS_SYNC', orders: updatedOrders });
           broadcastChannel.postMessage({ type: 'SESSIONS_SYNC', tableSessions: updatedSessions });
         }
-        get().showToast(`Order #${orderId} voided${reason ? `: ${reason}` : ''}.`);
+        get().showToast(tGlobal('toasts.orderVoided', { id: orderId, reason: reason || 'Cashier Void' }));
       },
 
       signUpDiner: (data) => {
         const phone = data.phone.trim();
         if (!phone || !data.fullName.trim() || !data.pin.trim()) {
-          get().showToast('Please enter full name, phone number, and a 4-digit PIN.');
+          get().showToast(
+            getCurrentLanguage() === 'eg'
+              ? 'يرجى إدخال الاسم الكامل، رقم الموبايل، ورمز PIN مكون من 4 أرقام.'
+              : 'Please enter full name, phone number, and a 4-digit PIN.'
+          );
           return false;
         }
 
@@ -1662,7 +1729,7 @@ export const useAppStore = create<AppState>()(
           broadcastChannel.postMessage({ type: 'SESSIONS_SYNC', tableSessions: updatedSessions });
         }
 
-        get().showToast(`Welcome, ${newAccount.fullName}! Your guest profile is active.`);
+        get().showToast(tGlobal('toasts.profileSaved', { name: newAccount.fullName }));
         return true;
       },
 
@@ -1671,7 +1738,11 @@ export const useAppStore = create<AppState>()(
         const cleanPin = pin.trim();
         const account = get().savedAccounts[cleanPhone];
         if (!account || account.pin !== cleanPin) {
-          get().showToast('Invalid phone or PIN. Please verify credentials.');
+          get().showToast(
+            getCurrentLanguage() === 'eg'
+              ? 'رقم الموبايل أو رمز PIN غير صحيح. يرجى التأكد من البيانات.'
+              : 'Invalid phone or PIN. Please verify credentials.'
+          );
           return false;
         }
 
@@ -1724,7 +1795,7 @@ export const useAppStore = create<AppState>()(
           broadcastChannel.postMessage({ type: 'SESSIONS_SYNC', tableSessions: updatedSessions });
         }
 
-        get().showToast(`Signed in as ${updatedAccount.fullName}`);
+        get().showToast(tGlobal('toasts.profileSaved', { name: updatedAccount.fullName }));
         return true;
       },
 
@@ -1733,7 +1804,7 @@ export const useAppStore = create<AppState>()(
           userAccount: null,
           isAccountModalOpen: false,
         });
-        get().showToast('Signed out of Dine-In account.');
+        get().showToast(tGlobal('toasts.signedOut'));
       },
 
       updateDinerProfile: (data) => {
@@ -1751,13 +1822,17 @@ export const useAppStore = create<AppState>()(
           userAccount: updated,
           savedAccounts: updatedSaved,
         });
-        get().showToast('Dine-In profile preferences updated.');
+        get().showToast(tGlobal('toasts.profileSaved', { name: updated.fullName }));
       },
 
       reorderPastOrder: (orderId) => {
         const target = get().orders.find((o) => o.id === orderId);
         if (!target || target.items.length === 0) {
-          get().showToast('No items found for this past order ticket.');
+          get().showToast(
+            getCurrentLanguage() === 'eg'
+              ? 'لم يتم العثور على أصناف لهذه الفاتورة السابقة.'
+              : 'No items found for this past order ticket.'
+          );
           return;
         }
         const activeUser = get().currentMember || get().companionMember || {
@@ -1786,7 +1861,11 @@ export const useAppStore = create<AppState>()(
         if (broadcastChannel && get().activeTable) {
           broadcastChannel.postMessage({ type: 'CART_SYNC', cart: nextCart, tableNumber: get().activeTable });
         }
-        get().showToast(`Re-ordered ${reorderedItems.length} items to table cart.`);
+        get().showToast(
+          getCurrentLanguage() === 'eg'
+            ? `تمت إعادة إضافة ${reorderedItems.length} أصناف إلى سلة الترابيزة.`
+            : `Re-ordered ${reorderedItems.length} items to table cart.`
+        );
       },
 
       reorderSingleItem: (item) => {
@@ -1816,7 +1895,14 @@ export const useAppStore = create<AppState>()(
         if (broadcastChannel && get().activeTable) {
           broadcastChannel.postMessage({ type: 'CART_SYNC', cart: nextCart, tableNumber: get().activeTable });
         }
-        get().showToast(`Added ${item.menuItem.name} to cart.`);
+        const localizedItem = localizeDish(item.menuItem, getCurrentLanguage());
+        get().showToast(
+          tGlobal('toasts.addedToCart', {
+            qty: item.quantity || 1,
+            name: localizedItem.name,
+            table: get().activeTable || 'T-04',
+          })
+        );
       },
 
       syncOrders: (orders) => set({ orders }),

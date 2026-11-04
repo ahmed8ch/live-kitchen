@@ -1,9 +1,11 @@
 import React from 'react';
 import { useAppStore } from '../../store/useAppStore';
+import { useTranslation } from '../../i18n';
 
 export const ToastContainer: React.FC = () => {
   const toastMessage = useAppStore((state) => state.toastMessage);
   const clearToast = useAppStore((state) => state.clearToast);
+  const { t } = useTranslation();
 
   if (!toastMessage) return null;
 
@@ -12,11 +14,11 @@ export const ToastContainer: React.FC = () => {
       role="status"
       aria-live="polite"
       data-ui-container="toast"
-      className="fixed top-6 right-6 z-[99999] no-print animate-in slide-in-from-top-3 fade-in duration-200 pointer-events-auto"
+      className="fixed top-6 end-6 z-[99999] no-print animate-in slide-in-from-top-3 fade-in duration-200 pointer-events-auto"
     >
       <div
         data-ui-radius="8"
-        className="bg-white text-[#262626] pl-4 pr-5 py-3 rounded-lg border border-[#e5e7eb] border-l-4 border-l-[#FF0055] shadow-2xl flex items-center gap-3 max-w-md select-none"
+        className="bg-white text-[#262626] ps-4 pe-5 py-3 rounded-lg border border-[#e5e7eb] border-s-4 border-s-[#FF0055] shadow-2xl flex items-center gap-3 max-w-md select-none"
       >
         <span className="w-5 h-5 rounded-full bg-[#ffd1dc] text-[#FF0055] flex items-center justify-center shrink-0">
           <svg
@@ -31,13 +33,13 @@ export const ToastContainer: React.FC = () => {
             <polyline points="20 6 9 17 4 12" />
           </svg>
         </span>
-        <span className="text-[13px] font-medium leading-tight text-[#262626]">
+        <span className="text-[13px] font-medium leading-tight text-[#262626] text-start">
           {toastMessage}
         </span>
         <button
           onClick={clearToast}
-          className="ml-auto text-[#949494] hover:text-[#262626] transition-colors p-1 cursor-pointer"
-          aria-label="Dismiss toast"
+          className="ms-auto text-[#949494] hover:text-[#262626] transition-colors p-1 cursor-pointer"
+          aria-label={t('common.close')}
         >
           <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
             <line x1="18" y1="6" x2="6" y2="18" />

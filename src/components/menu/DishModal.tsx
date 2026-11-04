@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { MenuItem, ModifierOption } from '../../types/domain';
 import { useAppStore } from '../../store/useAppStore';
+import { useTranslation } from '../../i18n';
 
 interface DishModalProps {
   dish: MenuItem | null;
@@ -8,9 +9,10 @@ interface DishModalProps {
   onAdd?: (dish: MenuItem, modifiers: ModifierOption[], quantity: number, notes?: string) => void;
 }
 
-export const DishModal: React.FC<DishModalProps> = ({ dish, onClose, onAdd }) => {
+export const DishModal: React.FC<DishModalProps> = ({ dish: rawDish, onClose, onAdd }) => {
   const addToCart = useAppStore((state) => state.addToCart);
   const userAccount = useAppStore((state) => state.userAccount);
+  const { t, localizeDish, localizeTag } = useTranslation();
 
   const [quantity, setQuantity] = useState(1);
   const [selectedModifiers, setSelectedModifiers] = useState<ModifierOption[]>([]);
@@ -28,7 +30,9 @@ export const DishModal: React.FC<DishModalProps> = ({ dish, onClose, onAdd }) =>
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onClose]);
 
-  if (!dish) return null;
+  if (!rawDish) return null;
+
+  const dish = localizeDish(rawDish);
 
   const toggleModifier = (mod: ModifierOption) => {
     setSelectedModifiers((prev) => {
@@ -46,9 +50,9 @@ export const DishModal: React.FC<DishModalProps> = ({ dish, onClose, onAdd }) =>
 
   const handleAddToCart = () => {
     if (onAdd) {
-      onAdd(dish, selectedModifiers, quantity, notes.trim() || undefined);
+      onAdd(rawDish, selectedModifiers, quantity, notes.trim() || undefined);
     } else {
-      addToCart(dish, selectedModifiers, quantity, notes.trim() || undefined);
+      addToCart(rawDish, selectedModifiers, quantity, notes.trim() || undefined);
     }
     setAddedFeedback(true);
     setTimeout(() => {
@@ -67,7 +71,7 @@ export const DishModal: React.FC<DishModalProps> = ({ dish, onClose, onAdd }) =>
     >
       <div
         data-ui-radius="16"
-        className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] border border-[#e5e7eb]"
+        className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] border border-[#e5e7eb] text-start"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header & Dish Image */}
@@ -83,15 +87,15 @@ export const DishModal: React.FC<DishModalProps> = ({ dish, onClose, onAdd }) =>
           />
           <button
             onClick={onClose}
-            className="absolute top-3 right-3 min-w-[44px] min-h-[44px] rounded-full bg-white/95 hover:bg-white text-[#262626] flex items-center justify-center shadow-md transition-transform active:scale-90 cursor-pointer"
-            aria-label="Close modal"
+            className="absolute top-3 end-3 min-w-[44px] min-h-[44px] rounded-full bg-white/95 hover:bg-white text-[#262626] flex items-center justify-center shadow-md transition-transform active:scale-90 cursor-pointer"
+            aria-label={t('menu.modal.closeAria')}
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <path d="M18 6L6 18M6 6l12 12" />
             </svg>
           </button>
           {dish.badge && (
-            <div className="absolute top-3 left-3 px-3 py-1 rounded-full bg-[#FF0055] text-white text-xs font-semibold shadow-xs">
+            <div className="absolute top-3 start-3 px-3 py-1 rounded-full bg-[#FF0055] text-white text-xs font-semibold shadow-xs">
               {dish.badge}
             </div>
           )}
@@ -101,15 +105,21 @@ export const DishModal: React.FC<DishModalProps> = ({ dish, onClose, onAdd }) =>
         <div className="p-6 overflow-y-auto space-y-6 flex-1 overscroll-contain">
           <div>
             <div className="flex items-start justify-between gap-4">
-              <h3 id="dish-modal-title" className="text-xl font-medium text-[#262626]" data-ui-balance>{dish.name}</h3>
+              <h3 id="dish-modal-title" className="text-xl font-medium text-[#262626]" data-ui-balance>
+                {dish.name}
+              </h3>
               <div className="text-lg font-mono-num font-medium text-[#FF0055] shrink-0" data-ui-number>
-                {dish.basePrice.toFixed(2)} EGP
+                {dish.basePrice.toFixed(2)} {t('common.egp')}
               </div>
             </div>
             <div className="flex items-center gap-2 mt-1">
-              <span className="text-xs font-mono-num text-[#949494]" data-ui-number>{dish.calories} KCAL</span>
+              <span className="text-xs font-mono-num text-[#949494]" data-ui-number>
+                {dish.calories} {t('common.kcal')}
+              </span>
               <span className="text-[#e5e7eb]">/</span>
-              <span className="text-xs text-[#727272] capitalize">{dish.category}</span>
+              <span className="text-xs text-[#727272]">
+                {t(`menu.categories.${dish.category}`)}
+              </span>
               {dish.prepTime && (
                 <>
                   <span className="text-[#e5e7eb]">/</span>
@@ -133,9 +143,12 @@ export const DishModal: React.FC<DishModalProps> = ({ dish, onClose, onAdd }) =>
                           : 'bg-[#f9f9f9] text-[#727272] border-[#e5e7eb]'
                       }`}
                     >
-                      <span>{tag}</span>
+                      <span>{localizeTag(tag)}</span>
                       {isUserTag && (
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#FF0055]" title="Matches your profile" />
+                        <span
+                          className="w-1.5 h-1.5 rounded-full bg-[#FF0055]"
+                          title={t('menu.savedProfileTag')}
+                        />
                       )}
                     </span>
                   );
@@ -149,10 +162,10 @@ export const DishModal: React.FC<DishModalProps> = ({ dish, onClose, onAdd }) =>
             <div>
               <div className="flex items-center justify-between mb-3">
                 <span className="text-sm font-medium text-[#262626]">
-                  Optional Customizations
+                  {t('menu.modal.modifiersTitle')}
                 </span>
                 <span className="text-xs text-[#949494]">
-                  Select any additions
+                  {t('menu.modal.modifiersOptional')}
                 </span>
               </div>
 
@@ -194,7 +207,7 @@ export const DishModal: React.FC<DishModalProps> = ({ dish, onClose, onAdd }) =>
                       </div>
 
                       <span className="font-mono-num text-sm text-[#FF0055]" data-ui-number>
-                        +{mod.price.toFixed(2)} EGP
+                        {mod.price > 0 ? `+${mod.price.toFixed(2)} ${t('common.egp')}` : t('common.free')}
                       </span>
                     </label>
                   );
@@ -206,14 +219,14 @@ export const DishModal: React.FC<DishModalProps> = ({ dish, onClose, onAdd }) =>
           {/* Special Preparation Instructions Input */}
           <div>
             <label htmlFor="dish-notes" className="block text-sm font-medium text-[#262626] mb-1.5">
-              Special Kitchen Notes
+              {t('menu.modal.specialNotesTitle')}
             </label>
             <input
               id="dish-notes"
               type="text"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="e.g. Extra pickles, sauce on the side, well-done"
+              placeholder={t('menu.modal.specialNotesPlaceholder')}
               className="w-full px-3.5 py-2.5 min-h-[44px] text-sm rounded-lg border border-[#e5e7eb] bg-white text-[#262626] placeholder-[#949494] focus:outline-none focus:border-[#FF0055]"
             />
           </div>
@@ -227,7 +240,7 @@ export const DishModal: React.FC<DishModalProps> = ({ dish, onClose, onAdd }) =>
               onClick={() => setQuantity(Math.max(1, quantity - 1))}
               disabled={quantity <= 1}
               className="min-w-[44px] min-h-[44px] rounded-full flex items-center justify-center text-[#262626] hover:bg-[#f0f0f0] active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer text-lg font-bold"
-              aria-label="Decrease quantity"
+              aria-label={t('menu.modal.decreaseQty')}
             >
               -
             </button>
@@ -237,7 +250,7 @@ export const DishModal: React.FC<DishModalProps> = ({ dish, onClose, onAdd }) =>
             <button
               onClick={() => setQuantity(Math.min(50, quantity + 1))}
               className="min-w-[44px] min-h-[44px] rounded-full flex items-center justify-center text-[#262626] hover:bg-[#f0f0f0] active:scale-95 transition-all cursor-pointer text-lg font-bold"
-              aria-label="Increase quantity"
+              aria-label={t('menu.modal.increaseQty')}
             >
               +
             </button>
@@ -249,8 +262,10 @@ export const DishModal: React.FC<DishModalProps> = ({ dish, onClose, onAdd }) =>
             data-ui-radius="999"
             className="flex-1 min-h-[44px] py-3 px-6 rounded-full bg-[#FF0055] hover:opacity-95 text-white text-sm font-medium transition-all btn-crimson-glow active:scale-[0.99] flex items-center justify-between cursor-pointer shadow-xs"
           >
-            <span>{addedFeedback ? 'Added!' : 'Add to Table Order'}</span>
-            <span className="font-mono-num" data-ui-number>{itemTotal.toFixed(2)} EGP</span>
+            <span>{addedFeedback ? t('menu.card.addedToTable') : t('menu.modal.addToOrderBtn')}</span>
+            <span className="font-mono-num" data-ui-number>
+              {itemTotal.toFixed(2)} {t('common.egp')}
+            </span>
           </button>
         </div>
       </div>

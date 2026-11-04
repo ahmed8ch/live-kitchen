@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { DirectionalArrow } from '../ui/DirectionalArrow';
 import { useAppStore } from '../../store/useAppStore';
 import { PaymentMethod } from '../../types/domain';
+import { useTranslation } from '../../i18n';
 
 export const CartDrawer: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { t, localizeDish, localizeModifier, lang } = useTranslation();
 
   const cart = useAppStore((state) => state.cart);
   const isCartDrawerOpen = useAppStore((state) => state.isCartDrawerOpen);
@@ -46,8 +49,6 @@ export const CartDrawer: React.FC = () => {
 
   const session = activeTable ? tableSessions[activeTable] : null;
 
-  // Clean persona isolation:
-  // Derive isHost from seated member profile state first, then route fallback
   const isCompanionRoute =
     location.pathname.startsWith('/companion') ||
     location.pathname.startsWith('/guest-order') ||
@@ -82,7 +83,7 @@ export const CartDrawer: React.FC = () => {
   const groupedCart = safeCart.reduce((acc, item) => {
     if (!item) return acc;
     const memberKey = item.addedBy?.memberId || 'unassigned';
-    const memberName = item.addedBy?.name || 'Table Diner';
+    const memberName = item.addedBy?.name || (lang === 'eg' ? 'ضيف الترابيزة' : 'Table Diner');
     if (!acc[memberKey]) {
       const isYou = isHost
         ? Boolean(item.addedBy?.isHost || (hostMember && memberKey === hostMember.id) || (currentMember?.isHost && memberKey === currentMember.id))
@@ -123,24 +124,27 @@ export const CartDrawer: React.FC = () => {
     <div
       role="dialog"
       aria-modal="true"
-      aria-label="Order Cart Drawer"
+      aria-label={t('cart.drawer.title', { table: activeTable || 'T-04' })}
       className="fixed inset-0 z-50 flex justify-end bg-black/50 animate-in fade-in duration-200"
       onClick={closeCartDrawer}
     >
       <div
         data-ui-container="cart-drawer"
-        className="w-full max-w-md bg-white h-full shadow-2xl flex flex-col justify-between border-l border-[#e5e7eb] animate-in slide-in-from-right duration-200"
+        className="w-full max-w-md bg-white h-full shadow-2xl flex flex-col justify-between border-s border-[#e5e7eb] animate-in slide-in-from-right rtl:slide-in-from-left duration-200 text-start"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Drawer Header */}
         <div className="p-5 border-b border-[#e5e7eb] flex items-center justify-between bg-white">
           <div className="flex items-center gap-2.5">
-            <h2 className="text-lg font-medium text-[#262626]">Order Cart</h2>
+            <h2 className="text-lg font-medium text-[#262626]">
+              {t('cart.drawer.title', { table: activeTable || 'T-04' })}
+            </h2>
             <span
               className="px-2 py-0.5 rounded-full bg-[#f9f9f9] border border-[#e5e7eb] text-[12px] font-medium text-[#727272]"
               data-ui-number
             >
-              <span className="font-mono-num">{cart.reduce((s, i) => s + i.quantity, 0)}</span> items
+              <span className="font-mono-num">{cart.reduce((s, i) => s + i.quantity, 0)}</span>{' '}
+              {t('common.items')}
             </span>
           </div>
 
@@ -150,13 +154,13 @@ export const CartDrawer: React.FC = () => {
                 onClick={clearCart}
                 className="text-[12px] text-[#727272] hover:text-[#dc2626] min-h-[44px] min-w-[44px] px-3.5 py-2 rounded-full hover:bg-red-50 transition-colors cursor-pointer flex items-center justify-center"
               >
-                Clear Cart
+                {t('cart.drawer.clearAll')}
               </button>
             )}
             <button
               onClick={closeCartDrawer}
               className="min-w-[44px] min-h-[44px] rounded-full bg-[#f9f9f9] hover:bg-[#e5e7eb] flex items-center justify-center text-[#262626] transition-colors cursor-pointer"
-              aria-label="Close cart drawer"
+              aria-label={t('cart.drawer.closeAria')}
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <path d="M18 6L6 18M6 6l12 12" />
@@ -165,13 +169,17 @@ export const CartDrawer: React.FC = () => {
           </div>
         </div>
 
-        {/* Seating Banner (Clean & Functional with Host Reset Controls) */}
+        {/* Seating Banner */}
         {activeTable && (
           <div className="px-5 py-2.5 bg-[#fff0f3] border-b border-[#ffd1dc] flex items-center justify-between text-[12px]">
             <div className="flex items-center gap-2">
-              <span className="text-[#262626] font-bold">Table {activeTable}</span>
+              <span className="text-[#262626] font-bold">
+                {t('nav.tableNumber', { table: activeTable })}
+              </span>
               <span className="text-[11px] text-[#727272]">
-                {members.length > 0 ? `(${readyMembersCount}/${members.length} Ready)` : '(Shared Pool)'}
+                {members.length > 0
+                  ? `(${t('lobby.bar.readyCount', { ready: readyMembersCount, total: members.length })})`
+                  : ''}
               </span>
             </div>
             <div className="flex items-center gap-2">
@@ -183,7 +191,7 @@ export const CartDrawer: React.FC = () => {
                   }}
                   className="min-h-[44px] px-2 inline-flex items-center text-[11px] text-red-600 hover:underline cursor-pointer"
                 >
-                  Leave Table
+                  {t('lobby.modal.leaveSessionBtn')}
                 </button>
               )}
             </div>
@@ -201,8 +209,10 @@ export const CartDrawer: React.FC = () => {
                   <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
                 </svg>
               </div>
-              <p className="text-[14px] font-medium text-[#262626]">Your cart is empty</p>
-              <p className="text-[12px] text-[#727272] mt-1">Select dishes from the menu to start your order.</p>
+              <p className="text-[14px] font-medium text-[#262626]">{t('cart.drawer.emptyTitle')}</p>
+              <p className="text-[12px] text-[#727272] mt-1">
+                {t('cart.drawer.emptySubtitle', { table: activeTable || 'T-04' })}
+              </p>
             </div>
           ) : (
             Object.entries(groupedCart).map(([memberId, group]) => (
@@ -212,27 +222,33 @@ export const CartDrawer: React.FC = () => {
                   <div className="flex items-center gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#FF0055]" />
                     <span className="text-[12px] font-semibold text-[#262626]">
-                      {group.isYou ? 'Your Items' : `${group.name}'s Items`}
+                      {group.isYou
+                        ? lang === 'eg'
+                          ? 'أطباقك'
+                          : 'Your Items'
+                        : t('cart.drawer.addedBy', { name: group.name })}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-[11px] text-[#727272]">
-                      <span className="font-mono-num">{group.items.reduce((s, i) => s + i.quantity, 0)}</span> items
+                      <span className="font-mono-num">{group.items.reduce((s, i) => s + i.quantity, 0)}</span>{' '}
+                      {t('common.items')}
                     </span>
                     {isHost && !group.isYou && activeTable && (
                       <button
                         type="button"
                         onClick={() => removeMemberFromTable(activeTable, memberId)}
                         className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center text-[11px] text-red-600 hover:underline cursor-pointer"
-                        title="Remove member from table"
+                        title={t('lobby.modal.removeMemberBtn')}
                       >
-                        [Remove]
+                        [{t('lobby.modal.removeMemberBtn')}]
                       </button>
                     )}
                   </div>
                 </div>
 
                 {group.items.map((item) => {
+                  const localizedMenu = localizeDish(item.menuItem);
                   const itemModifiersTotal = (item?.selectedModifiers || []).reduce((sum, m) => sum + (m?.price || 0), 0);
                   const basePrice = item?.menuItem?.basePrice || 0;
                   const itemUnitPrice = basePrice + itemModifiersTotal;
@@ -244,10 +260,9 @@ export const CartDrawer: React.FC = () => {
                       className="p-3 rounded-2xl border border-[#e5e7eb] bg-white space-y-2.5 shadow-xs"
                     >
                       <div className="flex items-start gap-3">
-                        {/* 48x48px Thumbnail (Fixes Image 5 flaw) */}
                         <img
-                          src={item.menuItem.imageUrl}
-                          alt={item.menuItem.name}
+                          src={localizedMenu.imageUrl}
+                          alt={localizedMenu.name}
                           className="w-12 h-12 rounded-lg object-cover bg-[#f9f9f9] border border-[#e5e7eb] shrink-0"
                           onError={(e) => {
                             (e.currentTarget as HTMLImageElement).src =
@@ -258,26 +273,31 @@ export const CartDrawer: React.FC = () => {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between gap-2">
                             <h4 className="font-medium text-[13px] text-[#262626] truncate">
-                              {item.menuItem.name}
+                              {localizedMenu.name}
                             </h4>
                             <span className="font-mono-num font-medium text-[13px] text-[#262626] shrink-0" data-ui-number>
-                              {(itemUnitPrice * qty).toFixed(2)} EGP
+                              {(itemUnitPrice * qty).toFixed(2)} {t('common.egp')}
                             </span>
                           </div>
 
                           <div className="text-[11px] text-[#727272]">
-                            <span className="font-mono-num">{itemUnitPrice.toFixed(2)} EGP</span> each
+                            <span className="font-mono-num">
+                              {itemUnitPrice.toFixed(2)} {t('common.egp')}
+                            </span>{' '}
+                            {lang === 'eg' ? 'للقطعة' : 'each'}
                           </div>
                         </div>
                       </div>
 
                       {/* Modifiers */}
                       {(item.selectedModifiers || []).length > 0 && (
-                        <div className="text-[11px] text-[#727272] space-y-0.5 pl-2 border-l border-[#e5e7eb]">
+                        <div className="text-[11px] text-[#727272] space-y-0.5 ps-2 border-s border-[#e5e7eb]">
                           {item.selectedModifiers.map((m) => (
                             <div key={m.id} className="flex justify-between">
-                              <span>+ {m.name}</span>
-                              <span className="font-mono-num" data-ui-number>+{m.price.toFixed(2)} EGP</span>
+                              <span>+ {localizeModifier(item.menuItem.id, m)}</span>
+                              <span className="font-mono-num" data-ui-number>
+                                +{m.price.toFixed(2)} {t('common.egp')}
+                              </span>
                             </div>
                           ))}
                         </div>
@@ -285,7 +305,7 @@ export const CartDrawer: React.FC = () => {
 
                       {/* Notes */}
                       {item.notes && (
-                        <div className="text-[11px] italic text-[#949494] pl-2 border-l border-[#e5e7eb]">
+                        <div className="text-[11px] italic text-[#949494] ps-2 border-s border-[#e5e7eb]">
                           "{item.notes}"
                         </div>
                       )}
@@ -298,7 +318,7 @@ export const CartDrawer: React.FC = () => {
                               <button
                                 onClick={() => updateCartItemQuantity(item.cartItemId, item.quantity - 1)}
                                 className="min-w-[44px] min-h-[44px] rounded-full bg-white hover:bg-[#f0f0f0] border border-[#e5e7eb] flex items-center justify-center text-[#262626] cursor-pointer text-base font-bold transition-all active:scale-90 shadow-xs"
-                                aria-label="Decrease quantity"
+                                aria-label={t('cart.drawer.decreaseQtyAria')}
                               >
                                 -
                               </button>
@@ -308,7 +328,7 @@ export const CartDrawer: React.FC = () => {
                               <button
                                 onClick={() => updateCartItemQuantity(item.cartItemId, item.quantity + 1)}
                                 className="min-w-[44px] min-h-[44px] rounded-full bg-white hover:bg-[#f0f0f0] border border-[#e5e7eb] flex items-center justify-center text-[#262626] cursor-pointer text-base font-bold transition-all active:scale-90 shadow-xs"
-                                aria-label="Increase quantity"
+                                aria-label={t('cart.drawer.increaseQtyAria')}
                               >
                                 +
                               </button>
@@ -317,13 +337,14 @@ export const CartDrawer: React.FC = () => {
                             <button
                               onClick={() => removeFromCart(item.cartItemId)}
                               className="min-h-[44px] px-3 inline-flex items-center text-[12px] font-medium text-[#727272] hover:text-[#dc2626] transition-colors cursor-pointer"
+                              aria-label={t('cart.drawer.removeItemAria')}
                             >
-                              Remove
+                              {t('lobby.modal.removeMemberBtn')}
                             </button>
                           </>
                         ) : (
                           <div className="text-[11px] text-[#949494] py-1">
-                            Chosen by {group.name} ({item.quantity}x)
+                            {t('cart.drawer.addedBy', { name: group.name })} ({item.quantity}x)
                           </div>
                         )}
                       </div>
@@ -341,30 +362,36 @@ export const CartDrawer: React.FC = () => {
             {/* Kitchen Notes / Allergies (Optional) */}
             <div>
               <label htmlFor="cart-order-notes" className="block text-[12px] font-medium text-[#262626] mb-1">
-                Kitchen Notes / Allergies (Optional)
+                {t('menu.modal.specialNotesTitle')}
               </label>
               <input
                 id="cart-order-notes"
                 type="text"
                 value={orderNotes}
                 onChange={(e) => setOrderNotes(e.target.value)}
-                placeholder="e.g. Extra napkins, serve dishes together, peanut allergy"
+                placeholder={t('menu.modal.specialNotesPlaceholder')}
                 className="w-full px-3 py-2 min-h-[44px] rounded-lg border border-[#e5e7eb] bg-white text-[13px] text-[#262626] placeholder-[#949494] focus:outline-none focus:border-[#FF0055]"
               />
             </div>
 
             <div className="space-y-1.5 text-[13px]">
               <div className="flex justify-between text-[#727272]">
-                <span>Net Subtotal</span>
-                <span className="font-mono-num text-[#262626]" data-ui-number>{subtotal.toFixed(2)} EGP</span>
+                <span>{t('cart.drawer.subtotal')}</span>
+                <span className="font-mono-num text-[#262626]" data-ui-number>
+                  {subtotal.toFixed(2)} {t('common.egp')}
+                </span>
               </div>
               <div className="flex justify-between text-[#727272]">
-                <span>14% Egyptian ETA VAT (ضريبة القيمة المضافة)</span>
-                <span className="font-mono-num text-[#262626]" data-ui-number>{vatAmount.toFixed(2)} EGP</span>
+                <span>{t('cart.drawer.vat')}</span>
+                <span className="font-mono-num text-[#262626]" data-ui-number>
+                  {vatAmount.toFixed(2)} {t('common.egp')}
+                </span>
               </div>
               <div className="flex justify-between text-[16px] font-medium text-[#262626] pt-1 border-t border-[#e5e7eb]">
-                <span>Payable Total</span>
-                <span className="font-mono-num font-medium text-[#FF0055]" data-ui-number>{total.toFixed(2)} EGP</span>
+                <span>{t('cart.drawer.total')}</span>
+                <span className="font-mono-num font-medium text-[#FF0055]" data-ui-number>
+                  {total.toFixed(2)} {t('common.egp')}
+                </span>
               </div>
             </div>
 
@@ -373,10 +400,10 @@ export const CartDrawer: React.FC = () => {
               <div className="space-y-3 pt-1">
                 <div className="p-3.5 rounded-2xl bg-amber-50/70 border border-amber-200 text-center space-y-1">
                   <div className="text-[12px] font-bold text-amber-900">
-                    Waiting for Table Host to Finalize
+                    {t('cart.drawer.companionNoticeTitle')}
                   </div>
                   <div className="text-[11px] text-amber-800">
-                    Host ({session?.members.find((m) => m.isHost)?.name || 'Host'}) will review the table order and submit it to the kitchen.
+                    {t('cart.drawer.companionNoticeDesc')}
                   </div>
                 </div>
 
@@ -392,9 +419,10 @@ export const CartDrawer: React.FC = () => {
                 >
                   <span>
                     {effectiveMember?.isReadyToPay
-                      ? 'Ready (Click to Keep Browsing)'
-                      : 'I am Done Choosing (Notify Host) ->'}
+                      ? t('cart.drawer.markedReadyBtn')
+                      : t('cart.drawer.markReadyBtn')}
                   </span>
+                  {!effectiveMember?.isReadyToPay && <DirectionalArrow className="w-4 h-4" />}
                 </button>
               </div>
             ) : showPaymentChoice ? (
@@ -402,7 +430,7 @@ export const CartDrawer: React.FC = () => {
                 {/* Split Strategy Choice */}
                 <div>
                   <div className="text-[12px] font-semibold text-[#727272] mb-1.5">
-                    Table Payment Strategy
+                    {t('settlement.splitModeTitle')}
                   </div>
                   <div className="grid grid-cols-3 gap-1.5 text-center">
                     <button
@@ -414,7 +442,7 @@ export const CartDrawer: React.FC = () => {
                           : 'border-[#e5e7eb] bg-white text-[#616161]'
                       }`}
                     >
-                      Host Pays All
+                      {lang === 'eg' ? 'المضيف يدفع الكل' : 'Host Pays All'}
                     </button>
                     <button
                       type="button"
@@ -425,7 +453,7 @@ export const CartDrawer: React.FC = () => {
                           : 'border-[#e5e7eb] bg-white text-[#616161]'
                       }`}
                     >
-                      Split by Diner
+                      {t('settlement.modeByDiner')}
                     </button>
                     <button
                       type="button"
@@ -436,38 +464,38 @@ export const CartDrawer: React.FC = () => {
                           : 'border-[#e5e7eb] bg-white text-[#616161]'
                       }`}
                     >
-                      Equal Split
+                      {t('settlement.modeEqual')}
                     </button>
                   </div>
                 </div>
 
                 <div className="text-[12px] font-semibold text-[#727272] pt-1">
-                  Payment Method:
+                  {t('cart.drawer.paymentMethodTitle')}
                 </div>
 
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     onClick={() => setSelectedMethod('apple_pay')}
-                    className={`min-h-[48px] p-2.5 rounded-lg border text-left transition-all cursor-pointer flex flex-col justify-center ${
+                    className={`min-h-[48px] p-2.5 rounded-lg border text-start transition-all cursor-pointer flex flex-col justify-center ${
                       selectedMethod === 'apple_pay'
                         ? 'border-[#FF0055] bg-[#fff0f3]'
                         : 'border-[#e5e7eb] bg-white hover:bg-[#f9f9f9]'
                     }`}
                   >
-                    <div className="text-[12px] font-medium text-[#262626]">Pay Online Now</div>
-                    <div className="text-[10px] text-[#727272]">Instant Card / Apple Pay</div>
+                    <div className="text-[12px] font-medium text-[#262626]">{t('cart.drawer.payCard')}</div>
+                    <div className="text-[10px] text-[#727272]">{t('cart.drawer.payCardSub')}</div>
                   </button>
 
                   <button
                     onClick={() => setSelectedMethod('cashier')}
-                    className={`min-h-[48px] p-2.5 rounded-lg border text-left transition-all cursor-pointer flex flex-col justify-center ${
+                    className={`min-h-[48px] p-2.5 rounded-lg border text-start transition-all cursor-pointer flex flex-col justify-center ${
                       selectedMethod === 'cashier'
                         ? 'border-[#FF0055] bg-[#fff0f3]'
                         : 'border-[#e5e7eb] bg-white hover:bg-[#f9f9f9]'
                     }`}
                   >
-                    <div className="text-[12px] font-medium text-[#262626]">Pay at Cashier Desk</div>
-                    <div className="text-[10px] text-[#727272]">Chit #PAY verification</div>
+                    <div className="text-[12px] font-medium text-[#262626]">{t('cart.drawer.payCash')}</div>
+                    <div className="text-[10px] text-[#727272]">{t('cart.drawer.payCashSub')}</div>
                   </button>
                 </div>
 
@@ -476,16 +504,23 @@ export const CartDrawer: React.FC = () => {
                     onClick={() => setShowPaymentChoice(false)}
                     className="min-h-[44px] flex-1 py-2 px-3 rounded-full border border-[#e5e7eb] text-[#727272] text-[12px] hover:bg-[#f9f9f9] cursor-pointer flex items-center justify-center"
                   >
-                    Back
+                    {t('common.back')}
                   </button>
                   <button
                     onClick={() => handleFinalizeCheckout(selectedMethod)}
                     disabled={isSubmitting}
-                    className={`min-h-[44px] flex-2 py-2.5 px-3 rounded-full bg-[#FF0055] text-white text-[12px] font-bold shadow-xs btn-crimson-glow flex items-center justify-center ${
+                    className={`min-h-[44px] flex-2 py-2.5 px-4 rounded-full bg-[#FF0055] text-white text-[12px] font-bold shadow-xs btn-crimson-glow flex items-center justify-center gap-1.5 ${
                       isSubmitting ? 'opacity-70 cursor-not-allowed' : 'hover:opacity-95 cursor-pointer'
                     }`}
                   >
-                    <span>{isSubmitting ? 'Submitting...' : 'Submit Table Order ->'}</span>
+                    <span>
+                      {isSubmitting
+                        ? t('cart.drawer.firingOrder')
+                        : selectedMethod === 'apple_pay'
+                        ? t('cart.drawer.fireOrderCardBtn')
+                        : t('cart.drawer.fireOrderCashBtn')}
+                    </span>
+                    <DirectionalArrow className="w-3.5 h-3.5" />
                   </button>
                 </div>
               </div>
@@ -497,19 +532,22 @@ export const CartDrawer: React.FC = () => {
                   data-ui-radius="999"
                   className="w-full py-3.5 min-h-[44px] rounded-full bg-[#FF0055] hover:opacity-95 text-white text-[14px] font-bold transition-all btn-crimson-glow active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2 shadow-xs"
                 >
-                  <span>Submit Table Order ({total.toFixed(2)} EGP) -&gt;</span>
+                  <span>
+                    {t('cart.floatingBar.viewAndSubmit')} ({total.toFixed(2)} {t('common.egp')})
+                  </span>
+                  <DirectionalArrow className="w-4 h-4" />
                 </button>
 
                 {/* Diner Readiness Status */}
                 {members.length > 1 && (
                   <div className="flex items-center justify-between pt-1 text-[11px] text-[#727272]">
                     <span>
-                      Table Diners Ready: <span className="font-mono-num">{readyMembersCount}/{members.length}</span>
+                      {t('lobby.bar.readyCount', { ready: readyMembersCount, total: members.length })}
                     </span>
                     <span className="text-[11px] text-[#727272]">
                       {readyMembersCount === members.length
-                        ? 'All companions ready'
-                        : `${members.length - readyMembersCount} browsing`}
+                        ? t('common.ready')
+                        : t('cart.drawer.unreadyWarning', { count: members.length - readyMembersCount })}
                     </span>
                   </div>
                 )}
