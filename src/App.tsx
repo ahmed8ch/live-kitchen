@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Routes, Route, useLocation, Link } from 'react-router-dom';
+import { Routes, Route, useLocation, Link, useNavigate } from 'react-router-dom';
 import { UnifiedNavbar } from './components/layout/UnifiedNavbar';
 import { Sidebar } from './components/layout/Sidebar';
 import { ToastContainer } from './components/ui/ToastContainer';
@@ -20,6 +20,7 @@ import { useTranslation } from './i18n';
 
 export const App: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const setActiveTable = useAppStore((state) => state.setActiveTable);
   const { t, dir, lang } = useTranslation();
 
@@ -49,7 +50,7 @@ export const App: React.FC = () => {
       {/* Single Contextual Top Bar */}
       <UnifiedNavbar />
 
-      {/* Auto-Hiding Edge Dock (Consumer views only) */}
+      {/* Floating Control Sidebar Dock */}
       {!isKds && !isCashier && !isStand && <Sidebar />}
 
       {/* Main Content Viewport */}
@@ -71,32 +72,74 @@ export const App: React.FC = () => {
           </Routes>
         </main>
 
-        {/* Compact, Authentic Restaurant Footer (0 duplicate giant logos, 0 B2B pitch fluff) */}
+        {/* Structured Multi-Column Global Footer */}
         {!isKds && !isStand && !isCashier && (
-          <footer className="border-t border-[#e5e7eb] bg-[#f9f9f9] py-8 mt-auto select-none">
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 text-xs text-[#727272]">
-              <div className="flex flex-wrap items-center gap-3">
-                <FlameLinkLogo size="sm" showWordmark={false} />
-                <span className="font-bold text-[#262626]">{t('brand.bilingualName')}</span>
-                <span>·</span>
-                <span>{t('brand.address')}</span>
-                <span>·</span>
-                <span>{t('brand.hours')}</span>
+          <footer className="border-t border-[#e5e7eb] bg-[#f9f9f9] py-10 mt-auto select-none">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-8 pb-8 border-b border-[#e5e7eb]">
+                {/* Brand & Venue Column */}
+                <div className="md:col-span-5 space-y-2.5">
+                  <FlameLinkLogo size="md" />
+                  <p className="text-xs text-[#727272] max-w-sm leading-relaxed">
+                    {t('brand.address')} · {t('brand.hours')}
+                  </p>
+                </div>
+
+                {/* Dine-In Navigation */}
+                <div className="md:col-span-4 space-y-2.5">
+                  <div className="text-xs font-bold text-[#262626]">
+                    {lang === 'eg' ? 'تجربة الصالة' : 'Dine-In Experience'}
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-xs text-[#727272]">
+                    <Link to="/menu" className="hover:text-[#262626] transition-colors font-medium">
+                      {t('nav.menu')}
+                    </Link>
+                    <Link to="/companion" className="hover:text-[#262626] transition-colors font-medium">
+                      {t('nav.companionJoin')}
+                    </Link>
+                    <Link to="/tracker" className="hover:text-[#262626] transition-colors font-medium">
+                      {t('nav.orderTracker')}
+                    </Link>
+                    <Link to="/settlement" className="hover:text-[#262626] transition-colors font-medium">
+                      {t('nav.splitSettle')}
+                    </Link>
+                  </div>
+                </div>
+
+                {/* Operations Workstations */}
+                <div className="md:col-span-3 space-y-2.5">
+                  <div className="text-xs font-bold text-[#262626]">
+                    {lang === 'eg' ? 'بوابات التشغيل' : 'Workstations'}
+                  </div>
+                  <div className="flex flex-wrap gap-2 text-xs">
+                    <button
+                      type="button"
+                      onClick={() => navigate('/kds')}
+                      className="px-3 py-1.5 rounded-full bg-white hover:bg-[#fff0f3] border border-[#e5e7eb] hover:border-[#ffd1dc] text-[#262626] hover:text-[#FF0055] font-semibold transition-colors cursor-pointer"
+                    >
+                      {t('nav.kitchenPass')}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => navigate('/cashier')}
+                      className="px-3 py-1.5 rounded-full bg-white hover:bg-[#fff0f3] border border-[#e5e7eb] hover:border-[#ffd1dc] text-[#262626] hover:text-[#FF0055] font-semibold transition-colors cursor-pointer"
+                    >
+                      {t('nav.cashierPos')}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => navigate('/stand')}
+                      className="px-3 py-1.5 rounded-full bg-white hover:bg-[#fff0f3] border border-[#e5e7eb] hover:border-[#ffd1dc] text-[#262626] hover:text-[#FF0055] font-semibold transition-colors cursor-pointer"
+                    >
+                      {t('nav.tableStand')}
+                    </button>
+                  </div>
+                </div>
               </div>
 
-              <div className="flex flex-wrap items-center gap-4">
-                <Link to="/menu" className="hover:text-[#262626] transition-colors font-medium">
-                  {t('nav.liveMenu')}
-                </Link>
-                <Link to="/companion" className="hover:text-[#262626] transition-colors font-medium">
-                  {t('nav.companionJoin')}
-                </Link>
-                <Link to="/tracker" className="hover:text-[#262626] transition-colors font-medium">
-                  {t('nav.orderTracker')}
-                </Link>
-                <Link to="/settlement" className="hover:text-[#262626] transition-colors font-medium">
-                  {t('nav.splitSettle')}
-                </Link>
+              <div className="pt-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#727272]">
+                <span>FlameLink Dine-In OS</span>
+                <span className="font-mono-num">{t('home.support.phoneNumber')}</span>
               </div>
             </div>
           </footer>

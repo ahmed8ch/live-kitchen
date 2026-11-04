@@ -24,13 +24,13 @@ export const Sidebar: React.FC = () => {
   const activeTable = useAppStore((state) => state.activeTable);
   const orders = useAppStore((state) => state.orders);
 
-  // macOS Dock Auto-Hide & Pin State
-  const [isRevealed, setIsRevealed] = useState(false);
+  // Dock Visibility: Pinned by default so all controls (including KDS, Cashier, Table Stand) are immediately accessible
+  const [isRevealed, setIsRevealed] = useState(true);
   const [isPinned, setIsPinned] = useState(() => {
     if (typeof window !== 'undefined') {
-      return sessionStorage.getItem('flamelink_dock_pinned') === 'true';
+      return sessionStorage.getItem('flamelink_dock_pinned') !== 'false';
     }
-    return false;
+    return true;
   });
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
@@ -105,8 +105,8 @@ export const Sidebar: React.FC = () => {
     const handleMouseMove = (e: MouseEvent) => {
       if (isPinned) return;
 
-      const nearEdge = isRtl ? e.clientX >= window.innerWidth - 24 : e.clientX <= 24;
-      const farFromEdge = isRtl ? e.clientX < window.innerWidth - 100 : e.clientX > 100;
+      const nearEdge = isRtl ? e.clientX >= window.innerWidth - 28 : e.clientX <= 28;
+      const farFromEdge = isRtl ? e.clientX < window.innerWidth - 110 : e.clientX > 110;
 
       if (nearEdge) {
         if (leaveTimerRef.current) {
@@ -149,7 +149,7 @@ export const Sidebar: React.FC = () => {
     },
     {
       id: 'menu',
-      label: t('nav.liveMenu'),
+      label: t('nav.menu'),
       to: `/menu${tableParam}`,
       badge: activeTable ? activeTable : undefined,
       group: 'consumer',
@@ -197,6 +197,7 @@ export const Sidebar: React.FC = () => {
       id: 'stand',
       label: t('nav.tableStand'),
       to: '/stand',
+      badge: 'QR',
       group: 'operations',
       icon: QrCode,
     },
@@ -205,32 +206,24 @@ export const Sidebar: React.FC = () => {
   const getItemScale = (index: number) => {
     if (hoveredIndex === null) return 1;
     const distance = Math.abs(hoveredIndex - index);
-    if (distance === 0) return 1.18;
-    if (distance === 1) return 1.08;
+    if (distance === 0) return 1.14;
+    if (distance === 1) return 1.05;
     return 1;
   };
 
-  // Strict Persona Separation: Seated consumer sessions never see back-office operations links (/kds, /cashier, /stand)
-  const isConsumerRoute =
-    location.pathname === '/' ||
-    location.pathname.startsWith('/menu') ||
-    location.pathname.startsWith('/companion') ||
-    location.pathname.startsWith('/guest-order') ||
-    location.pathname.startsWith('/tracker') ||
-    location.pathname.startsWith('/order') ||
-    location.pathname.startsWith('/settlement');
-
-  const isOperationsRoute =
+  // Route & Persona Context Filtering
+  const isOperations =
     location.pathname.startsWith('/kds') ||
     location.pathname.startsWith('/cashier') ||
     location.pathname.startsWith('/stand');
 
+  const isGuestLockedRoute = Boolean(
+    activeTable && location.search.includes('table=') && location.pathname.startsWith('/guest-order')
+  );
+
   const visibleNavItems = navItems.filter((item) => {
-    if (['kds', 'cashier', 'stand'].includes(item.id)) {
-      if (isConsumerRoute || activeTable) {
-        return false;
-      }
-      return isOperationsRoute;
+    if (item.group === 'operations') {
+      return !isGuestLockedRoute || isOperations;
     }
     return true;
   });
@@ -316,7 +309,7 @@ export const Sidebar: React.FC = () => {
         <div
           onMouseEnter={handleTriggerEnter}
           onMouseLeave={handleTriggerLeave}
-          className="fixed start-0 top-0 bottom-0 w-4 z-40 hidden md:block"
+          className="fixed start-0 top-0 bottom-0 w-5 z-40 hidden md:block"
           aria-hidden="true"
         />
       )}
@@ -326,7 +319,7 @@ export const Sidebar: React.FC = () => {
         data-ui-container="macos-dock"
         onMouseEnter={handleDockEnter}
         onMouseLeave={handleDockLeave}
-        className={`fixed start-4 top-1/2 -translate-y-1/2 z-40 hidden md:flex flex-col items-center p-1.5 rounded-full bg-[#f9f9f9] border border-[#e5e7eb] shadow-[0_20px_40px_-12px_rgba(0,0,0,0.1)] transition-[transform,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] select-none ${
+        className={`fixed start-3 top-1/2 -translate-y-1/2 z-40 hidden md:flex flex-col items-center p-1.5 rounded-full bg-[#f9f9f9] border border-[#e5e7eb] shadow-[0_12px_32px_-8px_rgba(0,0,0,0.08)] transition-[transform,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] select-none ${
           isDockVisible
             ? 'translate-x-0 opacity-100 pointer-events-auto'
             : isRtl
@@ -334,12 +327,12 @@ export const Sidebar: React.FC = () => {
             : '-translate-x-[calc(100%+28px)] opacity-0 pointer-events-none'
         }`}
       >
-        <div className="flex flex-col items-center py-2.5 px-1.5 rounded-full bg-white border border-[#e5e7eb]">
+        <div className="flex flex-col items-center py-2 px-1.5 rounded-full bg-white border border-[#e5e7eb]">
           {/* Brand Flame Icon */}
           <Link
             to="/"
             className="p-1.5 rounded-full hover:bg-[#f9f9f9] transition-transform duration-150 active:scale-90"
-            title={t('brand.bilingualName')}
+            title="FlameLink"
             aria-label={t('nav.home')}
           >
             <FlameLinkLogo size="sm" showWordmark={false} />
@@ -347,7 +340,7 @@ export const Sidebar: React.FC = () => {
 
           <div className="w-6 h-[1px] bg-[#e5e7eb] my-1.5" />
 
-          {/* Unified Navigation Stack */}
+          {/* Unified Navigation Stack (Diner + Operations: KDS, Cashier, Table Stand) */}
           <nav className="flex flex-col items-center gap-1" aria-label={t('nav.navigationMenu')}>
             {visibleNavItems.map((item, index) => {
               const Icon = item.icon;
@@ -382,7 +375,7 @@ export const Sidebar: React.FC = () => {
                         })`,
                         transformOrigin: isRtl ? 'right center' : 'left center',
                       }}
-                      className={`w-10 h-10 rounded-full flex items-center justify-center transition-[transform,background-color,color,border-color] duration-150 ease-out cursor-pointer active:scale-95 ${
+                      className={`w-9 h-9 rounded-full flex items-center justify-center transition-[transform,background-color,color,border-color] duration-150 ease-out cursor-pointer active:scale-95 ${
                         isActive
                           ? 'bg-[#fff0f3] text-[#FF0055] font-semibold border border-[#ffd1dc]'
                           : 'text-[#727272] hover:text-[#262626] hover:bg-[#f9f9f9] border border-transparent'
@@ -395,7 +388,7 @@ export const Sidebar: React.FC = () => {
                     {/* Tooltip */}
                     <div
                       role="tooltip"
-                      className="absolute start-[calc(100%+14px)] px-3 py-1.5 rounded-lg bg-[#262626] text-white text-[11px] font-medium whitespace-nowrap shadow-lg opacity-0 scale-95 pointer-events-none group-hover:opacity-100 group-hover:scale-100 transition-[opacity,transform] duration-150 ease-out z-50 flex items-center gap-1.5"
+                      className="absolute start-[calc(100%+12px)] px-3 py-1.5 rounded-lg bg-[#262626] text-white text-[11px] font-medium whitespace-nowrap shadow-lg opacity-0 scale-95 pointer-events-none group-hover:opacity-100 group-hover:scale-100 transition-[opacity,transform] duration-150 ease-out z-50 flex items-center gap-1.5"
                     >
                       <span>{item.label}</span>
                       {item.badge && (
@@ -419,7 +412,7 @@ export const Sidebar: React.FC = () => {
               onClick={handlePinToggle}
               title={isPinned ? t('nav.collapseSidebar') : t('nav.expandSidebar')}
               aria-label={isPinned ? t('nav.collapseSidebar') : t('nav.expandSidebar')}
-              className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF0055] ${
+              className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF0055] ${
                 isPinned
                   ? 'bg-[#fff0f3] text-[#FF0055] border border-[#ffd1dc]'
                   : 'text-[#949494] hover:text-[#262626] hover:bg-[#f9f9f9]'
@@ -430,7 +423,7 @@ export const Sidebar: React.FC = () => {
 
             <div
               role="tooltip"
-              className="absolute start-[calc(100%+14px)] px-3 py-1.5 rounded-lg bg-[#262626] text-white text-[11px] font-medium whitespace-nowrap shadow-lg opacity-0 scale-95 pointer-events-none group-hover:opacity-100 group-hover:scale-100 transition-[opacity,transform] duration-150 ease-out z-50"
+              className="absolute start-[calc(100%+12px)] px-3 py-1.5 rounded-lg bg-[#262626] text-white text-[11px] font-medium whitespace-nowrap shadow-lg opacity-0 scale-95 pointer-events-none group-hover:opacity-100 group-hover:scale-100 transition-[opacity,transform] duration-150 ease-out z-50"
             >
               {isPinned ? t('nav.collapseSidebar') : t('nav.expandSidebar')}
             </div>

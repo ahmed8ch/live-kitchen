@@ -18,7 +18,7 @@ export const ToastContainer: React.FC = () => {
     >
       <div
         data-ui-radius="8"
-        className="bg-white text-[#262626] ps-4 pe-5 py-3 rounded-lg border border-[#e5e7eb] border-s-4 border-s-[#FF0055] shadow-2xl flex items-center gap-3 max-w-md select-none"
+        className="bg-white text-[#262626] ps-4 pe-5 py-3 rounded-lg border border-[#e5e7eb] shadow-sm flex items-center gap-3 max-w-md select-none"
       >
         <span className="w-5 h-5 rounded-full bg-[#ffd1dc] text-[#FF0055] flex items-center justify-center shrink-0">
           <svg

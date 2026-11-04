@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Globe } from 'lucide-react';
+import { Globe, ChefHat, Building, QrCode } from 'lucide-react';
 import { DirectionalArrow } from '../ui/DirectionalArrow';
 import { useAppStore } from '../../store/useAppStore';
 import { FlameLinkLogo } from '../ui/FlameLinkLogo';
@@ -13,8 +13,6 @@ export const UnifiedNavbar: React.FC = () => {
   const { t, lang, toggleLang } = useTranslation();
 
   const activeTable = useAppStore((state) => state.activeTable);
-  const activeTablePin = useAppStore((state) => state.activeTablePin);
-  const tableSessions = useAppStore((state) => state.tableSessions);
   const setActiveTable = useAppStore((state) => state.setActiveTable);
   const openPinModal = useAppStore((state) => state.openPinModal);
   const orders = useAppStore((state) => state.orders);
@@ -25,13 +23,18 @@ export const UnifiedNavbar: React.FC = () => {
   const showToast = useAppStore((state) => state.showToast);
 
   const [tableDropdownOpen, setTableDropdownOpen] = useState(false);
+  const [opsDropdownOpen, setOpsDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const opsDropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setTableDropdownOpen(false);
+      }
+      if (opsDropdownRef.current && !opsDropdownRef.current.contains(e.target as Node)) {
+        setOpsDropdownOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -68,14 +71,10 @@ export const UnifiedNavbar: React.FC = () => {
     return sum + ((item?.menuItem?.basePrice || 0) + modTotal) * (item?.quantity || 1);
   }, 0);
 
-  const currentSession = activeTable ? tableSessions[activeTable] : null;
-  const sessionPin = activeTablePin || currentSession?.pin;
-
-  // Operations Portal Navigation (Strictly ONE top bar on /kds, /cashier, /stand — zero duplicate headers)
   const operationsNav = [
-    { label: t('nav.kitchenPass'), to: '/kds', pathMatch: (p: string) => p.startsWith('/kds') },
-    { label: t('nav.cashierPos'), to: '/cashier', pathMatch: (p: string) => p.startsWith('/cashier') },
-    { label: t('nav.tableStand'), to: '/stand', pathMatch: (p: string) => p.startsWith('/stand') },
+    { label: t('nav.kitchenPass'), to: '/kds', icon: ChefHat, badge: 'KDS', pathMatch: (p: string) => p.startsWith('/kds') },
+    { label: t('nav.cashierPos'), to: '/cashier', icon: Building, badge: 'POS', pathMatch: (p: string) => p.startsWith('/cashier') },
+    { label: t('nav.tableStand'), to: '/stand', icon: QrCode, badge: 'QR', pathMatch: (p: string) => p.startsWith('/stand') },
   ];
 
   if (isOperationsView) {
@@ -122,7 +121,7 @@ export const UnifiedNavbar: React.FC = () => {
               to={`/menu${tableParam}`}
               className="min-h-[40px] inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[#f9f9f9] hover:bg-[#f0f0f0] border border-[#e5e7eb] text-[#262626] text-xs font-semibold transition-colors shrink-0"
             >
-              <span>{t('nav.liveMenu')}</span>
+              <span>{t('nav.menu')}</span>
               <DirectionalArrow className="w-3.5 h-3.5" />
             </Link>
           </div>
@@ -130,18 +129,6 @@ export const UnifiedNavbar: React.FC = () => {
       </header>
     );
   }
-
-  // Consumer Navigation: Only shows Order Status & Bill when an order actually exists or user is viewing those routes
-  const showOrderLinks =
-    Boolean(currentTicket) ||
-    location.pathname.startsWith('/tracker') ||
-    location.pathname.startsWith('/order') ||
-    location.pathname.startsWith('/settlement');
-
-  const showCompanionLink =
-    Boolean(activeTable && currentSession && currentSession.members.length > 1) ||
-    location.pathname.startsWith('/companion') ||
-    location.pathname.startsWith('/guest-order');
 
   const getTicketStageBadge = (status: string) => {
     if (lang !== 'eg') return status;
@@ -157,38 +144,30 @@ export const UnifiedNavbar: React.FC = () => {
   const customerNav = [
     { label: t('nav.home'), to: '/', pathMatch: (p: string) => p === '/' },
     { label: t('nav.menu'), to: `/menu${tableParam}`, pathMatch: (p: string) => p.startsWith('/menu') },
-    ...(showCompanionLink
-      ? [
-          {
-            label: t('nav.companionJoin'),
-            to: `/companion${tableParam}`,
-            pathMatch: (p: string) => p.startsWith('/companion') || p.startsWith('/guest-order'),
-          },
-        ]
-      : []),
-    ...(showOrderLinks
-      ? [
-          {
-            label: t('nav.orderTracker'),
-            to: trackerTarget,
-            badge: currentTicket
-              ? currentTicket.paymentStatus === 'verified_paid'
-                ? getTicketStageBadge(currentTicket.status)
-                : t('common.unpaid')
-              : undefined,
-            pathMatch: (p: string) => p.startsWith('/tracker') || p.startsWith('/order'),
-          },
-          {
-            label: t('nav.splitSettle'),
-            to: settlementTarget,
-            badge:
-              currentTicket && !currentTicket.isPaid
-                ? `${currentTicket.total.toFixed(0)} ${t('common.egp')}`
-                : undefined,
-            pathMatch: (p: string) => p.startsWith('/settlement'),
-          },
-        ]
-      : []),
+    {
+      label: t('nav.companionJoin'),
+      to: `/companion${tableParam}`,
+      pathMatch: (p: string) => p.startsWith('/companion') || p.startsWith('/guest-order'),
+    },
+    {
+      label: t('nav.orderTracker'),
+      to: trackerTarget,
+      badge: currentTicket
+        ? currentTicket.paymentStatus === 'verified_paid'
+          ? getTicketStageBadge(currentTicket.status)
+          : t('common.unpaid')
+        : undefined,
+      pathMatch: (p: string) => p.startsWith('/tracker') || p.startsWith('/order'),
+    },
+    {
+      label: t('nav.splitSettle'),
+      to: settlementTarget,
+      badge:
+        currentTicket && !currentTicket.isPaid
+          ? `${currentTicket.total.toFixed(0)} ${t('common.egp')}`
+          : undefined,
+      pathMatch: (p: string) => p.startsWith('/settlement'),
+    },
   ];
 
   const handleSelectTable = (tbl: string) => {
@@ -203,22 +182,22 @@ export const UnifiedNavbar: React.FC = () => {
 
   return (
     <header className="no-print sticky top-0 z-40 bg-white border-b border-[#e5e7eb] select-none">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 gap-3">
-          {/* Start: Single Brand Identity */}
+          {/* Start: Brand Identity */}
           <Link to="/" className="flex items-center gap-2.5 min-h-[44px] shrink-0">
             <FlameLinkLogo size="md" />
           </Link>
 
           {/* Center: Clean Contextual Links */}
-          <nav className="hidden md:flex items-center gap-1" aria-label={t('nav.navigationMenu')}>
+          <nav className="hidden lg:flex items-center gap-1" aria-label={t('nav.navigationMenu')}>
             {customerNav.map((item) => {
               const isActive = item.pathMatch(location.pathname);
               return (
                 <Link
                   key={item.to}
                   to={item.to}
-                  className={`min-h-[40px] px-4 py-2 rounded-full text-[13px] transition-colors flex items-center gap-2 ${
+                  className={`min-h-[40px] px-3.5 py-2 rounded-full text-[13px] transition-colors flex items-center gap-2 whitespace-nowrap ${
                     isActive
                       ? 'bg-[#f9f9f9] text-[#262626] font-bold border border-[#e5e7eb]'
                       : 'text-[#727272] hover:text-[#262626] font-medium'
@@ -241,8 +220,49 @@ export const UnifiedNavbar: React.FC = () => {
             })}
           </nav>
 
-          {/* End: Language Switcher, Table Check-In, Guest Profile, and Live Cart */}
+          {/* End: Operations Switcher, Language Switcher, Clean Table Pill (No PIN Clutter), Profile, Cart */}
           <div className="flex items-center gap-2">
+            {/* Operations / Workstations Switcher (KDS, Cashier, Table Stand) */}
+            <div className="relative hidden sm:block" ref={opsDropdownRef}>
+              <button
+                type="button"
+                onClick={() => setOpsDropdownOpen(!opsDropdownOpen)}
+                className="min-h-[40px] px-3.5 py-1.5 rounded-full border border-[#e5e7eb] bg-[#f9f9f9] hover:bg-[#f0f0f0] text-[#262626] text-xs font-semibold inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <ChefHat className="w-3.5 h-3.5 text-[#FF0055]" />
+                <span>{lang === 'eg' ? 'بوابات التشغيل' : 'Operations'}</span>
+                <svg className="w-3 h-3 opacity-60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </button>
+
+              {opsDropdownOpen && (
+                <div className="absolute end-0 mt-2 w-60 rounded-2xl bg-[#f9f9f9] p-1.5 border border-[#e5e7eb] shadow-xl z-50 text-xs select-none">
+                  <div className="bg-white rounded-xl border border-[#e5e7eb] p-2 space-y-1">
+                    {operationsNav.map((op) => {
+                      const Icon = op.icon;
+                      return (
+                        <Link
+                          key={op.to}
+                          to={op.to}
+                          onClick={() => setOpsDropdownOpen(false)}
+                          className="min-h-[40px] px-3 py-2 rounded-lg hover:bg-[#f9f9f9] text-[#262626] font-semibold flex items-center justify-between transition-colors"
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <Icon className="w-4 h-4 text-[#FF0055]" />
+                            <span>{op.label}</span>
+                          </div>
+                          <span className="px-2 py-0.5 rounded-full bg-[#fff0f3] text-[#FF0055] border border-[#ffd1dc] font-mono-num text-[10px] font-bold">
+                            {op.badge}
+                          </span>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* Language Switcher Pill */}
             <button
               type="button"
@@ -254,12 +274,12 @@ export const UnifiedNavbar: React.FC = () => {
               <span>{t('common.switchLanguage')}</span>
             </button>
 
-            {/* Table Selector */}
+            {/* Clean Table Selector (Zero PIN Clutter in Navbar) */}
             <div className="relative" ref={dropdownRef}>
               <button
                 type="button"
                 onClick={() => setTableDropdownOpen(!tableDropdownOpen)}
-                className={`min-h-[40px] px-3.5 py-1.5 rounded-full border text-xs font-semibold transition-colors flex items-center gap-2 cursor-pointer ${
+                className={`min-h-[40px] px-3.5 py-1.5 rounded-full border text-xs font-semibold transition-colors flex items-center gap-2 cursor-pointer whitespace-nowrap ${
                   activeTable
                     ? 'bg-[#fff0f3] text-[#FF0055] border-[#ffd1dc] font-bold'
                     : 'bg-[#f9f9f9] text-[#262626] border-[#e5e7eb] hover:bg-[#f0f0f0]'
@@ -273,29 +293,17 @@ export const UnifiedNavbar: React.FC = () => {
                 <span>
                   {activeTable ? t('nav.tableNumber', { table: activeTable }) : t('nav.selectTable')}
                 </span>
-                {activeTable && sessionPin && (
-                  <span className="hidden sm:inline tabular-nums text-[11px] px-1.5 py-0.5 rounded-full bg-white border border-[#ffd1dc] text-[#262626]">
-                    {t('common.pin')} {sessionPin}
-                  </span>
-                )}
                 <svg className="w-3.5 h-3.5 opacity-60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <polyline points="6 9 12 15 18 9" />
                 </svg>
               </button>
 
               {tableDropdownOpen && (
-                <div className="absolute end-0 mt-2 w-72 rounded-2xl bg-[#f9f9f9] p-1.5 border border-[#e5e7eb] shadow-xl z-50 text-xs select-none">
+                <div className="absolute end-0 mt-2 w-64 rounded-2xl bg-[#f9f9f9] p-1.5 border border-[#e5e7eb] shadow-xl z-50 text-xs select-none">
                   <div className="bg-white rounded-xl border border-[#e5e7eb] p-3.5 space-y-3">
                     <div className="flex items-center justify-between pb-2 border-b border-[#e5e7eb]">
-                      <div className="text-start">
-                        <div className="font-bold text-[#262626]">
-                          {activeTable ? t('nav.tableNumber', { table: activeTable }) : t('nav.selectTable')}
-                        </div>
-                        <div className="text-[11px] text-[#727272]">
-                          {activeTable && sessionPin
-                            ? `${t('common.pin')}: ${sessionPin}`
-                            : t('nav.switchTablePrompt')}
-                        </div>
+                      <div className="font-bold text-[#262626]">
+                        {activeTable ? t('nav.tableNumber', { table: activeTable }) : t('nav.selectTable')}
                       </div>
                       {activeTable && (
                         <button
@@ -353,7 +361,7 @@ export const UnifiedNavbar: React.FC = () => {
               </span>
             </button>
 
-            {/* Live Cart Button (Only visible when cart has dishes) */}
+            {/* Live Cart Button */}
             {totalCartItems > 0 && (
               <button
                 type="button"
@@ -369,11 +377,11 @@ export const UnifiedNavbar: React.FC = () => {
               </button>
             )}
 
-            {/* Mobile Menu Button (< 768px) */}
+            {/* Mobile Menu Button (< 1024px) */}
             <button
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden min-h-[40px] min-w-[40px] p-2 rounded-full border border-[#e5e7eb] bg-[#f9f9f9] text-[#262626] flex items-center justify-center cursor-pointer"
+              className="lg:hidden min-h-[40px] min-w-[40px] p-2 rounded-full border border-[#e5e7eb] bg-[#f9f9f9] text-[#262626] flex items-center justify-center cursor-pointer"
               aria-label={mobileMenuOpen ? t('nav.closeMenu') : t('nav.openMenu')}
             >
               {mobileMenuOpen ? (
@@ -392,10 +400,10 @@ export const UnifiedNavbar: React.FC = () => {
           </div>
         </div>
 
-        {/* Mobile Slide-Down Drawer (< 768px) */}
+        {/* Mobile / Tablet Slide-Down Drawer (< 1024px) */}
         {mobileMenuOpen && (
-          <div className="md:hidden pb-4 pt-3 border-t border-[#e5e7eb] space-y-3">
-            <div className="grid grid-cols-2 gap-2">
+          <div className="lg:hidden pb-4 pt-3 border-t border-[#e5e7eb] space-y-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {customerNav.map((item) => {
                 const isActive = item.pathMatch(location.pathname);
                 return (
@@ -418,6 +426,20 @@ export const UnifiedNavbar: React.FC = () => {
                   </Link>
                 );
               })}
+            </div>
+
+            <div className="pt-2 border-t border-[#e5e7eb] grid grid-cols-3 gap-2">
+              {operationsNav.map((op) => (
+                <Link
+                  key={op.to}
+                  to={op.to}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="min-h-[42px] px-3 py-2 rounded-2xl bg-white border border-[#e5e7eb] text-xs font-semibold text-[#262626] flex items-center justify-between"
+                >
+                  <span>{op.label}</span>
+                  <span className="text-[10px] font-mono-num font-bold text-[#FF0055]">{op.badge}</span>
+                </Link>
+              ))}
             </div>
 
             <div className="pt-2 border-t border-[#e5e7eb] flex items-center justify-between gap-2">
